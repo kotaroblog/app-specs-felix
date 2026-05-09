@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - ロギング方針</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../">Felix Team App Specs</a> / <a href="./">RankingStadium</a> / ロギング方針</div>
+
+  <header class="site-header">
+    <h1>ロギング方針</h1>
+    <p>Logger（os.log）を用いたログ出力ルール</p>
+  </header>
+
+  <h2>基本方針</h2>
+  <div class="callout">
+    <strong><code>print()</code> は禁止</strong>。<code>Logger</code>（os.log）を使用する（CLAUDE.md準拠）。
+  </div>
+
+  <h2>共通設定</h2>
+  <pre><code>import OSLog
+
+// すべて以下のサブシステム名で統一
+private static let subsystem = "com.happyboy1002.RankingStadium"</code></pre>
+
+  <h2>カテゴリ一覧</h2>
+  <table>
+    <tr><th>カテゴリ</th><th>用途</th><th>使用箇所</th></tr>
+    <tr><td><code>Auth</code></td><td>認証処理</td><td>AuthViewModel</td></tr>
+    <tr><td><code>AppleSignIn</code></td><td>Apple Sign In実装</td><td>AppleSignInService</td></tr>
+    <tr><td><code>Vote</code></td><td>投票処理</td><td>VoteService, VoteView</td></tr>
+    <tr><td><code>Point</code></td><td>ポイント取引</td><td>PointService</td></tr>
+    <tr><td><code>Ranking</code></td><td>ランキング作成・取得</td><td>RankingService</td></tr>
+    <tr><td><code>StoreKit</code></td><td>課金処理</td><td>StoreKitService</td></tr>
+    <tr><td><code>Notification</code></td><td>通知処理</td><td>NotificationService</td></tr>
+    <tr><td><code>Follow</code></td><td>フォロー処理</td><td>FollowService</td></tr>
+    <tr><td><code>Feedback</code></td><td>フィードバック送信</td><td>FeedbackService</td></tr>
+    <tr><td><code>Report</code></td><td>通報処理</td><td>ReportService</td></tr>
+    <tr><td><code>ChoiceRequests</code></td><td>選択肢申請</td><td>ChoiceRequestService</td></tr>
+    <tr><td><code>Home</code></td><td>ホーム画面</td><td>HomeViewModel</td></tr>
+    <tr><td><code>MyPage</code></td><td>マイページ</td><td>MyPageViewModel</td></tr>
+    <tr><td><code>DraftList</code></td><td>下書き一覧</td><td>DraftListView</td></tr>
+    <tr><td><code>SetupProfile</code></td><td>初期プロフィール設定</td><td>SetupProfileView</td></tr>
+    <tr><td><code>FeedbackView</code></td><td>フィードバック画面</td><td>FeedbackView</td></tr>
+    <tr><td><code>PaywallView</code></td><td>Paywall画面</td><td>PaywallView</td></tr>
+    <tr><td><code>QuizGate</code></td><td>クイズゲート</td><td>QuizGateView</td></tr>
+    <tr><td><code>RankUp</code></td><td>ランクアップ演出</td><td>RankUpCelebrationView</td></tr>
+    <tr><td><code>ResultLocked</code></td><td>結果ロック画面</td><td>ResultLockedView</td></tr>
+  </table>
+
+  <h2>使用例</h2>
+  <pre><code>private static let logger = Logger(
+    subsystem: "com.happyboy1002.RankingStadium",
+    category: "Vote"
+)
+
+// 通常イベント
+logger.info("投票完了: rankingId=\(rankingId, privacy: .public)")
+
+// 警告
+logger.warning("既投票検出: ユーザーが再送信しました")
+
+// エラー
+logger.error("投票失敗: \(error.localizedDescription, privacy: .public)")</code></pre>
+
+  <h2>ログレベルの使い分け</h2>
+  <table>
+    <tr><th>レベル</th><th>用途</th><th>例</th></tr>
+    <tr><td><code>.debug</code></td><td>開発時のみ確認したい情報</td><td>VM初期化、画面遷移</td></tr>
+    <tr><td><code>.info</code></td><td>通常のイベント</td><td>ログイン成功、投票完了、ポイント消費</td></tr>
+    <tr><td><code>.notice</code></td><td>注目すべきイベント</td><td>初回起動、サブスク購入</td></tr>
+    <tr><td><code>.warning</code></td><td>異常だが継続可能</td><td>RetryHelper再試行、Unique制約検出</td></tr>
+    <tr><td><code>.error</code></td><td>機能継続不可</td><td>Supabase通信失敗、StoreKit verification失敗</td></tr>
+    <tr><td><code>.critical</code></td><td>アプリ継続不可</td><td>未使用</td></tr>
+  </table>
+
+  <h2>プライバシー対応</h2>
+  <div class="callout warn">
+    Apple Sign In のIDトークン、Supabase Anon Key、ユーザーのメールアドレス等は <strong>絶対にログ出力しない</strong>。
+    ログ出力する識別子（ユーザーID、ランキングID）は <code>privacy: .public</code> を明示。
+  </div>
+
+  <pre><code>// OK
+logger.info("投票完了: userId=\(userId, privacy: .public)")
+
+// NG（メールアドレス出力）
+logger.info("ログイン: \(user.email)")
+
+// OK（私的データ扱い）
+logger.info("ログイン: \(user.email, privacy: .private)")</code></pre>
+
+  <h2>ログの確認方法</h2>
+  <p>
+    macOS の Console.app でデバイスを選択し、<code>subsystem == com.happyboy1002.RankingStadium</code> でフィルタすると当該アプリのログのみ確認可能。
+  </p>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - ロギング方針</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../">Felix Team App Specs</a> / <a href="./">DailyTips</a> / ロギング方針</div>
+
+  <header class="site-header">
+    <h1>ロギング方針</h1>
+    <p>Logger（os.log）を用いたログ出力ルール</p>
+  </header>
+
+  <h2>基本方針</h2>
+  <div class="callout">
+    <strong><code>print()</code> は禁止</strong>。<code>Logger</code>（os.log）を使用する（CLAUDE.md準拠）。
+  </div>
+
+  <h2>共通設定</h2>
+  <pre><code>import OSLog
+
+private static let logger = Logger(
+    subsystem: Bundle.main.bundleIdentifier ?? "com.happyboy1002.DailyTips",
+    category: "[クラス名]"
+)</code></pre>
+
+  <h2>カテゴリ一覧</h2>
+  <table>
+    <tr><th>カテゴリ</th><th>用途</th><th>使用箇所</th></tr>
+    <tr><td><code>CoinService</code></td><td>コイン残高・ボーナス管理</td><td>CoinService</td></tr>
+    <tr><td><code>ThemeService</code></td><td>テーマ購入・選択</td><td>ThemeService</td></tr>
+    <tr><td><code>PremiumService</code></td><td>サブスク管理</td><td>PremiumService</td></tr>
+    <tr><td><code>NotificationService</code></td><td>ローカル通知</td><td>NotificationService</td></tr>
+    <tr><td><code>QuizService</code></td><td>豆知識クイズ</td><td>QuizService</td></tr>
+    <tr><td><code>GenreQuizService</code></td><td>ジャンルクイズ</td><td>GenreQuizService</td></tr>
+    <tr><td><code>GenreProgressService</code></td><td>進捗管理</td><td>GenreProgressService</td></tr>
+    <tr><td><code>FavoriteService</code></td><td>お気に入り</td><td>FavoriteService</td></tr>
+    <tr><td><code>HistoryService</code></td><td>ログイン履歴</td><td>HistoryService</td></tr>
+    <tr><td><code>ReviewService</code></td><td>レビュー誘導</td><td>ReviewService</td></tr>
+    <tr><td><code>ShareService</code></td><td>SNS共有</td><td>ShareService</td></tr>
+    <tr><td><code>RewardedAdManager</code></td><td>Rewarded広告</td><td>RewardedAdManager</td></tr>
+    <tr><td><code>InterstitialAdManager</code></td><td>Interstitial広告</td><td>InterstitialAdManager</td></tr>
+    <tr><td><code>AppOpenAdManager</code></td><td>AppOpen広告</td><td>AppOpenAdManager</td></tr>
+    <tr><td><code>TipLoaderService</code></td><td>豆知識読込</td><td>TipLoaderService</td></tr>
+    <tr><td><code>AppViewModel</code></td><td>アプリ全体状態</td><td>AppViewModel</td></tr>
+    <tr><td><code>Widget</code></td><td>Widget拡張</td><td>SmallTipWidget, MediumCalendarWidget</td></tr>
+  </table>
+
+  <h2>使用例</h2>
+  <pre><code>private static let logger = Logger(
+    subsystem: Bundle.main.bundleIdentifier ?? "",
+    category: "CoinService"
+)
+
+// 通常イベント
+logger.info("ログインボーナス付与: streak=\(streak)")
+
+// 警告
+logger.warning("動画ボーナス上限到達")
+
+// エラー
+logger.error("daily_tips.json decode失敗: \(error.localizedDescription)")</code></pre>
+
+  <h2>ログレベルの使い分け</h2>
+  <table>
+    <tr><th>レベル</th><th>用途</th><th>例</th></tr>
+    <tr><td><code>.debug</code></td><td>開発時のみ確認したい情報</td><td>Widget タイムライン更新</td></tr>
+    <tr><td><code>.info</code></td><td>通常のイベント</td><td>ログイン、コイン消費、テーマ購入</td></tr>
+    <tr><td><code>.notice</code></td><td>注目すべきイベント</td><td>初回起動、サブスク購入、ジャンル全アンロック</td></tr>
+    <tr><td><code>.warning</code></td><td>異常だが継続可能</td><td>広告ロード失敗、AppGroup nil検出</td></tr>
+    <tr><td><code>.error</code></td><td>機能継続不可</td><td>JSON decode失敗、StoreKit verification失敗</td></tr>
+  </table>
+
+  <h2>プライバシー対応</h2>
+  <div class="callout warn">
+    StoreKit のトランザクションID、Apple ID、デバイス識別子等は <strong>ログ出力しない</strong>。
+    識別子（豆知識ID、ジャンルID）は <code>privacy: .public</code> を明示。
+  </div>
+
+  <h2>Widget 拡張のロギング</h2>
+  <p>
+    Widget 拡張からのログも同じ subsystem に集約される。Console.app で <code>subsystem == com.happyboy1002.DailyTips</code> でフィルタすると、本体・Widget双方のログが見える。
+  </p>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

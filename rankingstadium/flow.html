@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - 画面遷移図</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../">Felix Team App Specs</a> / <a href="./">RankingStadium</a> / 画面遷移図</div>
+
+  <header class="site-header">
+    <h1>画面遷移図</h1>
+    <p>RankingStadium 全画面の遷移マップ（ContentView 起点）</p>
+  </header>
+
+  <div class="callout">
+    認証状態（AuthViewModel.authState）によって ContentView の表示先が分岐。
+    <code>CreateRankingView</code> は自前 NavigationStack を持たず、呼び出し元（MainTabView/MyPageView）が wrap する設計。
+  </div>
+
+  <h2>起動〜認証フロー</h2>
+  <div class="mermaid">
+flowchart TD
+  Launch([起動]) --> ContentView{ContentView}
+  ContentView -- loading --> Splash[SplashView]
+  ContentView -- unauthenticated --> Login[LoginView]
+  ContentView -- needsSetup --> Setup[SetupProfileView]
+  ContentView -- authenticated --> Main[MainTabView]
+  Login -- Apple Sign In成功 --> Setup
+  Setup -- 初回設定完了 --> Main
+  </div>
+
+  <h2>メインタブ構成</h2>
+  <div class="mermaid">
+flowchart LR
+  Main[MainTabView] --> THome[Tab: home]
+  Main --> TSearch[Tab: search]
+  Main --> TCreate[Tab: create]
+  Main --> TMypage[Tab: mypage]
+  Main --> TSettings[Tab: settings]
+
+  THome --> Home[HomeView]
+  TSearch --> Search[SearchView]
+  TCreate --> CreateNS[NavigationStack: CreateRanking]
+  TMypage --> MyPage[MyPageView]
+  TSettings --> Settings[SettingsView]
+  </div>
+
+  <h2>ホーム経路</h2>
+  <div class="mermaid">
+flowchart TD
+  Home[HomeView<br/>Active/Ended切替] --> Notif[NotificationListView]
+  Home --> Detail[RankingDetailView]
+  Detail -- hasQuiz=true --> Quiz[QuizGateView]
+  Quiz -- 全問正解 --> VoteRoute{投票モード}
+  Detail -- hasQuiz=false --> VoteRoute
+  VoteRoute -- single --> Vote[VoteView]
+  VoteRoute -- threePoint --> ThreeVote[ThreePointVoteView]
+  Vote --> Result[ResultView]
+  ThreeVote --> Result
+  Detail -- 期間終了かつ未投票かつ閲覧不可 --> Locked[ResultLockedView]
+  Detail -- 投票済 or 閲覧権限あり --> Result
+  </div>
+
+  <h2>ランキング作成フロー</h2>
+  <div class="mermaid">
+flowchart LR
+  CreateNS[Tab: create] --> CR[CreateRankingView]
+  CR --> S1[Step1: 基本情報]
+  S1 --> S2[Step2: 選択肢]
+  S2 --> SQ{quiz付き?}
+  SQ -- yes --> SQuiz[StepQuiz: クイズ]
+  SQuiz --> S3[Step3: 期間/モード]
+  SQ -- no --> S3
+  S3 --> S4[Step4: プレビュー]
+  S4 -- 公開 --> Home
+  CR -. toolbar .-> Drafts[DraftListView]
+  Drafts -- 下書き選択 --> CR
+  </div>
+
+  <h2>マイページ・設定経路</h2>
+  <div class="mermaid">
+flowchart TD
+  MyPage[MyPageView] --> Profile[ProfileView]
+  MyPage --> ChoiceRequests[ChoiceRequestsListView]
+  MyPage --> CR2[CreateRankingView<br/>下書き編集]
+
+  Settings[SettingsView] --> Paywall[PaywallView]
+  Settings --> Feedback[FeedbackView]
+  Paywall --> PlanSelect[PaywallPlanSelectionView]
+  PlanSelect --> Purchase[PaywallPurchaseButton]
+  Purchase -- StoreKit成功 --> Settings
+  </div>
+
+  <h2>主要な遷移トリガー</h2>
+  <table>
+    <tr><th>起点画面</th><th>操作</th><th>遷移先</th></tr>
+    <tr><td>ContentView</td><td>authState 変化</td><td>Splash/Login/Setup/Main</td></tr>
+    <tr><td>HomeView</td><td>ランキングカード タップ</td><td>RankingDetailView</td></tr>
+    <tr><td>HomeView</td><td>通知ベルアイコン</td><td>NotificationListView</td></tr>
+    <tr><td>RankingDetailView</td><td>「投票する」（quiz無）</td><td>VoteView / ThreePointVoteView</td></tr>
+    <tr><td>RankingDetailView</td><td>「投票する」（quiz有）</td><td>QuizGateView</td></tr>
+    <tr><td>QuizGateView</td><td>全問正解</td><td>投票画面</td></tr>
+    <tr><td>VoteView/ThreePointVoteView</td><td>投票完了</td><td>ResultView</td></tr>
+    <tr><td>SearchView</td><td>検索結果カード</td><td>RankingDetailView</td></tr>
+    <tr><td>MyPageView</td><td>下書き編集</td><td>CreateRankingView（編集mode）</td></tr>
+    <tr><td>SettingsView</td><td>「Pro版にアップグレード」</td><td>PaywallView</td></tr>
+    <tr><td>SettingsView</td><td>「フィードバック送信」</td><td>FeedbackView</td></tr>
+  </table>
+
+  <h2>画面ID対応表</h2>
+  <table>
+    <tr><th>画面ID</th><th>画面名</th><th>ファイル</th></tr>
+    <tr><td>RS-AUTH-01</td><td>ログイン</td><td><code>Views/Shared/LoginView.swift</code></td></tr>
+    <tr><td>RS-AUTH-02</td><td>初期プロフィール設定</td><td><code>Views/Shared/SetupProfileView.swift</code></td></tr>
+    <tr><td>RS-HOME-01</td><td>ホーム</td><td><code>Views/Home/HomeView.swift</code></td></tr>
+    <tr><td>RS-HOME-02</td><td>通知一覧</td><td><code>Views/Home/NotificationListView.swift</code></td></tr>
+    <tr><td>RS-VOTE-01</td><td>ランキング詳細</td><td><code>Views/Vote/RankingDetailView.swift</code></td></tr>
+    <tr><td>RS-VOTE-02</td><td>シングル投票</td><td><code>Views/Vote/VoteView.swift</code></td></tr>
+    <tr><td>RS-VOTE-03</td><td>TOP3投票</td><td><code>Views/Vote/ThreePointVoteView.swift</code></td></tr>
+    <tr><td>RS-VOTE-04</td><td>結果画面</td><td><code>Views/Vote/ResultView.swift</code></td></tr>
+    <tr><td>RS-VOTE-05</td><td>結果ロック画面</td><td><code>Views/Vote/ResultLockedView.swift</code></td></tr>
+    <tr><td>RS-VOTE-06</td><td>クイズゲート</td><td><code>Views/Vote/QuizGateView.swift</code></td></tr>
+    <tr><td>RS-CR-01</td><td>ランキング作成（統括）</td><td><code>Views/Ranking/CreateRankingView.swift</code></td></tr>
+    <tr><td>RS-CR-02〜05</td><td>作成ステップ1〜4</td><td><code>Views/Ranking/Step*.swift</code></td></tr>
+    <tr><td>RS-CR-06</td><td>下書き一覧</td><td><code>Views/Ranking/DraftListView.swift</code></td></tr>
+    <tr><td>RS-SEARCH-01</td><td>検索</td><td><code>Views/Search/SearchView.swift</code></td></tr>
+    <tr><td>RS-PROFILE-01</td><td>ユーザープロフィール</td><td><code>Views/Profile/ProfileView.swift</code></td></tr>
+    <tr><td>RS-MYPAGE-01</td><td>マイページ</td><td><code>Views/MyPage/MyPageView.swift</code></td></tr>
+    <tr><td>RS-SET-01</td><td>設定</td><td><code>Views/Settings/SettingsView.swift</code></td></tr>
+    <tr><td>RS-PAY-01〜05</td><td>Paywall関連</td><td><code>Views/Settings/Paywall*.swift</code></td></tr>
+  </table>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
+  </table>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default',
+      flowchart: { curve: 'basis', useMaxWidth: true }
+    });
+  </script>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - 画面遷移図</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../">Felix Team App Specs</a> / <a href="./">DailyTips</a> / 画面遷移図</div>
+
+  <header class="site-header">
+    <h1>画面遷移図</h1>
+    <p>DailyTips 全画面の遷移マップ</p>
+  </header>
+
+  <div class="callout">
+    HomeViewの内側に「今日ページ」と「カレンダーページ」をTabViewで切り替える二層構造。各種ショップ・設定はsheetで起動する。
+  </div>
+
+  <h2>起動〜メインフロー</h2>
+  <div class="mermaid">
+flowchart TD
+  Launch([起動]) --> App[DailyTipsApp]
+  App -- ATT要求 --> AppOpen[AppOpenAd ロード]
+  AppOpen --> Home[HomeView<br/>TabView]
+  Home --> Today[今日ページ]
+  Home --> Calendar[カレンダーページ]
+  Home -.-> Review{起動5回目/20回目?}
+  Review -- yes --> RequestReview[in-app review表示]
+  </div>
+
+  <h2>今日ページ経路</h2>
+  <div class="mermaid">
+flowchart LR
+  Today[今日ページ] --> TipCard[TipCardView<br/>豆知識カード]
+  TipCard -- ♥ --> Fav[(お気に入り更新)]
+  TipCard -- 共有 --> Share[ShareCardView<br/>SNS共有]
+  TipCard -- クイズ --> Quiz[QuizView]
+  Today -. settings .-> Settings[SettingsView]
+  Today -. テーマ .-> ThemeShop[ThemeShopView]
+  Today -. ジャンル .-> GenreShop[GenreQuizShopView]
+  Today -. プレミアム .-> Premium[PremiumView]
+  Today -. お気に入り .-> Favorites[FavoritesView]
+  Today -. 動画ボーナス .-> RewardAd[Rewarded広告<br/>+3pt]
+  </div>
+
+  <h2>カレンダーページ経路</h2>
+  <div class="mermaid">
+flowchart TD
+  Calendar[カレンダーページ] --> Day{日付タップ}
+  Day -- 表示可能 --> ShowTip[TipCardView表示]
+  Day -- ロック --> Alert{広告視聴で解放?}
+  Alert -- yes --> Reward[Rewarded広告]
+  Reward -- 報酬 --> Mark[markAsAdViewed]
+  Mark --> ShowTip
+  Alert -- no --> Cancel[キャンセル]
+  ShowTip -- クイズあり --> QuizSheet[QuizView]
+  </div>
+
+  <h2>ジャンルクイズフロー</h2>
+  <div class="mermaid">
+flowchart LR
+  GenreShop[GenreQuizShopView] --> GCard{ジャンルカード}
+  GCard -- 未アンロック --> Buy[購入<br/>100pt消費]
+  GCard -- アンロック済 --> Mode{プレイモード}
+  Buy --> Mode
+  Mode --> Random[ランダム]
+  Mode --> Sequential[順番通り]
+  Mode --> Continued[続きから]
+  Random --> Play[GenreQuizPlayView]
+  Sequential --> Play
+  Continued --> Play
+  Play -- 開始時 --> Interstitial[Interstitial広告]
+  Play -- 履歴 --> History[GenreQuizHistoryView]
+  Play -- 進捗 --> Progress[GenreProgressView]
+  </div>
+
+  <h2>ショップ・課金経路</h2>
+  <div class="mermaid">
+flowchart TD
+  ThemeShop[ThemeShopView] --> ThemeCard{テーマ}
+  ThemeCard -- 無料 --> Apply[適用]
+  ThemeCard -- 有料 --> BuyTheme[200pt消費購入]
+  BuyTheme --> Apply
+
+  Premium[PremiumView] --> Plan{プラン選択}
+  Plan -- 月額 --> SK1[StoreKit購入]
+  Plan -- 年額 --> SK2[StoreKit購入]
+  SK1 -- 成功 --> Refresh[premiumStatus更新]
+  SK2 -- 成功 --> Refresh
+  </div>
+
+  <h2>主要な遷移トリガー</h2>
+  <table>
+    <tr><th>起点画面</th><th>操作</th><th>遷移先</th></tr>
+    <tr><td>HomeView</td><td>TabView スワイプ</td><td>今日 ⇄ カレンダー</td></tr>
+    <tr><td>TipCardView</td><td>クイズボタン</td><td>QuizView (.sheet)</td></tr>
+    <tr><td>HomeView</td><td>設定ボタン</td><td>SettingsView (.sheet)</td></tr>
+    <tr><td>HomeView</td><td>動画ボーナスボタン</td><td>Rewarded広告 → +3pt</td></tr>
+    <tr><td>CalendarView</td><td>ロック日タップ</td><td>解放アラート → Rewarded広告</td></tr>
+    <tr><td>GenreQuizShop</td><td>ジャンル購入</td><td>100pt消費 → アンロック</td></tr>
+    <tr><td>ThemeShop</td><td>テーマ購入</td><td>200pt消費 → 適用</td></tr>
+    <tr><td>PremiumView</td><td>プラン購入</td><td>StoreKit → サブスク開始</td></tr>
+    <tr><td>SettingsView</td><td>キャッシュクリア</td><td>UserDefaults初期化</td></tr>
+    <tr><td>Widget（Small）</td><td>タップ</td><td>HomeView 起動</td></tr>
+  </table>
+
+  <h2>画面ID対応表</h2>
+  <table>
+    <tr><th>画面ID</th><th>画面名</th><th>ファイル</th></tr>
+    <tr><td>DT-HOME-01</td><td>ホーム（TabView）</td><td><code>Views/Home/HomeView.swift</code></td></tr>
+    <tr><td>DT-HOME-02</td><td>豆知識カード</td><td><code>Views/Home/TipCardView.swift</code></td></tr>
+    <tr><td>DT-HOME-03</td><td>お気に入り一覧</td><td><code>Views/Home/FavoritesView.swift</code></td></tr>
+    <tr><td>DT-HOME-04</td><td>共有カード</td><td><code>Views/Home/ShareCardView.swift</code></td></tr>
+    <tr><td>DT-CAL-01</td><td>カレンダー</td><td><code>Views/Calendar/CalendarView.swift</code></td></tr>
+    <tr><td>DT-QUIZ-01</td><td>豆知識クイズ</td><td><code>Views/Quiz/QuizView.swift</code></td></tr>
+    <tr><td>DT-GQS-01</td><td>ジャンルクイズショップ</td><td><code>Views/GenreQuizShop/GenreQuizShopView.swift</code></td></tr>
+    <tr><td>DT-GQS-02</td><td>ジャンルクイズプレイ</td><td><code>Views/GenreQuizShop/GenreQuizPlayView.swift</code></td></tr>
+    <tr><td>DT-GQS-03</td><td>ジャンルクイズ履歴</td><td><code>Views/GenreQuizShop/GenreQuizHistoryView.swift</code></td></tr>
+    <tr><td>DT-GQS-04</td><td>進捗ダッシュボード</td><td><code>Views/GenreQuizShop/GenreProgressView.swift</code></td></tr>
+    <tr><td>DT-TH-01</td><td>テーマショップ</td><td><code>Views/ThemeShop/ThemeShopView.swift</code></td></tr>
+    <tr><td>DT-PRM-01</td><td>Premium購入</td><td><code>Views/Premium/PremiumView.swift</code></td></tr>
+    <tr><td>DT-SET-01</td><td>設定</td><td><code>Views/Settings/SettingsView.swift</code></td></tr>
+    <tr><td>DT-SET-02</td><td>プライバシーポリシー</td><td><code>Views/Settings/PrivacyPolicyView.swift</code></td></tr>
+    <tr><td>DT-WID-01</td><td>SmallTipWidget</td><td><code>DailyTipsWidget/SmallTipWidget.swift</code></td></tr>
+    <tr><td>DT-WID-02</td><td>MediumCalendarWidget</td><td><code>DailyTipsWidget/MediumCalendarWidget.swift</code></td></tr>
+  </table>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
+  </table>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default',
+      flowchart: { curve: 'basis', useMaxWidth: true }
+    });
+  </script>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

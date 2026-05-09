@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - データモデル</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../">Felix Team App Specs</a> / <a href="./">RankingStadium</a> / データモデル</div>
+
+  <header class="site-header">
+    <h1>データモデル</h1>
+    <p>Supabase（PostgreSQL）テーブル ⇔ Swift Codable モデルの対応</p>
+  </header>
+
+  <div class="callout">
+    本アプリは <strong>SwiftDataではなく Supabase</strong> をバックエンドに採用。各モデルは struct + Codable で定義し、Supabase クライアント経由で読み書き。RLS（Row Level Security）でユーザー権限を制御。
+  </div>
+
+  <h2>ER 図（主要テーブル）</h2>
+  <div class="mermaid">
+erDiagram
+  AppUser ||--o{ Ranking : creates
+  AppUser ||--o{ Vote : casts
+  AppUser ||--o{ PointTransaction : has
+  AppUser ||--o{ AppNotification : receives
+  AppUser ||--o{ Follow : "follows/followed_by"
+  Ranking ||--o{ Choice : contains
+  Ranking ||--o{ Vote : "voted on"
+  Ranking ||--o{ Quiz : has
+  Ranking ||--o{ ChoiceRequest : "requested for"
+  Ranking ||--o{ Report : reported
+  Choice ||--o{ Vote : "selected by"
+
+  AppUser {
+    UUID id
+    String displayName
+    Bool isPremium
+    Int points
+    Int loginStreak
+    Int freeCreationRemaining
+  }
+  Ranking {
+    UUID id
+    UUID creatorId
+    String title
+    String majorTag
+    String minorTag
+    String mode "single|threePoint"
+    String status "draft|active|ended|held|suspended|deleted"
+    Bool hasQuiz
+    Int voteCount
+    String voteTier "G..S"
+    Date startsAt
+    Date endsAt
+    Bool isPublic
+    Bool isAnonymous
+  }
+  Choice {
+    UUID id
+    UUID rankingId
+    String label
+    String shortLabel
+    String imageUrl
+    String imageStatus
+    Int displayOrder
+    Int voteCount
+  }
+  Vote {
+    UUID id
+    UUID rankingId
+    UUID userId
+    UUID choiceId
+    Int points
+    Int voteNumber
+    String ipHash
+    String deviceHash
+  }
+  Quiz {
+    UUID id
+    UUID rankingId
+    String question
+    String correctAnswer
+    String answerHint
+    Int displayOrder
+  }
+  </div>
+
+  <h2>主要モデル</h2>
+
+  <h3>AppUser</h3>
+  <pre><code>struct AppUser: Codable, Identifiable {
+    let id: UUID
+    var displayName: String
+    var isPremium: Bool
+    var points: Int
+    var loginStreak: Int
+    var freeCreationRemaining: Int
+    // ... 他プロフィール項目
+}</code></pre>
+
+  <h3>Ranking</h3>
+  <pre><code>struct Ranking: Codable, Identifiable {
+    let id: UUID
+    let creatorId: UUID
+    var title: String
+    var majorTag: String
+    var minorTag: String?
+    var mode: RankingMode       // single / threePoint
+    var status: RankingStatus   // draft, active, ended, ...
+    var hasQuiz: Bool
+    var voteCount: Int
+    var voteTier: VoteTier      // G〜S
+    var startsAt: Date
+    var endsAt: Date
+    var isPublic: Bool
+    var isAnonymous: Bool
+    var deletedAt: Date?
+    var pointsConsumed: Int
+}</code></pre>
+
+  <h3>Choice / Vote / Quiz</h3>
+  <pre><code>struct Choice: Codable, Identifiable {
+    let id: UUID
+    let rankingId: UUID
+    var label: String
+    var shortLabel: String?
+    var imageUrl: String?
+    var imageStatus: String?    // pending, approved 等
+    var displayOrder: Int
+    var voteCount: Int
+}
+
+struct Vote: Codable, Identifiable {
+    let id: UUID
+    let rankingId: UUID
+    let userId: UUID
+    let choiceId: UUID
+    let points: Int             // 投票時の消費ポイント
+    let voteNumber: Int         // 1=初投票, 2=revote1, 3=revote2
+    let ipHash: String?
+    let deviceHash: String?
+}
+
+struct Quiz: Codable, Identifiable {
+    let id: UUID
+    let rankingId: UUID
+    let question: String
+    let correctAnswer: String
+    let answerHint: String?
+    let displayOrder: Int
+}</code></pre>
+
+  <h3>その他のモデル</h3>
+  <ul>
+    <li><code>ChoiceRequest</code> — 選択肢追加申請（status: pending/approved/rejected, aiSuggestion含む）</li>
+    <li><code>AppNotification</code> — ユーザー通知（type, message, isRead）</li>
+    <li><code>PointTransaction</code> — ポイント取引履歴（action, amount）</li>
+    <li><code>Report</code> — 通報（reason: discrimination/violence/sexual/spam等, isResolved）</li>
+    <li><code>Feedback</code> — ユーザー意見（message, metadata）</li>
+    <li><code>Follow</code> — フォロー関係（followerId, followedId）</li>
+    <li><code>TagDefinition</code> — タグマスタ</li>
+  </ul>
+
+  <h2>主要 Enum</h2>
+  <table>
+    <tr><th>Enum</th><th>ケース</th></tr>
+    <tr><td><code>RankingStatus</code></td><td>draft / active / ended / held / suspended / deleted</td></tr>
+    <tr><td><code>RankingMode</code></td><td>single（シングル） / threePoint（TOP3）</td></tr>
+    <tr><td><code>VoteTier</code></td><td>G / F / E / D / C / B / A / S（投票数帯）</td></tr>
+    <tr><td><code>PointAction</code></td><td>loginBonus / adReward / createRanking / revote1 / revote2 / viewResult / cancelRefund 他15種</td></tr>
+    <tr><td><code>ReportReason</code></td><td>discrimination / violence / selfHarm / sexual / illegal / personalInfo / spam / other</td></tr>
+    <tr><td><code>ChoiceRequestStatus</code></td><td>pending / approved / rejected</td></tr>
+  </table>
+
+  <h2>ポイント消費表</h2>
+  <table>
+    <tr><th>アクション</th><th>消費ポイント</th></tr>
+    <tr><td>ランキング作成（基本）</td><td>20pt</td></tr>
+    <tr><td>クイズ付与</td><td>+15pt</td></tr>
+    <tr><td>TOP3ランキング</td><td>20pt</td></tr>
+    <tr><td>選択肢拡張 +10</td><td>10pt</td></tr>
+    <tr><td>選択肢拡張 +15</td><td>20pt</td></tr>
+    <tr><td>期間延長 +7日</td><td>10pt</td></tr>
+    <tr><td>期間延長 +14日</td><td>20pt</td></tr>
+    <tr><td>1回目の再投票</td><td>3pt</td></tr>
+    <tr><td>2回目の再投票</td><td>7pt</td></tr>
+    <tr><td>結果閲覧（条件付）</td><td>1〜3pt</td></tr>
+  </table>
+
+  <h2>整合性に関する注意</h2>
+  <div class="callout warn">
+    <strong>非アトミック操作</strong>: <code>RankingService.createRanking()</code> と <code>VoteService.castVote()</code> は複数の Supabase RPC/INSERT をシーケンシャル実行する。途中失敗時の整合性を保証するため、本番運用では Edge Function 化を検討すること。
+  </div>
+
+  <div class="callout warn">
+    <strong>二重付与防止</strong>: <code>PointService.claimLoginBonus()</code> はクライアント側 <code>lastLoginDate</code> + DB <code>point_transactions</code> の二層チェックで日次ボーナスの二重付与を防いでいる。
+  </div>
+
+  <h2>関連ファイル</h2>
+  <ul>
+    <li><code>RankingStadium/Models/AppUser.swift</code></li>
+    <li><code>RankingStadium/Models/Ranking.swift</code></li>
+    <li><code>RankingStadium/Models/Choice.swift</code></li>
+    <li><code>RankingStadium/Models/Vote.swift</code></li>
+    <li><code>RankingStadium/Models/Quiz.swift</code></li>
+    <li><code>RankingStadium/Models/ChoiceRequest.swift</code></li>
+    <li><code>RankingStadium/Models/AppNotification.swift</code></li>
+    <li><code>RankingStadium/Models/PointTransaction.swift</code></li>
+    <li><code>RankingStadium/Models/Report.swift</code></li>
+    <li><code>RankingStadium/Models/Feedback.swift</code></li>
+    <li><code>RankingStadium/Models/TagDefinition.swift</code></li>
+    <li><code>RankingStadium/Services/SupabaseService.swift</code></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
+  </table>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default'
+    });
+  </script>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

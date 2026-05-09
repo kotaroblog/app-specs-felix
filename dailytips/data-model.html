@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - データモデル</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../">Felix Team App Specs</a> / <a href="./">DailyTips</a> / データモデル</div>
+
+  <header class="site-header">
+    <h1>データモデル</h1>
+    <p>Codable モデル + UserDefaults（AppGroup） + Bundle JSONリソース</p>
+  </header>
+
+  <div class="callout">
+    本アプリは <strong>SwiftData/Realm を使わず、UserDefaults（AppGroup）+ Bundle JSON</strong> の構成。
+    豆知識・ジャンルクイズの問題はBundle内JSON（read-only）、ユーザーの状態（コイン残高・お気に入り・テーマ・履歴）はAppGroup UserDefaultsに保存。Widget拡張も同じAppGroupを参照。
+  </div>
+
+  <h2>データソース構成</h2>
+  <div class="mermaid">
+flowchart LR
+  Bundle[Bundle JSON<br/>豆知識・ジャンルクイズ] --> Loader[TipLoaderService<br/>GenreQuizService]
+  Loader --> ViewModel[AppViewModel]
+  AppGroup[AppGroup UserDefaults<br/>group.com.happyboy1002.DailyTips]
+  AppGroup --> Coin[CoinService]
+  AppGroup --> Theme[ThemeService]
+  AppGroup --> Fav[FavoriteService]
+  AppGroup --> Hist[HistoryService]
+  AppGroup --> Genre[GenreProgressService]
+  ViewModel --> Sync[syncWidgetData]
+  Sync --> WTip[WidgetTipData]
+  Sync --> WCal[WidgetCalendarData]
+  WTip -. AppGroup経由 .-> Widget[Widget拡張]
+  WCal -. AppGroup経由 .-> Widget
+  </div>
+
+  <h2>モデル一覧</h2>
+
+  <h3>DailyTip / TipQuiz</h3>
+  <pre><code>struct DailyTip: Identifiable, Equatable {
+    let id: String
+    let title: String
+    let content: String
+    let category: String
+    let quiz: TipQuiz?
+}
+
+struct TipQuiz: Codable, Sendable, Equatable {
+    let question: String
+    let choices: [String]
+    let correct: Int
+}</code></pre>
+
+  <h3>GenreQuizQuestion / GenreDefinition</h3>
+  <pre><code>struct GenreQuizQuestion: Identifiable, Equatable {
+    let id: String
+    let question: String
+    let choices: [String]
+    let correct: Int
+    let explanation: String?
+}
+
+struct GenreDefinition: Identifiable, Equatable {
+    let id: String
+    let name: String
+    let icon: String     // SF Symbol
+    let cost: Int        // 100pt
+}
+
+enum GenrePlayMode {
+    case random
+    case sequential
+    case continued
+}</code></pre>
+
+  <h3>AppThemeItem</h3>
+  <pre><code>struct AppThemeItem: Identifiable, Equatable {
+    let id: String
+    let name: String
+    let cost: Int             // 0（無料）or 200
+    let colors: [Color]
+    let begin: UnitPoint
+    let end: UnitPoint
+}</code></pre>
+
+  <h3>WidgetSharedData（AppGroup共有）</h3>
+  <pre><code>struct WidgetTipData: Codable, Sendable {
+    let title: String
+    let category: String
+    let dateKey: String
+    let updatedAt: Date
+
+    static func load() -> WidgetTipData? { /* AppGroup UserDefaultsから読込 */ }
+}
+
+struct WidgetCalendarData: Codable, Sendable {
+    let loginDaysThisWeek: [Bool]   // 7要素
+    let loginStreak: Int
+    let updatedAt: Date
+
+    static func load() -> WidgetCalendarData? { /* 同上 */ }
+}
+
+enum WidgetAppGroup {
+    static let suiteName = "group.com.happyboy1002.DailyTips"
+    static let tipDataKey = "widgetTipData"
+    static let calendarDataKey = "widgetCalendarData"
+}</code></pre>
+
+  <h3>CoinResult（戻り値DTO）</h3>
+  <pre><code>struct CoinResult {
+    let earned: Int
+    let streak: Int
+    let balance: Int
+    let alreadyReceived: Bool
+}</code></pre>
+
+  <h2>UserDefaults キー一覧（AppGroup）</h2>
+  <table>
+    <tr><th>キー</th><th>型</th><th>用途</th></tr>
+    <tr><td><code>coin_balance</code></td><td>Int</td><td>コイン残高</td></tr>
+    <tr><td><code>last_login_date</code></td><td>String</td><td>最終ログイン日（連続日数判定）</td></tr>
+    <tr><td><code>login_streak</code></td><td>Int</td><td>連続ログイン日数</td></tr>
+    <tr><td><code>video_bonus_count_*</code></td><td>Int</td><td>当日の動画ボーナス取得回数（最大5）</td></tr>
+    <tr><td><code>favorite_tips</code></td><td>[String]</td><td>お気に入りtipのID配列</td></tr>
+    <tr><td><code>selected_theme</code></td><td>String</td><td>選択中テーマID</td></tr>
+    <tr><td><code>unlocked_themes</code></td><td>[String]</td><td>購入済テーマID配列</td></tr>
+    <tr><td><code>unlocked_genres</code></td><td>[String]</td><td>アンロック済ジャンルID配列</td></tr>
+    <tr><td><code>genre_progress_*</code></td><td>Codable</td><td>ジャンル別の回答数・正解数・位置</td></tr>
+    <tr><td><code>quiz_streak</code></td><td>Int</td><td>クイズ正解連続数</td></tr>
+    <tr><td><code>login_dates</code></td><td>[String]</td><td>カレンダー表示用ログイン日</td></tr>
+    <tr><td><code>ad_viewed_dates</code></td><td>[String]</td><td>カレンダー表示用広告視聴日</td></tr>
+    <tr><td><code>launch_count</code></td><td>Int</td><td>起動回数（レビュー誘導判定）</td></tr>
+    <tr><td><code>widgetTipData</code></td><td>JSON</td><td>Widget用Smallデータ</td></tr>
+    <tr><td><code>widgetCalendarData</code></td><td>JSON</td><td>Widget用Mediumデータ</td></tr>
+  </table>
+
+  <h2>Bundle JSONリソース</h2>
+  <table>
+    <tr><th>ファイル</th><th>内容</th></tr>
+    <tr><td><code>daily_tips.json</code></td><td>日付キー（"MM-DD" / "MM-DD_v2"）→ DailyTip 配列</td></tr>
+    <tr><td><code>genre_quiz_*.json</code></td><td>ジャンル別の問題セット（13ジャンル）</td></tr>
+  </table>
+
+  <h2>豆知識ローテーション</h2>
+  <div class="callout">
+    <strong>2026/4/1 を境にキー命名規則が切り替わる</strong>:<br>
+    2026/4/1 以前 → キー <code>"MM-DD"</code>（年1）<br>
+    2026/4/1 以降 → キー <code>"MM-DD_v2"</code>（年2）<br>
+    <code>TipLoaderService.keyFor(date:)</code> が日付から自動判定。
+  </div>
+
+  <h2>コイン経済の収支</h2>
+  <table>
+    <tr><th>区分</th><th>イベント</th><th>金額</th></tr>
+    <tr><td>獲得</td><td>デイリーログインボーナス</td><td>+1pt/日</td></tr>
+    <tr><td>獲得</td><td>プレミアム月次ボーナス</td><td>+100pt（毎月1日）</td></tr>
+    <tr><td>獲得</td><td>動画視聴ボーナス</td><td>+3pt（最大5回/日）</td></tr>
+    <tr><td>消費</td><td>テーマ購入</td><td>-200pt</td></tr>
+    <tr><td>消費</td><td>ジャンルアンロック</td><td>-100pt（13ジャンル）</td></tr>
+  </table>
+
+  <h2>関連ファイル</h2>
+  <ul>
+    <li><code>DailyTips/Models/DailyTip.swift</code></li>
+    <li><code>DailyTips/Models/GenreQuizItem.swift</code></li>
+    <li><code>DailyTips/Models/GenrePlayMode.swift</code></li>
+    <li><code>DailyTips/Models/AppThemeItem.swift</code></li>
+    <li><code>DailyTips/Models/WidgetSharedData.swift</code></li>
+    <li><code>DailyTips/Services/CoinService.swift</code></li>
+    <li><code>DailyTips/Services/TipLoaderService.swift</code></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
+  </table>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default'
+    });
+  </script>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

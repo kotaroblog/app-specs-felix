@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - エラー設計</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../">Felix Team App Specs</a> / <a href="./">DailyTips</a> / エラー設計</div>
+
+  <header class="site-header">
+    <h1>エラー設計・例外パターン一覧</h1>
+    <p>本アプリは外部DBを持たずローカル完結型。エラーは「広告ロード失敗」「リソース読込失敗」「StoreKit」が中心</p>
+  </header>
+
+  <h2>エラー分類の方針</h2>
+  <ul>
+    <li><strong>ビジネスエラー</strong>: コイン残高不足等、UIでアラート表示</li>
+    <li><strong>リソースエラー</strong>: Bundle JSON読込失敗。空リスト返却 + Logger.error()</li>
+    <li><strong>広告エラー</strong>: ロード失敗時はサイレント、表示失敗時のみコールバックで通知</li>
+    <li><strong>StoreKitエラー</strong>: 購入失敗・検証失敗を <code>PurchaseError</code> でラップ</li>
+    <li><strong>権限エラー</strong>: 通知許可拒否・ATT拒否は設定アプリ誘導</li>
+  </ul>
+
+  <h2>定義済み Error 型</h2>
+
+  <h3>PurchaseError（StoreKit）</h3>
+  <pre><code>enum PurchaseError: LocalizedError {
+    case productNotFound
+    case verificationFailed
+    case pending
+
+    var errorDescription: String? {
+        switch self {
+        case .productNotFound: return "商品が見つかりません"
+        case .verificationFailed: return "購入の検証に失敗しました"
+        case .pending: return "購入処理中です"
+        }
+    }
+}</code></pre>
+
+  <h2>エラー一覧</h2>
+  <table>
+    <tr>
+      <th>エラーID</th>
+      <th>分類</th>
+      <th>発生条件</th>
+      <th>ユーザー表示</th>
+      <th>復旧方法</th>
+      <th>ロギング</th>
+    </tr>
+    <tr>
+      <td>DT-COIN-01</td>
+      <td>ビジネス</td>
+      <td>テーマ購入時の残高不足</td>
+      <td>「コインが足りません」</td>
+      <td>動画視聴で補充</td>
+      <td>info</td>
+    </tr>
+    <tr>
+      <td>DT-COIN-02</td>
+      <td>ビジネス</td>
+      <td>ジャンル購入時の残高不足</td>
+      <td>「コインが足りません」</td>
+      <td>動画視聴で補充</td>
+      <td>info</td>
+    </tr>
+    <tr>
+      <td>DT-COIN-03</td>
+      <td>ビジネス</td>
+      <td>動画ボーナス上限到達（5回/日）</td>
+      <td>「本日の上限に達しました」</td>
+      <td>翌日まで待機</td>
+      <td>info</td>
+    </tr>
+    <tr>
+      <td>DT-RES-01</td>
+      <td>リソース</td>
+      <td><code>daily_tips.json</code> 読込失敗</td>
+      <td>「豆知識を取得できませんでした」（空表示）</td>
+      <td>アプリ再起動 / 再インストール</td>
+      <td>error</td>
+    </tr>
+    <tr>
+      <td>DT-RES-02</td>
+      <td>リソース</td>
+      <td>ジャンルクイズJSON読込失敗</td>
+      <td>「問題を取得できませんでした」</td>
+      <td>アプリ再起動</td>
+      <td>error</td>
+    </tr>
+    <tr>
+      <td>DT-AD-01</td>
+      <td>広告</td>
+      <td>Rewarded広告ロード失敗</td>
+      <td>「広告を取得できませんでした」</td>
+      <td>onFailedコールバック → 再試行</td>
+      <td>warning</td>
+    </tr>
+    <tr>
+      <td>DT-AD-02</td>
+      <td>広告</td>
+      <td>Interstitial広告未ロード</td>
+      <td>サイレント（次に進む）</td>
+      <td>—</td>
+      <td>info</td>
+    </tr>
+    <tr>
+      <td>DT-AD-03</td>
+      <td>広告</td>
+      <td>AppOpen広告ロード失敗</td>
+      <td>サイレント</td>
+      <td>—</td>
+      <td>info</td>
+    </tr>
+    <tr>
+      <td>DT-SK-01</td>
+      <td>StoreKit</td>
+      <td>productNotFound</td>
+      <td>「商品が見つかりません」</td>
+      <td>復元ボタン誘導</td>
+      <td>error</td>
+    </tr>
+    <tr>
+      <td>DT-SK-02</td>
+      <td>StoreKit</td>
+      <td>verificationFailed</td>
+      <td>「購入の検証に失敗しました」</td>
+      <td>サポート問い合わせ</td>
+      <td>error</td>
+    </tr>
+    <tr>
+      <td>DT-SK-03</td>
+      <td>StoreKit</td>
+      <td>pending（保護者承認待ち等）</td>
+      <td>「購入処理中です」</td>
+      <td>承認後に自動更新</td>
+      <td>info</td>
+    </tr>
+    <tr>
+      <td>DT-PERM-01</td>
+      <td>権限</td>
+      <td>通知許可拒否</td>
+      <td>「通知設定を有効にしてください」</td>
+      <td>設定アプリ起動</td>
+      <td>info</td>
+    </tr>
+    <tr>
+      <td>DT-PERM-02</td>
+      <td>権限</td>
+      <td>ATT拒否</td>
+      <td>サイレント（パーソナライズ広告のみ無効化）</td>
+      <td>—</td>
+      <td>info</td>
+    </tr>
+    <tr>
+      <td>DT-WID-01</td>
+      <td>整合性</td>
+      <td>AppGroup UserDefaultsが nil</td>
+      <td>Widget空表示</td>
+      <td>本体起動で同期</td>
+      <td>warning</td>
+    </tr>
+  </table>
+
+  <h2>UI 表示パターン</h2>
+  <table>
+    <tr><th>重要度</th><th>表示形式</th><th>例</th></tr>
+    <tr><td>低</td><td>サイレント / Logger のみ</td><td>広告ロード失敗、ATT拒否</td></tr>
+    <tr><td>中</td><td>Alert ダイアログ</td><td>残高不足、StoreKit失敗</td></tr>
+    <tr><td>高</td><td>フルスクリーン誘導</td><td>該当なし（ローカル完結アプリ）</td></tr>
+  </table>
+
+  <h2>広告エラーのハンドリング戦略</h2>
+  <div class="callout">
+    本アプリは広告に強く依存しているため、広告ロード失敗時は<strong>UXを止めない</strong>方針：
+    <ul>
+      <li>Banner: ロード失敗→ View 非表示（高さ0）</li>
+      <li>Interstitial: 未ロード→ そのまま次画面へ</li>
+      <li>Rewarded: 必須なので onFailed で「もう一度お試しください」</li>
+      <li>AppOpen: 起動UXを阻害しないようロード失敗はサイレント</li>
+    </ul>
+  </div>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

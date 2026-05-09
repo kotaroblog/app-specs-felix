@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - 用語集</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../">Felix Team App Specs</a> / <a href="./">RankingStadium</a> / 用語集</div>
+
+  <header class="site-header">
+    <h1>用語集・ドメイン辞書</h1>
+    <p>RankingStadium（ランスタ）独自の用語と、コード上での命名対応</p>
+  </header>
+
+  <div class="callout">
+    UI上の表記と、コード上の英語識別子を一致させるため、ここを正典として参照する。新しい用語はこのファイルに追記してから実装する。
+  </div>
+
+  <h2>主要ドメイン用語</h2>
+  <table>
+    <tr><th>日本語</th><th>英語識別子</th><th>定義</th></tr>
+    <tr><td>ランキング</td><td><code>Ranking</code></td><td>ユーザーが作成した投票テーマ。複数のChoiceを内包</td></tr>
+    <tr><td>選択肢</td><td><code>Choice</code></td><td>ランキングに含まれる投票候補</td></tr>
+    <tr><td>投票</td><td><code>Vote</code></td><td>ユーザーが選択肢に対して行う1回の投票</td></tr>
+    <tr><td>クイズ</td><td><code>Quiz</code></td><td>投票前に正解する必要がある質問（ランキング作成者が設定）</td></tr>
+    <tr><td>クイズゲート</td><td><code>QuizGateView</code></td><td>クイズ全問正解で投票画面へ進める仕組み</td></tr>
+    <tr><td>選択肢申請</td><td><code>ChoiceRequest</code></td><td>視聴者が新しい選択肢を作成者に提案する機能</td></tr>
+    <tr><td>シングル</td><td><code>RankingMode.single</code></td><td>1つの選択肢に投票するモード</td></tr>
+    <tr><td>TOP3</td><td><code>RankingMode.threePoint</code></td><td>3枠を選んで投票するモード（重み付け配分）</td></tr>
+    <tr><td>投票数ティア</td><td><code>VoteTier</code></td><td>投票数に応じたランキングのグレード（G〜S）</td></tr>
+    <tr><td>ポイント</td><td><code>points</code> / <code>PointTransaction</code></td><td>アプリ内通貨。ランキング作成・再投票・閲覧で消費</td></tr>
+    <tr><td>ログインボーナス</td><td><code>loginBonus</code> / <code>claimLoginBonus()</code></td><td>日次で付与されるポイント。連続日数でボーナス変化</td></tr>
+    <tr><td>連続ログイン日数</td><td><code>loginStreak</code></td><td>連続でログインした日数</td></tr>
+    <tr><td>無料作成枠</td><td><code>freeCreationRemaining</code></td><td>ポイント消費なしでランキング作成できる残数</td></tr>
+    <tr><td>フォロー</td><td><code>Follow</code> / <code>FollowService</code></td><td>他ユーザーを追跡する機能</td></tr>
+    <tr><td>プレミアム</td><td><code>isPremium</code></td><td>サブスク購読中のフラグ</td></tr>
+    <tr><td>下書き</td><td><code>RankingStatus.draft</code></td><td>未公開のランキング。24時間以内ならポイント返却可</td></tr>
+    <tr><td>再投票</td><td><code>revote1</code> / <code>revote2</code></td><td>1度投票した後にもう一度投票できる仕組み（最大3回）</td></tr>
+    <tr><td>結果ロック</td><td><code>ResultLockedView</code></td><td>期間終了後、未投票で閲覧権限なしの状態</td></tr>
+    <tr><td>通報</td><td><code>Report</code> / <code>ReportService</code></td><td>不適切ランキングの報告機能</td></tr>
+  </table>
+
+  <h2>状態（Enum）</h2>
+  <table>
+    <tr><th>UI 表記</th><th>コード</th><th>意味</th></tr>
+    <tr><td>下書き</td><td><code>RankingStatus.draft</code></td><td>未公開</td></tr>
+    <tr><td>受付中</td><td><code>RankingStatus.active</code></td><td>投票受付期間中</td></tr>
+    <tr><td>終了</td><td><code>RankingStatus.ended</code></td><td>投票期間終了</td></tr>
+    <tr><td>保留</td><td><code>RankingStatus.held</code></td><td>運営判断で一時停止</td></tr>
+    <tr><td>停止</td><td><code>RankingStatus.suspended</code></td><td>違反等で停止</td></tr>
+    <tr><td>削除済み</td><td><code>RankingStatus.deleted</code></td><td>論理削除</td></tr>
+  </table>
+
+  <h2>投票数ティア（VoteTier）</h2>
+  <table>
+    <tr><th>ティア</th><th>投票数の目安</th></tr>
+    <tr><td>G</td><td>0〜3</td></tr>
+    <tr><td>F</td><td>4〜10</td></tr>
+    <tr><td>E〜D〜C〜B〜A</td><td>段階的に拡大</td></tr>
+    <tr><td>S</td><td>10000+</td></tr>
+  </table>
+
+  <h2>外部サービス用語</h2>
+  <table>
+    <tr><th>用語</th><th>説明</th></tr>
+    <tr><td><code>SupabaseService</code></td><td>Supabase（PostgreSQL + Auth + RLS）のクライアント</td></tr>
+    <tr><td><code>RLS</code></td><td>Row Level Security。Supabaseのテーブル行単位アクセス制御</td></tr>
+    <tr><td><code>Apple Sign In</code></td><td>Appleのサインインプロバイダ。本アプリ唯一の認証手段</td></tr>
+    <tr><td><code>StoreKit 2</code></td><td>iOSの課金フレームワーク（async/await対応）</td></tr>
+    <tr><td><code>RetryHelper</code></td><td>指数バックオフのリトライユーティリティ</td></tr>
+  </table>
+
+  <h2>使い分けの注意</h2>
+  <ul>
+    <li><strong>「ランキング」と「投票」</strong>: ランキング = 1つの投票テーマ全体、投票 = 1ユーザーの1アクション</li>
+    <li><strong>「ユーザー」と「クリエイター」</strong>: 区別しない（同じ AppUser）。「creatorId」はそのランキングを作成したユーザーID</li>
+    <li><strong>「ポイント」と「コイン」</strong>: ランスタは「ポイント」で統一。「コイン」表記は使わない</li>
+    <li><strong>「投票」と「選択」</strong>: ユーザーアクションは「投票」、UIの操作は「選択」（例: 「選択肢を選んで投票する」）</li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

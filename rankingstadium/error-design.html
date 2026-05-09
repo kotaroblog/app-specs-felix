@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - エラー設計</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../">Felix Team App Specs</a> / <a href="./">RankingStadium</a> / エラー設計</div>
+
+  <header class="site-header">
+    <h1>エラー設計・例外パターン一覧</h1>
+    <p>例外の分類とユーザー提示方針</p>
+  </header>
+
+  <h2>エラー分類の方針</h2>
+  <ul>
+    <li><strong>認証エラー</strong>: Apple Sign In・セッション期限切れ等、ログイン誘導が必要</li>
+    <li><strong>ビジネスエラー</strong>: ポイント不足・既投票・期間外等、UIでメッセージ表示</li>
+    <li><strong>ネットワークエラー</strong>: Supabase通信失敗、リトライ可能（RetryHelper活用）</li>
+    <li><strong>整合性エラー</strong>: 非アトミック処理の途中失敗、原則 throws で上位に伝播</li>
+    <li><strong>StoreKitエラー</strong>: 購入失敗・検証失敗、StoreKit 2 標準エラーをラップ</li>
+  </ul>
+
+  <h2>定義済み Error 型</h2>
+
+  <h3>AuthError（認証）</h3>
+  <pre><code>enum AuthError: LocalizedError {
+    case invalidNonce
+    case credentialFetchFailed
+    case sessionExpired
+    case userNotFound
+    // ...
+}</code></pre>
+
+  <h3>VoteError（投票）</h3>
+  <pre><code>enum VoteError: LocalizedError {
+    case insufficientPoints
+    case alreadyVoted
+    case rankingEnded
+    case rankingNotStarted
+}</code></pre>
+
+  <h3>RankingServiceError（ランキング作成・更新）</h3>
+  <pre><code>enum RankingServiceError: LocalizedError {
+    case insufficientPoints(required: Int, current: Int)
+    case networkError
+    case unknown(String)
+}</code></pre>
+
+  <h2>エラー一覧</h2>
+  <table>
+    <tr>
+      <th>エラーID</th>
+      <th>分類</th>
+      <th>発生条件</th>
+      <th>ユーザー表示</th>
+      <th>復旧方法</th>
+      <th>ロギング</th>
+    </tr>
+    <tr>
+      <td>RS-AUTH-01</td>
+      <td>認証</td>
+      <td>Apple Sign In キャンセル</td>
+      <td>サイレント（再試行を促す）</td>
+      <td>再ボタン押下</td>
+      <td>info</td>
+    </tr>
+    <tr>
+      <td>RS-AUTH-02</td>
+      <td>認証</td>
+      <td>nonce検証失敗</td>
+      <td>「サインインに失敗しました」</td>
+      <td>再試行</td>
+      <td>error</td>
+    </tr>
+    <tr>
+      <td>RS-AUTH-03</td>
+      <td>認証</td>
+      <td>セッション期限切れ</td>
+      <td>ログイン画面へ自動遷移</td>
+      <td>再ログイン</td>
+      <td>warning</td>
+    </tr>
+    <tr>
+      <td>RS-VOTE-01</td>
+      <td>ビジネス</td>
+      <td>ポイント不足（投票・再投票）</td>
+      <td>「ポイントが足りません（必要 N pt）」</td>
+      <td>動画視聴/購入で補充</td>
+      <td>info</td>
+    </tr>
+    <tr>
+      <td>RS-VOTE-02</td>
+      <td>ビジネス</td>
+      <td>既に投票済み（Unique制約違反）</td>
+      <td>「すでに投票済みです」</td>
+      <td>結果画面へ誘導</td>
+      <td>info</td>
+    </tr>
+    <tr>
+      <td>RS-VOTE-03</td>
+      <td>ビジネス</td>
+      <td>ランキング期間外</td>
+      <td>「投票期間外です」</td>
+      <td>結果画面 or 戻る</td>
+      <td>info</td>
+    </tr>
+    <tr>
+      <td>RS-CR-01</td>
+      <td>ビジネス</td>
+      <td>ランキング作成時のポイント不足</td>
+      <td>「N pt 必要です（現在 M pt）」</td>
+      <td>下書き保存 or ポイント補充</td>
+      <td>info</td>
+    </tr>
+    <tr>
+      <td>RS-CR-02</td>
+      <td>整合性</td>
+      <td>作成途中失敗（非アトミック）</td>
+      <td>「作成に失敗しました。下書きから再開できます」</td>
+      <td>下書き復元</td>
+      <td>error</td>
+    </tr>
+    <tr>
+      <td>RS-NET-01</td>
+      <td>ネットワーク</td>
+      <td>Supabase通信失敗</td>
+      <td>「通信エラーが発生しました」</td>
+      <td>RetryHelperで自動リトライ（3回）</td>
+      <td>warning</td>
+    </tr>
+    <tr>
+      <td>RS-SK-01</td>
+      <td>StoreKit</td>
+      <td>購入失敗</td>
+      <td>「購入処理に失敗しました」</td>
+      <td>復元ボタン誘導</td>
+      <td>error</td>
+    </tr>
+    <tr>
+      <td>RS-SK-02</td>
+      <td>StoreKit</td>
+      <td>verification失敗</td>
+      <td>「決済の検証に失敗しました」</td>
+      <td>サポート問い合わせ</td>
+      <td>error</td>
+    </tr>
+    <tr>
+      <td>RS-PT-01</td>
+      <td>整合性</td>
+      <td>ログインボーナス二重付与検出</td>
+      <td>サイレント（既受領扱い）</td>
+      <td>—</td>
+      <td>warning</td>
+    </tr>
+  </table>
+
+  <h2>UI 表示パターン</h2>
+  <table>
+    <tr><th>重要度</th><th>表示形式</th><th>例</th></tr>
+    <tr><td>低</td><td>インラインメッセージ / Toast</td><td>「すでに投票済みです」</td></tr>
+    <tr><td>中</td><td>Alert ダイアログ</td><td>「ポイント不足」「通信エラー」</td></tr>
+    <tr><td>高</td><td>フルスクリーン誘導画面</td><td>セッション期限切れ → LoginView</td></tr>
+  </table>
+
+  <h2>非アトミック処理の方針</h2>
+  <div class="callout warn">
+    <strong>非アトミック注意</strong>: <code>RankingService.createRanking()</code>（4ステップ）と <code>VoteService.castVote()</code>（4ステップ）は途中失敗時に整合性が崩れる可能性。
+    <ul>
+      <li>失敗時は <code>cancelRefund</code> アクションで補償処理</li>
+      <li>本番運用では Supabase Edge Function 化（トランザクション化）を推奨</li>
+    </ul>
+  </div>
+
+  <h2>RetryHelper の使い方</h2>
+  <pre><code>// 副作用なし処理のみ対象。指数バックオフで自動リトライ
+try await RetryHelper.run(maxAttempts: 3, initialDelay: 0.5) {
+    try await supabase.fetchRanking(id: rankingId)
+}</code></pre>
+
+  <ul>
+    <li>最大3回、初期遅延0.5秒、最大4秒</li>
+    <li>POST/INSERT のような副作用ありの処理には使わない</li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>
