@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>[アプリ名] - データモデル</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../">Felix App Specs</a> / <a href="./">[アプリ名]</a> / データモデル</div>
+
+  <header class="site-header">
+    <h1>データモデル</h1>
+    <p>SwiftData @Model の構造とリレーション</p>
+  </header>
+
+  <h2>ER 図</h2>
+  <div class="mermaid">
+erDiagram
+  EntityA ||--o{ EntityB : has
+  EntityA {
+    UUID id
+    String name
+    Date createdAt
+  }
+  EntityB {
+    UUID id
+    String value
+  }
+  </div>
+
+  <h2>EntityA</h2>
+  <pre><code>@Model
+final class EntityA {
+    var id: UUID = UUID()
+    var name: String = ""
+    var createdAt: Date = Date()
+
+    @Relationship(deleteRule: .cascade)
+    var children: [EntityB] = []
+}</code></pre>
+
+  <h2>マイグレーション方針</h2>
+  <div class="callout warn">
+    SwiftDataの<code>@Model</code>は全プロパティに<strong>デフォルト値必須</strong>。新規プロパティ追加時は必ずデフォルト値を設定する。
+  </div>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>YYYY-MM-DD</td><td>初版作成</td></tr>
+  </table>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default'
+    });
+  </script>
+
+  <footer class="site-footer">最終更新: YYYY-MM-DD</footer>
+</div>
+</body>
+</html>
