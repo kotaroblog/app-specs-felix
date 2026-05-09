@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - ホーム</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / ホーム</div>
+
+  <header class="site-header">
+    <h1>ホーム画面</h1>
+    <p>ランキング一覧（受付中・終了済）の閲覧と検索エントリポイント</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: RS-HOME-01</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>ユーザーが投票・閲覧できるランキングを発見する起点画面。受付中（active）と終了済（ended）を切り替えて表示。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>NavigationBar</td><td>固定</td><td>タイトル「ランスタ」、右上に通知ベル</td></tr>
+    <tr><td>フィードPicker</td><td>Picker (segmented)</td><td>「受付中 / 終了済」切り替え</td></tr>
+    <tr><td>ランキングカードリスト</td><td>List</td><td>RankingCardView（タイトル・タグ・voteCount・voteTier）</td></tr>
+    <tr><td>未読バッジ</td><td>NotificationBadge</td><td>通知ベルアイコン上部</td></tr>
+    <tr><td>引き下げリフレッシュ</td><td>refreshable</td><td>最新化トリガー</td></tr>
+  </table>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>表示内容</th></tr>
+    <tr><td>初期表示</td><td>ローディングインジケータ</td></tr>
+    <tr><td>データあり</td><td>ランキングカードリスト</td></tr>
+    <tr><td>データなし</td><td>「現在表示できるランキングはありません」</td></tr>
+    <tr><td>ネットワークエラー</td><td>「再読み込み」ボタン付きエラー表示</td></tr>
+  </table>
+
+  <h2>遷移</h2>
+  <table>
+    <tr><th>操作</th><th>遷移先</th></tr>
+    <tr><td>カードタップ</td><td>RankingDetailView</td></tr>
+    <tr><td>通知ベルタップ</td><td>NotificationListView</td></tr>
+    <tr><td>Pickerで Active/Ended 切替</td><td>同画面でリスト再読込</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>Ranking {
+    let id: UUID
+    var title: String
+    var majorTag: String
+    var voteCount: Int
+    var voteTier: VoteTier  // G〜S
+    var status: RankingStatus  // active / ended
+    var startsAt: Date
+    var endsAt: Date
+}</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">HomeViewModel が active/ended を管理</li>
+    <li class="done">RetryHelper で読込再試行</li>
+    <li class="done">未読通知数は NotificationService.fetchUnreadCount() で取得</li>
+    <li>ページネーション（無限スクロール）は v1.1 検討</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="../flow.html">画面遷移図</a></li>
+    <li><a href="ranking-detail.html">ランキング詳細画面</a></li>
+    <li><a href="notifications.html">通知一覧</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

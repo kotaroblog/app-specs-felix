@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - 進捗ダッシュボード</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / 進捗ダッシュボード</div>
+
+  <header class="site-header">
+    <h1>進捗ダッシュボード（GenreProgressView）</h1>
+    <p>ジャンル別の正解数・回答数を可視化</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: DT-GQS-04</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>13ジャンル別の進捗を一覧表示。回答数・正解数・正答率をチャートやプログレスバーで可視化する画面。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>サマリ</td><td>VStack</td><td>総回答数・総正解数・全体正答率</td></tr>
+    <tr><td>ジャンル別カード</td><td>LazyVGrid</td><td>各ジャンルの進捗バー</td></tr>
+    <tr><td>正解率チャート</td><td>Chart (SwiftUI Charts)</td><td>v1.1検討</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>GenreProgressService {
+    func getAnsweredCount(genreId: String) -> Int
+    func getCorrectCount(genreId: String) -> Int
+    func getPosition(genreId: String) -> Int
+}</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">GenreProgressService から各ジャンルの進捗取得</li>
+    <li>SwiftUI Charts による可視化（v1.1）</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="genre-quiz-shop.html">ジャンルクイズショップ</a></li>
+    <li><a href="../features/genre-quiz.html">ジャンルクイズ機能</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - ホーム</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / ホーム</div>
+
+  <header class="site-header">
+    <h1>ホーム画面</h1>
+    <p>「今日ページ」と「カレンダーページ」を切り替える二層TabView</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: DT-HOME-01</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>アプリ起動直後のメイン画面。TabView で2ページ構成（今日・カレンダー）。
+  各種ショップ・設定はここから sheet で起動。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>トップバー</td><td>HStack</td><td>左: 設定 / 右: テーマ・ジャンル・プレミアム</td></tr>
+    <tr><td>TabView（PageStyle）</td><td>SwiftUI Tab</td><td>2ページ: 今日 / カレンダー</td></tr>
+    <tr><td>豆知識カード</td><td>TipCardView</td><td>当日 or 選択日のtip表示</td></tr>
+    <tr><td>動画ボーナスボタン</td><td>VideoBonusButton</td><td>+3pt獲得（1日5回まで）</td></tr>
+    <tr><td>バナー広告</td><td>BannerAdView</td><td>下部固定（無料ユーザーのみ）</td></tr>
+  </table>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>表示内容</th></tr>
+    <tr><td>無料ユーザー</td><td>バナー広告表示</td></tr>
+    <tr><td>プレミアムユーザー</td><td>バナー非表示、テーマ自由選択</td></tr>
+    <tr><td>レビュー誘導タイミング</td><td>2秒遅延後、native in-app review</td></tr>
+  </table>
+
+  <h2>遷移</h2>
+  <table>
+    <tr><th>操作</th><th>遷移先</th></tr>
+    <tr><td>TabView スワイプ</td><td>今日 ⇄ カレンダー</td></tr>
+    <tr><td>クイズボタン（カード内）</td><td>QuizView (.sheet)</td></tr>
+    <tr><td>♥ ボタン</td><td>FavoriteService.toggleFavorite</td></tr>
+    <tr><td>共有ボタン</td><td>ShareCardView 経由でShareSheet</td></tr>
+    <tr><td>動画ボーナス</td><td>RewardedAdManager.show()</td></tr>
+    <tr><td>設定ボタン</td><td>SettingsView (.sheet)</td></tr>
+    <tr><td>テーマ・ジャンル・プレミアム</td><td>各 .sheet</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>AppViewModel {
+    var todayTip: DailyTip?
+    var selectedDate: Date
+    var shouldRequestReview: Bool
+    var isPremium: Bool
+    var coinBalance: Int
+}</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">TabView は <code>PageTabViewStyle</code></li>
+    <li class="done">scenePhase == .active 監視で AppOpenAd 再表示</li>
+    <li class="done">ReviewService で 5回目・20回目起動を判定</li>
+    <li class="done">ATT リクエストはアプリ起動時に DailyTipsApp で実施</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="tip-card.html">豆知識カード</a></li>
+    <li><a href="calendar.html">カレンダー</a></li>
+    <li><a href="../features/ad-control.html">広告制御機能</a></li>
+    <li><a href="../features/review-prompt.html">レビュー誘導機能</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

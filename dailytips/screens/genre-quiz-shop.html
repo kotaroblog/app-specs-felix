@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - ジャンルクイズショップ</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / ジャンルクイズショップ</div>
+
+  <header class="site-header">
+    <h1>ジャンルクイズショップ</h1>
+    <p>13ジャンルから興味のあるものをコイン購入で解放</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: DT-GQS-01</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>13のジャンル（歴史・科学・地理 等）から興味のあるものを <strong>100コイン</strong> で解放し、ジャンル別クイズで集中学習する画面。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>コインバッジ</td><td>HStack</td><td>現在のコイン残高</td></tr>
+    <tr><td>ジャンルカード</td><td>LazyVGrid</td><td>13ジャンル × （icon, name, cost or プレイボタン）</td></tr>
+    <tr><td>進捗ボタン</td><td>NavigationLink</td><td>GenreProgressView</td></tr>
+    <tr><td>履歴ボタン</td><td>NavigationLink</td><td>GenreQuizHistoryView</td></tr>
+  </table>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>表示内容</th></tr>
+    <tr><td>未アンロック</td><td>「100コインで解放」ボタン</td></tr>
+    <tr><td>残高不足</td><td>「コインが足りません」アラート</td></tr>
+    <tr><td>アンロック済</td><td>「プレイ」ボタン → モード選択</td></tr>
+  </table>
+
+  <h2>遷移</h2>
+  <table>
+    <tr><th>操作</th><th>遷移先</th></tr>
+    <tr><td>「100コインで解放」</td><td>確認アラート → コイン消費 → アンロック</td></tr>
+    <tr><td>「プレイ」</td><td>モード選択（ランダム/順番/続きから） → GenreQuizPlayView</td></tr>
+    <tr><td>進捗</td><td>GenreProgressView</td></tr>
+    <tr><td>履歴</td><td>GenreQuizHistoryView</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>GenreDefinition {
+    let id: String
+    let name: String
+    let icon: String  // SF Symbol
+    let cost: Int     // 100
+}
+
+GenreQuizService {
+    func unlockGenre(id: String) -> Bool
+    func isUnlocked(id: String) -> Bool
+}</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">13ジャンルの定義は GenreDefinition の static 定数</li>
+    <li class="done">unlockGenre() で CoinService.spendCoins(100) → 成功で AppGroup に保存</li>
+    <li class="done">プレイ開始時に Interstitial広告を挟む</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="genre-quiz-play.html">ジャンルクイズプレイ画面</a></li>
+    <li><a href="genre-progress.html">進捗ダッシュボード</a></li>
+    <li><a href="../features/genre-quiz.html">ジャンルクイズ機能</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

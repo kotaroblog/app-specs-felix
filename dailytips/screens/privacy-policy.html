@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - プライバシーポリシー</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / プライバシーポリシー画面</div>
+
+  <header class="site-header">
+    <h1>プライバシーポリシー画面</h1>
+    <p>アプリ内に組み込まれたプライバシーポリシー表示</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: DT-SET-02</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>App Store の「プライバシーポリシーURL」と内容を一致させ、アプリ内でも閲覧可能にする画面。
+  実体は <code>app-policies/dailytips/privacy-policy.html</code> を SafariSheetView で表示。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>SafariSheetView</td><td>SFSafariViewController</td><td>外部URLを組み込みブラウザで表示</td></tr>
+  </table>
+
+  <h2>参照URL</h2>
+  <p>
+    <code>https://kotaroblog.github.io/app-policies/dailytips/privacy-policy.html</code>
+  </p>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">アプリ内表示と App Store Connect の URL を完全一致させる</li>
+    <li>更新時は <code>app-policies</code> リポジトリを編集 → push</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="settings.html">設定画面</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

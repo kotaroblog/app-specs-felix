@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - ランキング詳細</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / ランキング詳細</div>
+
+  <header class="site-header">
+    <h1>ランキング詳細</h1>
+    <p>ランキングの内容表示と投票/結果閲覧の制御画面</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: RS-VOTE-01</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>ランキング1件の詳細を表示し、状態に応じて「投票へ進む」「結果を見る」「結果ロック」「クイズゲート」を分岐させる中枢画面。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>RankingHeaderView</td><td>カスタムView</td><td>タイトル・タグ・投票数ティア・期間表示</td></tr>
+    <tr><td>選択肢プレビュー</td><td>List</td><td>各 Choice の label / image / shortLabel</td></tr>
+    <tr><td>「投票する」ボタン</td><td>Button</td><td>状態に応じて表示・遷移先変化</td></tr>
+    <tr><td>「結果を見る」ボタン</td><td>Button</td><td>投票済 or 閲覧権限ありで表示</td></tr>
+    <tr><td>選択肢申請ボタン</td><td>Button</td><td>未追加の選択肢を提案できる</td></tr>
+    <tr><td>通報ボタン</td><td>Toolbar</td><td>ReportSheetを起動</td></tr>
+    <tr><td>シェアボタン</td><td>Toolbar</td><td>ShareImageService経由でシェア</td></tr>
+  </table>
+
+  <h2>状態（accessPolicy で分岐）</h2>
+  <table>
+    <tr><th>条件</th><th>表示内容</th></tr>
+    <tr><td>開始前</td><td>「○月○日 ○時開始」カウントダウン</td></tr>
+    <tr><td>受付中・未投票・quiz無</td><td>投票ボタン → VoteView/ThreePointVoteView</td></tr>
+    <tr><td>受付中・未投票・quiz有</td><td>投票ボタン → QuizGateView</td></tr>
+    <tr><td>受付中・投票済</td><td>結果を見るボタン → ResultView</td></tr>
+    <tr><td>終了・投票済</td><td>結果のみ表示 → ResultView</td></tr>
+    <tr><td>終了・未投票・閲覧不可</td><td>ResultLockedView</td></tr>
+    <tr><td>削除済み</td><td>「このランキングは削除されました」</td></tr>
+  </table>
+
+  <h2>遷移</h2>
+  <table>
+    <tr><th>操作</th><th>遷移先</th></tr>
+    <tr><td>「投票する」（quiz無, single）</td><td>VoteView</td></tr>
+    <tr><td>「投票する」（quiz無, threePoint）</td><td>ThreePointVoteView</td></tr>
+    <tr><td>「投票する」（quiz有）</td><td>QuizGateView</td></tr>
+    <tr><td>「結果を見る」</td><td>ResultView</td></tr>
+    <tr><td>選択肢申請</td><td>ChoiceRequestSheet</td></tr>
+    <tr><td>通報</td><td>ReportSheet</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>RankingDetailViewModel {
+    var ranking: Ranking
+    var choices: [Choice]
+    var hasVoted: Bool
+    var hasVotedOptimistically: Bool  // 楽観UI
+    var nextVoteNumber: Int  // 1=初投票, 2=revote1, 3=revote2
+    var accessPolicy: RankingAccessPolicy
+}</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">RankingAccessPolicy で accessPolicy を判定（権限ロジック分離）</li>
+    <li class="done">楽観UI: 投票直後に hasVotedOptimistically=true で即時UI更新</li>
+    <li class="done">RankUpCelebrationView: 投票数達成時にお祝い表示</li>
+    <li class="done">isThreePointReady で TOP3 投票の選択完了判定</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="../flow.html">画面遷移図</a></li>
+    <li><a href="vote-single.html">シングル投票画面</a></li>
+    <li><a href="vote-three-point.html">TOP3投票画面</a></li>
+    <li><a href="result.html">結果画面</a></li>
+    <li><a href="quiz-gate.html">クイズゲート</a></li>
+    <li><a href="../features/voting.html">投票機能仕様書</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - 初期プロフィール設定</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / 初期プロフィール設定</div>
+
+  <header class="site-header">
+    <h1>初期プロフィール設定</h1>
+    <p>新規ユーザーの表示名・初期情報を入力する画面</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: RS-AUTH-02</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>Apple Sign In 後、初回ユーザーに表示名を設定してもらう画面。デフォルトは「名無し」だが任意の名前を設定可能。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>表示名入力フィールド</td><td>TextField</td><td>初期値: 「名無し」、最大文字数: 20</td></tr>
+    <tr><td>「はじめる」ボタン</td><td>Button</td><td>必須項目入力後にアクティブ化</td></tr>
+    <tr><td>説明テキスト</td><td>Text</td><td>「あとから変更できます」</td></tr>
+  </table>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>表示内容</th></tr>
+    <tr><td>初期表示</td><td>TextField + 完了ボタン</td></tr>
+    <tr><td>保存中</td><td>ProgressView表示、ボタン無効化</td></tr>
+    <tr><td>失敗</td><td>エラーアラート</td></tr>
+  </table>
+
+  <h2>遷移</h2>
+  <table>
+    <tr><th>操作</th><th>遷移先</th></tr>
+    <tr><td>「はじめる」ボタン押下成功</td><td>MainTabView</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>AppUser {
+    var displayName: String  // ユーザー入力
+    var isPremium: Bool      // false（初期値）
+    var points: Int          // 初期ポイント
+    var loginStreak: Int     // 1
+    var freeCreationRemaining: Int  // 初期値
+}</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">AuthViewModel.completeSetup() で users テーブル INSERT</li>
+    <li class="done">完了後 authState を .authenticated に変更し ContentView 経由で MainTabView へ</li>
+    <li>表示名のNGワードフィルタ（v1.1検討）</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="../flow.html">画面遷移図</a></li>
+    <li><a href="../features/auth.html">認証機能仕様書</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

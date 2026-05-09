@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - ジャンルクイズ機能</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / ジャンルクイズ機能</div>
+
+  <header class="site-header">
+    <h1>ジャンルクイズ機能</h1>
+    <p>13ジャンル別の問題集とコイン経済の連携</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">機能ID: DT-FEAT-GENRE</span>
+    </div>
+  </header>
+
+  <h2>概要</h2>
+  <p>13ジャンルから興味のあるものをコインで解放し、3つのプレイモード（ランダム/順番/続きから）で問題を解いていく機能。
+  進捗・履歴は AppGroup に保存。</p>
+
+  <h2>関連画面</h2>
+  <ul>
+    <li><a href="../screens/genre-quiz-shop.html">ジャンルクイズショップ</a></li>
+    <li><a href="../screens/genre-quiz-play.html">ジャンルクイズプレイ</a></li>
+    <li><a href="../screens/genre-quiz-history.html">ジャンルクイズ履歴</a></li>
+    <li><a href="../screens/genre-progress.html">進捗ダッシュボード</a></li>
+  </ul>
+
+  <h2>13ジャンル</h2>
+  <p>歴史 / 科学 / 地理 / 文学・言語 / 芸術・音楽 / スポーツ / 食・料理 / 自然・動植物 / 宇宙・天文 / テクノロジー・IT / 医学・健康 / 心理学 / 雑学・トリビア</p>
+
+  <h2>API</h2>
+  <pre><code>@MainActor
+final class GenreQuizService {
+    func unlockGenre(id: String) -> Bool
+    func isUnlocked(id: String) -> Bool
+    func loadQuestions(genreId: String) -> [GenreQuizQuestion]
+    func randomQuestion(genreId: String) -> GenreQuizQuestion?
+}
+
+final class GenreProgressService {  // @unchecked Sendable
+    func getAnsweredCount(genreId: String) -> Int
+    func getCorrectCount(genreId: String) -> Int
+    func getPosition(genreId: String) -> Int
+    func recordAnswer(genreId:, questionId:, correct:)
+}</code></pre>
+
+  <h2>プレイモード</h2>
+  <table>
+    <tr><th>モード</th><th>動作</th></tr>
+    <tr><td>ランダム</td><td>毎回 randomQuestion() で異なる問題</td></tr>
+    <tr><td>順番通り</td><td>position をリセットして1問目から</td></tr>
+    <tr><td>続きから</td><td>保存された position から再開</td></tr>
+  </table>
+
+  <h2>処理フロー（アンロック → プレイ）</h2>
+  <ol>
+    <li>ユーザーがジャンルカードで「100コインで解放」タップ</li>
+    <li>CoinService.spendCoins(100)</li>
+    <li>GenreQuizService.unlockGenre(id:)</li>
+    <li>AppGroup の <code>unlocked_genres</code> に追加</li>
+    <li>「プレイ」ボタン → モード選択</li>
+    <li>Interstitial広告表示（無料ユーザー）</li>
+    <li>GenreQuizPlayView で問題解答</li>
+    <li>各回答ごとに GenreProgressService.recordAnswer()</li>
+  </ol>
+
+  <h2>ビジネスルール</h2>
+  <ul>
+    <li>ジャンル解放は1ジャンル100コイン、買い切り（再購入不要）</li>
+    <li>プレイ開始時にInterstitial広告（無料）</li>
+    <li>正解で streak +1、不正解で問題のみリセット</li>
+    <li>履歴は最新から順に保存（AppGroup）</li>
+  </ul>
+
+  <h2>外部連携</h2>
+  <table>
+    <tr><th>連携先</th><th>用途</th></tr>
+    <tr><td>Bundle JSON</td><td>各ジャンルの問題セット読込</td></tr>
+    <tr><td>CoinService</td><td>解放時のコイン消費</td></tr>
+    <tr><td>InterstitialAdManager</td><td>プレイ開始時の広告</td></tr>
+    <tr><td>AppGroup UserDefaults</td><td>進捗・履歴・アンロック状態</td></tr>
+  </table>
+
+  <h2>エラー処理</h2>
+  <table>
+    <tr><th>発生条件</th><th>対応</th></tr>
+    <tr><td>残高不足</td><td>「コインが足りません」アラート</td></tr>
+    <tr><td>JSON 読込失敗</td><td>「問題を取得できませんでした」 + 空リスト</td></tr>
+    <tr><td>すでにアンロック済み</td><td>UI でブロック（unlock ボタン非表示）</td></tr>
+  </table>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">GenreQuizService は @MainActor</li>
+    <li class="done">GenreProgressService は @unchecked Sendable</li>
+    <li class="done">AppGroup UserDefaults キー: <code>unlocked_genres</code>, <code>genre_progress_*</code></li>
+    <li>SwiftUI Charts での進捗可視化（v1.1）</li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

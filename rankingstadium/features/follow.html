@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - フォロー機能</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / フォロー機能</div>
+
+  <header class="site-header">
+    <h1>フォロー機能</h1>
+    <p>ユーザー間のフォロー関係管理</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">機能ID: RS-FEAT-FOLLOW</span>
+    </div>
+  </header>
+
+  <h2>概要</h2>
+  <p>他ユーザーをフォローしてその活動を追跡できる機能。フォローされると通知が飛ぶ。
+  フォロー関係は <code>follows</code> テーブルで管理（followerId, followedId）。</p>
+
+  <h2>関連画面</h2>
+  <ul>
+    <li><a href="../screens/profile.html">ユーザープロフィール画面</a></li>
+    <li><a href="../screens/mypage.html">マイページ</a></li>
+  </ul>
+
+  <h2>API</h2>
+  <table>
+    <tr><th>メソッド</th><th>説明</th></tr>
+    <tr><td><code>follow(targetUserId)</code></td><td>フォロー実行</td></tr>
+    <tr><td><code>unfollow(targetUserId)</code></td><td>フォロー解除</td></tr>
+    <tr><td><code>isFollowing(targetUserId)</code></td><td>フォロー中か判定</td></tr>
+    <tr><td><code>fetchFollowCounts(userId)</code></td><td>フォロー数・フォロワー数を並列取得</td></tr>
+  </table>
+
+  <h2>処理フロー（フォロー）</h2>
+  <ol>
+    <li>ProfileView でフォローボタンタップ</li>
+    <li><code>FollowService.follow(targetUserId)</code> 実行</li>
+    <li><code>follows</code> テーブルに INSERT（followerId=自分, followedId=対象）</li>
+    <li>対象ユーザーに通知 INSERT（type=follow）</li>
+    <li>UI のフォロー状態を更新（楽観UI）</li>
+  </ol>
+
+  <h2>ビジネスルール</h2>
+  <ul>
+    <li>自分自身をフォロー不可</li>
+    <li>同じ人を二重フォロー不可（Unique制約）</li>
+    <li>フォロー数・フォロワー数はクライアント側でキャッシュ、定期的に再取得</li>
+    <li>フォロー解除しても通知履歴は残る（自動削除しない）</li>
+  </ul>
+
+  <h2>外部連携</h2>
+  <table>
+    <tr><th>連携先</th><th>用途</th></tr>
+    <tr><td>Supabase follows表</td><td>フォロー関係保存</td></tr>
+    <tr><td>NotificationService</td><td>フォロー時の通知発火</td></tr>
+  </table>
+
+  <h2>エラー処理</h2>
+  <table>
+    <tr><th>発生条件</th><th>対応</th></tr>
+    <tr><td>Unique制約違反</td><td>「すでにフォロー中です」</td></tr>
+    <tr><td>通信失敗</td><td>RetryHelper で再試行</td></tr>
+    <tr><td>セルフフォロー</td><td>UI側でブロック（実装上の保険）</td></tr>
+  </table>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">FollowService.fetchFollowCounts() は async let で並列取得</li>
+    <li class="done">Logger.Follow カテゴリ</li>
+    <li>フォロー一覧画面（フォロー中・フォロワー）は v1.1検討</li>
+    <li>ブロック機能（v1.1検討）</li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

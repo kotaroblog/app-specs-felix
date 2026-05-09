@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - 認証機能</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / 認証機能</div>
+
+  <header class="site-header">
+    <h1>認証機能</h1>
+    <p>Apple Sign In + Supabase Auth による認証</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">機能ID: RS-FEAT-AUTH</span>
+    </div>
+  </header>
+
+  <h2>概要</h2>
+  <p>Apple Sign In を唯一の認証手段とし、Supabase Auth と連携してセッション管理を行う。
+  キーチェーン経由でセッション永続化、起動時に自動でセッション復元。</p>
+
+  <h2>関連画面</h2>
+  <ul>
+    <li><a href="../screens/login.html">ログイン画面</a></li>
+    <li><a href="../screens/setup-profile.html">初期プロフィール設定</a></li>
+  </ul>
+
+  <h2>処理フロー</h2>
+  <div class="mermaid">
+sequenceDiagram
+  participant U as User
+  participant V as LoginView
+  participant ASS as AppleSignInService
+  participant SP as Supabase Auth
+  participant AVM as AuthViewModel
+  participant DB as Supabase users表
+
+  U->>V: Apple Sign Inタップ
+  V->>ASS: signInRequested()
+  ASS->>ASS: nonce生成 + SHA256ハッシュ
+  ASS->>U: Apple ID認証ダイアログ
+  U-->>ASS: 認証承認 + idToken
+  ASS->>SP: signInWithIdToken(idToken, nonce)
+  SP-->>ASS: セッション
+  ASS-->>AVM: 完了通知
+  AVM->>DB: fetchOrCreateUser(authId)
+  DB-->>AVM: AppUser
+  alt 新規ユーザー
+    AVM->>V: authState=.needsSetup
+    V->>U: SetupProfileView表示
+  else 既存ユーザー
+    AVM->>V: authState=.authenticated
+    V->>U: MainTabView表示
+  end
+  </div>
+
+  <h2>セッション管理</h2>
+  <ul>
+    <li><strong>Supabase Auth</strong>: キーチェーン経由でトークン永続化</li>
+    <li><strong>自動トークンリフレッシュ</strong>: SupabaseService 初期化時に有効化</li>
+    <li><strong>起動時の動作</strong>: <code>AuthViewModel.checkSession()</code> でセッション復元</li>
+    <li><strong>ログアウト</strong>: SettingsView から Supabase signOut + キーチェーンクリア</li>
+  </ul>
+
+  <h2>ビジネスルール</h2>
+  <ul>
+    <li>認証手段は Apple Sign In のみ（メール・SMS・Googleは未対応）</li>
+    <li>nonce は SecRandomCopyBytes でランダム生成、SHA256 でハッシュ化してリクエスト</li>
+    <li>新規ユーザーの初期 displayName は「名無し」</li>
+    <li>SetupProfileView 完了まで authState は .needsSetup（MainTabView へ遷移しない）</li>
+  </ul>
+
+  <h2>外部連携</h2>
+  <table>
+    <tr><th>連携先</th><th>用途</th><th>備考</th></tr>
+    <tr><td>Apple Sign In</td><td>idToken の発行</td><td>AuthenticationServices フレームワーク</td></tr>
+    <tr><td>Supabase Auth</td><td>signInWithIdToken / セッション管理</td><td>RLS の前提</td></tr>
+    <tr><td>Keychain</td><td>セッショントークン永続化</td><td>Supabaseクライアントが自動処理</td></tr>
+  </table>
+
+  <h2>エラー処理</h2>
+  <table>
+    <tr><th>発生条件</th><th>対応</th></tr>
+    <tr><td>Apple Sign Inキャンセル</td><td>サイレント、再試行を促す</td></tr>
+    <tr><td>nonce検証失敗</td><td>「サインインに失敗しました」</td></tr>
+    <tr><td>Supabase通信失敗</td><td>RetryHelperで再試行</td></tr>
+    <tr><td>セッション期限切れ</td><td>LoginView へ自動遷移</td></tr>
+  </table>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">CheckedContinuation で非同期コールバックを await でキャッチ</li>
+    <li class="done">@Observable @MainActor の AuthViewModel で状態管理</li>
+    <li class="done">Logger.Auth / Logger.AppleSignIn カテゴリ</li>
+    <li>Sign in with Apple JS（Web版）対応は v1.x 検討</li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default'
+    });
+  </script>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

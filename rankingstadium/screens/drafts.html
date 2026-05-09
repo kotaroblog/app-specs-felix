@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - 下書き一覧</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / 下書き一覧</div>
+
+  <header class="site-header">
+    <h1>下書き一覧</h1>
+    <p>未公開の作成中ランキング（status: draft）の管理</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: RS-CR-06</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>作成中・未公開のランキングを一覧表示し、復元・削除を行う画面。24時間以内ならポイント返却可能。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>下書きリスト</td><td>List</td><td>タイトル・更新日時・残り猶予時間表示</td></tr>
+    <tr><td>編集ボタン</td><td>Button</td><td>CreateRankingViewへ復元遷移</td></tr>
+    <tr><td>削除ボタン</td><td>Swipe Action</td><td>左スワイプで削除確認</td></tr>
+    <tr><td>「すべて削除」</td><td>Toolbar</td><td>確認後に一括削除</td></tr>
+  </table>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>表示内容</th></tr>
+    <tr><td>下書きあり</td><td>リスト表示</td></tr>
+    <tr><td>下書きなし</td><td>「下書きはありません」</td></tr>
+    <tr><td>削除確認</td><td>Alert</td></tr>
+  </table>
+
+  <h2>遷移</h2>
+  <table>
+    <tr><th>操作</th><th>遷移先</th></tr>
+    <tr><td>下書きセルタップ</td><td>CreateRankingView（編集mode、draftId引き継ぎ）</td></tr>
+    <tr><td>削除確定</td><td>同画面（リスト更新）</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>// status == .draft の Ranking を取得
+let drafts = await rankingService.fetchDrafts(userId: currentUserId)
+// 24時間以内なら refundEligible = true（ポイント返却対象）</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">DraftListView は MyPageView と CreateRankingView 双方から開ける</li>
+    <li class="done">削除時、refundEligible なら PointTransaction で cancelRefund 計上</li>
+    <li class="done">Logger.DraftList カテゴリで操作ログ出力</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="create-ranking.html">ランキング作成画面</a></li>
+    <li><a href="mypage.html">マイページ</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

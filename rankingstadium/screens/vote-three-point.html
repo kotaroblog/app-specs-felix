@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - TOP3投票</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / TOP3投票</div>
+
+  <header class="site-header">
+    <h1>TOP3投票画面</h1>
+    <p>3枠を順位付きで選択するモード（RankingMode.threePoint）</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: RS-VOTE-03</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>1位・2位・3位の3枠を選択して投票するモード。重み付け配分でランキング集計の表現力を上げる。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>3枠スロット</td><td>HStack</td><td>1位 / 2位 / 3位の選択枠</td></tr>
+    <tr><td>選択肢グリッド</td><td>LazyVGrid</td><td>枠タップで Choice を割当</td></tr>
+    <tr><td>投票ボタン</td><td>Button</td><td>3枠すべて埋まると有効化</td></tr>
+    <tr><td>消費ポイント表示</td><td>Text</td><td>「投票には Npt を消費します」</td></tr>
+  </table>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>表示内容</th></tr>
+    <tr><td>未完了（isThreePointReady=false）</td><td>投票ボタン無効</td></tr>
+    <tr><td>3枠完了（isThreePointReady=true）</td><td>投票ボタン有効</td></tr>
+    <tr><td>投票中</td><td>ProgressView</td></tr>
+  </table>
+
+  <h2>遷移</h2>
+  <table>
+    <tr><th>操作</th><th>遷移先</th></tr>
+    <tr><td>3枠選択 + 投票ボタン</td><td>3件のVote INSERT → ResultView</td></tr>
+    <tr><td>枠の入れ替え</td><td>同画面（並べ替え）</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>// 3件の Vote を順位ごとに INSERT（display_order = 1, 2, 3）
+[Vote(choiceId: top1, ...), Vote(choiceId: top2, ...), Vote(choiceId: top3, ...)]</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">RankingDetailViewModel.isThreePointReady で完了判定</li>
+    <li class="done">同じ Choice を重複選択不可（UIでブロック）</li>
+    <li class="done">3件の Vote をシーケンシャルに INSERT</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="../features/voting.html">投票機能仕様書</a></li>
+    <li><a href="ranking-detail.html">ランキング詳細</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

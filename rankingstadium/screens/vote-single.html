@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - シングル投票</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / シングル投票</div>
+
+  <header class="site-header">
+    <h1>シングル投票画面</h1>
+    <p>1つの選択肢を選んで投票するモード（RankingMode.single）</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: RS-VOTE-02</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>選択肢の中から1つを選んで投票する画面。再投票時はポイント消費（revote1: 3pt, revote2: 7pt）。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>選択肢グリッド</td><td>LazyVGrid</td><td>各 Choice をカード表示（label + image）</td></tr>
+    <tr><td>選択ハイライト</td><td>Border</td><td>選択中の Choice を視覚化</td></tr>
+    <tr><td>投票ボタン</td><td>Button</td><td>選択完了でアクティブ化</td></tr>
+    <tr><td>消費ポイント表示</td><td>Text</td><td>「投票には Npt を消費します」</td></tr>
+  </table>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>表示内容</th></tr>
+    <tr><td>未選択</td><td>投票ボタン無効</td></tr>
+    <tr><td>選択済</td><td>投票ボタン有効</td></tr>
+    <tr><td>投票中</td><td>ProgressView、ボタン無効</td></tr>
+    <tr><td>ポイント不足</td><td>「ポイントが足りません」アラート</td></tr>
+    <tr><td>既投票検出</td><td>「すでに投票済みです」 → ResultView へ</td></tr>
+  </table>
+
+  <h2>遷移</h2>
+  <table>
+    <tr><th>操作</th><th>遷移先</th></tr>
+    <tr><td>選択 + 投票ボタン押下</td><td>VoteService.castVote() → ResultView</td></tr>
+    <tr><td>キャンセル</td><td>RankingDetailView へ戻る</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>Vote {
+    let rankingId: UUID
+    let userId: UUID
+    let choiceId: UUID
+    let points: Int       // 0 (初投票) / 3 (revote1) / 7 (revote2)
+    let voteNumber: Int   // 1, 2, 3
+    let ipHash: String?
+    let deviceHash: String?
+}</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">VoteService.castVote() の4ステップ（ポイント消費 → INSERT → choice/ranking voteCount RPC）</li>
+    <li class="done">Unique制約違反は VoteError.alreadyVoted として処理</li>
+    <li>非アトミック処理 → Edge Function 化検討（v1.1）</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="../features/voting.html">投票機能仕様書</a></li>
+    <li><a href="ranking-detail.html">ランキング詳細</a></li>
+    <li><a href="result.html">結果画面</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

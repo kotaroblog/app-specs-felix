@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - ユーザープロフィール</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / ユーザープロフィール</div>
+
+  <header class="site-header">
+    <h1>ユーザープロフィール</h1>
+    <p>他ユーザーのプロフィール表示とフォロー管理</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: RS-PROFILE-01</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>他ユーザーの作成ランキング・投票履歴・フォロー状態を表示し、フォロー/アンフォローを操作できる画面。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>プロフィールヘッダ</td><td>HStack</td><td>表示名・フォロー数・フォロワー数</td></tr>
+    <tr><td>フォロー/解除ボタン</td><td>Button</td><td>状態に応じてラベル変化</td></tr>
+    <tr><td>作成ランキングリスト</td><td>List</td><td>そのユーザーが作成した active/ended のランキング</td></tr>
+    <tr><td>過去投票リスト</td><td>List</td><td>そのユーザーが投票したランキング履歴</td></tr>
+  </table>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>表示内容</th></tr>
+    <tr><td>初期表示</td><td>ProgressView</td></tr>
+    <tr><td>表示中（フォロー中）</td><td>「フォロー解除」ボタン</td></tr>
+    <tr><td>表示中（未フォロー）</td><td>「フォロー」ボタン</td></tr>
+    <tr><td>自分のプロフィール</td><td>フォローボタン非表示</td></tr>
+  </table>
+
+  <h2>遷移</h2>
+  <table>
+    <tr><th>操作</th><th>遷移先</th></tr>
+    <tr><td>ランキングカードタップ</td><td>RankingDetailView</td></tr>
+    <tr><td>フォロー/解除</td><td>FollowService 経由で更新</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>AppUser {
+    let id: UUID
+    var displayName: String
+    var isPremium: Bool
+}
+Follow {
+    let followerId: UUID
+    let followedId: UUID
+}</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">FollowService.fetchFollowCounts() で並列取得</li>
+    <li class="done">isFollowing() でフォロー状態確認</li>
+    <li>ブロック機能（v1.1検討）</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="../features/follow.html">フォロー機能仕様書</a></li>
+    <li><a href="ranking-detail.html">ランキング詳細</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

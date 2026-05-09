@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - クイズゲート</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / クイズゲート</div>
+
+  <header class="site-header">
+    <h1>クイズゲート</h1>
+    <p>クイズ全問正解で投票画面へ進める仕組み</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: RS-VOTE-06</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>ランキング作成者が設定したクイズに答えて、全問正解した人だけが投票画面に進めるゲート機能。
+  「分かってる人だけ投票できる」ことで投票の質を保証する設計思想。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>進捗バー</td><td>ProgressView</td><td>「3問中 N 問正解」</td></tr>
+    <tr><td>質問テキスト</td><td>Text</td><td>Quiz.question</td></tr>
+    <tr><td>選択肢ボタン</td><td>Button×複数</td><td>正解 + ダミー選択肢</td></tr>
+    <tr><td>ヒントボタン</td><td>Button</td><td>Quiz.answerHint があれば表示</td></tr>
+  </table>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>表示内容</th></tr>
+    <tr><td>進行中</td><td>現在の問題 + 進捗</td></tr>
+    <tr><td>正解</td><td>「正解！」表示 → 次問題</td></tr>
+    <tr><td>不正解</td><td>「もう一度挑戦してください」 → 1問目に戻る</td></tr>
+    <tr><td>全問正解</td><td>投票画面へ自動遷移</td></tr>
+  </table>
+
+  <h2>遷移</h2>
+  <table>
+    <tr><th>操作</th><th>遷移先</th></tr>
+    <tr><td>全問正解</td><td>VoteView または ThreePointVoteView</td></tr>
+    <tr><td>不正解</td><td>同画面（リセット）</td></tr>
+    <tr><td>キャンセル</td><td>RankingDetailView</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>Quiz {
+    let id: UUID
+    let rankingId: UUID
+    let question: String
+    let correctAnswer: String
+    let answerHint: String?
+    let displayOrder: Int  // 出題順
+}</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">Quiz.displayOrder 順に出題</li>
+    <li class="done">不正解時は最初からやり直し（部分通過なし）</li>
+    <li class="done">ダミー選択肢の生成方法（v1.0は固定 or correctAnswerシャッフル）</li>
+    <li>不正解時の penalty（待機時間）導入は v1.1検討</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="../features/voting.html">投票機能仕様書</a></li>
+    <li><a href="ranking-detail.html">ランキング詳細</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

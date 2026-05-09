@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - SmallTipWidget</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / SmallTipWidget</div>
+
+  <header class="site-header">
+    <h1>SmallTipWidget（小ウィジェット）</h1>
+    <p>ホーム画面ウィジェット - 当日の豆知識タイトルを表示</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: DT-WID-01</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>iOS ホーム画面に配置できる小サイズのウィジェット。当日の豆知識のカテゴリとタイトルを表示。
+  タップでアプリ起動。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>カテゴリバッジ</td><td>Capsule</td><td>tip.category</td></tr>
+    <tr><td>タイトル</td><td>Text</td><td>tip.title（短縮表示）</td></tr>
+    <tr><td>アプリロゴ</td><td>Image</td><td>右下小さく</td></tr>
+  </table>
+
+  <h2>データソース</h2>
+  <pre><code>WidgetTipData {
+    let title: String
+    let category: String
+    let dateKey: String
+    let updatedAt: Date
+
+    static func load() -> WidgetTipData? {
+        // AppGroup UserDefaults キー: widgetTipData
+    }
+}</code></pre>
+
+  <h2>更新タイミング</h2>
+  <table>
+    <tr><th>条件</th><th>動作</th></tr>
+    <tr><td>翌日0時</td><td><code>policy: .after(startOfTomorrow)</code> で自動再取得</td></tr>
+    <tr><td>本体起動時</td><td>AppViewModel.syncWidgetData() で AppGroup 更新</td></tr>
+    <tr><td>1時間ごと</td><td>TimelineProvider が timeline エントリ生成</td></tr>
+  </table>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">TipWidgetProvider が TimelineProvider プロトコル実装</li>
+    <li class="done">AppGroup suiteName: <code>group.com.happyboy1002.DailyTips</code></li>
+    <li class="done">AppGroup nil の場合は空表示（リカバリは本体起動時）</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="widget-medium.html">MediumCalendarWidget</a></li>
+    <li><a href="../features/widget-sync.html">Widget同期機能</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

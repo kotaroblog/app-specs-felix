@@ -64,10 +64,36 @@
   </div>
 
   <h2>画面仕様書</h2>
-  <p style="color: var(--color-text-soft); font-size: 0.9rem;">画面仕様書は順次追加予定（対象: ホーム / ランキング詳細 / ランキング作成 / マイページ / 検索 / 設定 / Paywall）。</p>
+  <div class="card-grid">
+    <a class="card" href="screens/login.html"><div class="title">ログイン</div><div class="desc">Apple Sign In エントリ</div><div class="meta"><span class="tag">RS-AUTH-01</span></div></a>
+    <a class="card" href="screens/setup-profile.html"><div class="title">初期プロフィール設定</div><div class="desc">表示名の初回登録</div><div class="meta"><span class="tag">RS-AUTH-02</span></div></a>
+    <a class="card" href="screens/home.html"><div class="title">ホーム</div><div class="desc">ランキング一覧（active/ended）</div><div class="meta"><span class="tag">RS-HOME-01</span></div></a>
+    <a class="card" href="screens/notifications.html"><div class="title">通知一覧</div><div class="desc">最大50件の通知履歴</div><div class="meta"><span class="tag">RS-HOME-02</span></div></a>
+    <a class="card" href="screens/ranking-detail.html"><div class="title">ランキング詳細</div><div class="desc">投票/結果の制御中枢</div><div class="meta"><span class="tag">RS-VOTE-01</span></div></a>
+    <a class="card" href="screens/vote-single.html"><div class="title">シングル投票</div><div class="desc">1選択肢を選んで投票</div><div class="meta"><span class="tag">RS-VOTE-02</span></div></a>
+    <a class="card" href="screens/vote-three-point.html"><div class="title">TOP3投票</div><div class="desc">3枠を順位付きで投票</div><div class="meta"><span class="tag">RS-VOTE-03</span></div></a>
+    <a class="card" href="screens/result.html"><div class="title">結果画面</div><div class="desc">集計結果の表示</div><div class="meta"><span class="tag">RS-VOTE-04</span></div></a>
+    <a class="card" href="screens/result-locked.html"><div class="title">結果ロック画面</div><div class="desc">期間終了後の閲覧解放</div><div class="meta"><span class="tag">RS-VOTE-05</span></div></a>
+    <a class="card" href="screens/quiz-gate.html"><div class="title">クイズゲート</div><div class="desc">クイズ全問正解で投票へ</div><div class="meta"><span class="tag">RS-VOTE-06</span></div></a>
+    <a class="card" href="screens/create-ranking.html"><div class="title">ランキング作成</div><div class="desc">5ステップウィザード</div><div class="meta"><span class="tag">RS-CR-01〜05</span></div></a>
+    <a class="card" href="screens/drafts.html"><div class="title">下書き一覧</div><div class="desc">未公開ランキング管理</div><div class="meta"><span class="tag">RS-CR-06</span></div></a>
+    <a class="card" href="screens/search.html"><div class="title">検索</div><div class="desc">キーワード・タグ検索</div><div class="meta"><span class="tag">RS-SEARCH-01</span></div></a>
+    <a class="card" href="screens/profile.html"><div class="title">ユーザープロフィール</div><div class="desc">他ユーザーのプロフィール表示</div><div class="meta"><span class="tag">RS-PROFILE-01</span></div></a>
+    <a class="card" href="screens/mypage.html"><div class="title">マイページ</div><div class="desc">自分のランキング・申請管理</div><div class="meta"><span class="tag">RS-MYPAGE-01</span></div></a>
+    <a class="card" href="screens/settings.html"><div class="title">設定</div><div class="desc">アカウント・サブスク・サポート</div><div class="meta"><span class="tag">RS-SET-01</span></div></a>
+    <a class="card" href="screens/paywall.html"><div class="title">Paywall</div><div class="desc">プレミアム購入画面</div><div class="meta"><span class="tag">RS-PAY-01〜05</span></div></a>
+  </div>
 
   <h2>機能仕様書</h2>
-  <p style="color: var(--color-text-soft); font-size: 0.9rem;">機能仕様書は順次追加予定（対象: 認証 / 投票 / ポイント経済 / ランキング作成 / 課金 / 通知 / フォロー / クイズゲート）。</p>
+  <div class="card-grid">
+    <a class="card" href="features/auth.html"><div class="title">認証機能</div><div class="desc">Apple Sign In + Supabase Auth</div></a>
+    <a class="card" href="features/voting.html"><div class="title">投票機能</div><div class="desc">シングル / TOP3 / クイズゲート / 再投票</div></a>
+    <a class="card" href="features/point-economy.html"><div class="title">ポイント経済</div><div class="desc">獲得・消費・無料作成枠</div></a>
+    <a class="card" href="features/ranking-creation.html"><div class="title">ランキング作成</div><div class="desc">5ステップ + 下書き + 公開フロー</div></a>
+    <a class="card" href="features/subscription.html"><div class="title">サブスク課金</div><div class="desc">StoreKit 2 月額/年額</div></a>
+    <a class="card" href="features/notification.html"><div class="title">通知</div><div class="desc">アプリ内通知の取得・既読管理</div></a>
+    <a class="card" href="features/follow.html"><div class="title">フォロー</div><div class="desc">ユーザー間のフォロー関係</div></a>
+  </div>
 
   <footer class="site-footer">最終更新: 2026-05-09</footer>
 </div>

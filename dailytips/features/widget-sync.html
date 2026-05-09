@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - Widget同期</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / Widget同期</div>
+
+  <header class="site-header">
+    <h1>Widget同期機能</h1>
+    <p>本体アプリと Widget 拡張のデータ同期メカニズム</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">機能ID: DT-FEAT-WIDGET</span>
+    </div>
+  </header>
+
+  <h2>概要</h2>
+  <p>iOS の Widget 拡張は別プロセスで動作するため、本体アプリと直接データ共有できない。
+  AppGroup UserDefaults を経由してデータを共有する。本体起動時に最新データを書き込み、Widget が読み込む構造。</p>
+
+  <h2>関連画面</h2>
+  <ul>
+    <li><a href="../screens/widget-small.html">SmallTipWidget</a></li>
+    <li><a href="../screens/widget-medium.html">MediumCalendarWidget</a></li>
+  </ul>
+
+  <h2>同期フロー</h2>
+  <div class="mermaid">
+flowchart LR
+  App[本体アプリ起動] --> AVM[AppViewModel]
+  AVM --> Sync[syncWidgetData]
+  Sync --> WTip[WidgetTipData<br/>Codable]
+  Sync --> WCal[WidgetCalendarData<br/>Codable]
+  WTip --> AG[(AppGroup<br/>UserDefaults)]
+  WCal --> AG
+  AG -.読込.-> SP[SmallTipWidgetProvider]
+  AG -.読込.-> MP[MediumCalendarProvider]
+  SP --> SW[SmallTipWidget]
+  MP --> MW[MediumCalendarWidget]
+  </div>
+
+  <h2>AppGroup 設定</h2>
+  <pre><code>enum WidgetAppGroup {
+    static let suiteName = "group.com.happyboy1002.DailyTips"
+    static let tipDataKey = "widgetTipData"
+    static let calendarDataKey = "widgetCalendarData"
+}
+
+// UserDefaults へのアクセス（共通パターン）
+let store = UserDefaults(suiteName: WidgetAppGroup.suiteName) ?? .standard</code></pre>
+
+  <h2>同期タイミング</h2>
+  <table>
+    <tr><th>イベント</th><th>処理</th></tr>
+    <tr><td>本体アプリ起動時</td><td>AppViewModel が syncWidgetData() を呼出</td></tr>
+    <tr><td>豆知識切り替え時（日付変更）</td><td>HistoryService.markAsLogin() 経由で再同期</td></tr>
+    <tr><td>WidgetCenter.shared.reloadAllTimelines()</td><td>Widget の即時更新トリガー</td></tr>
+    <tr><td>Widget 自身の Timeline</td><td>1時間ごと + 翌日0時に自動再取得</td></tr>
+  </table>
+
+  <h2>共有データ</h2>
+
+  <h3>WidgetTipData（Small用）</h3>
+  <pre><code>struct WidgetTipData: Codable, Sendable {
+    let title: String
+    let category: String
+    let dateKey: String
+    let updatedAt: Date
+}</code></pre>
+
+  <h3>WidgetCalendarData（Medium用）</h3>
+  <pre><code>struct WidgetCalendarData: Codable, Sendable {
+    let loginDaysThisWeek: [Bool]   // 7要素
+    let loginStreak: Int
+    let updatedAt: Date
+}</code></pre>
+
+  <h2>ビジネスルール</h2>
+  <ul>
+    <li>本体・Widget の整合性は AppGroup UserDefaults を Single Source of Truth とする</li>
+    <li>Widget は本体に依存せず、AppGroup nil でも空表示で動作（リカバリは本体起動時）</li>
+    <li>本体起動時に必ず syncWidgetData() を実行</li>
+    <li>更新後は WidgetCenter.shared.reloadAllTimelines() で即時反映</li>
+  </ul>
+
+  <h2>外部連携</h2>
+  <table>
+    <tr><th>連携先</th><th>用途</th></tr>
+    <tr><td>WidgetKit</td><td>Widget拡張の宣言的UI実装</td></tr>
+    <tr><td>App Group</td><td>本体・Widget間のサンドボックス共有</td></tr>
+  </table>
+
+  <h2>エラー処理</h2>
+  <table>
+    <tr><th>発生条件</th><th>対応</th></tr>
+    <tr><td>AppGroup UserDefaults nil</td><td>standardへフォールバック、Logger.warning</td></tr>
+    <tr><td>JSON decode 失敗</td><td>Widget 空表示（plain placeholder）</td></tr>
+  </table>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">project.yml で App Group capability 設定済み（本体・Widget両方）</li>
+    <li class="done">TimelineProvider で <code>policy: .after(startOfTomorrow)</code></li>
+    <li class="done">HistoryService.syncWidgetData() で AppGroup 書込</li>
+    <li>Widget の Smart Stack 対応（v1.x）</li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default'
+    });
+  </script>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

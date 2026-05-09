@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - 投票機能</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / 投票機能</div>
+
+  <header class="site-header">
+    <h1>投票機能</h1>
+    <p>シングル / TOP3 / クイズゲート / 再投票の投票システム</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">機能ID: RS-FEAT-VOTE</span>
+    </div>
+  </header>
+
+  <h2>概要</h2>
+  <p>ランキングへの投票機能。シングル投票（1選択肢）と TOP3投票（3選択肢の順位付き）の2モード。
+  クイズゲート機能で「分かってる人だけ投票できる」品質保証。再投票は最大3回までポイント消費で許可。</p>
+
+  <h2>関連画面</h2>
+  <ul>
+    <li><a href="../screens/ranking-detail.html">ランキング詳細</a></li>
+    <li><a href="../screens/vote-single.html">シングル投票</a></li>
+    <li><a href="../screens/vote-three-point.html">TOP3投票</a></li>
+    <li><a href="../screens/quiz-gate.html">クイズゲート</a></li>
+    <li><a href="../screens/result.html">結果画面</a></li>
+  </ul>
+
+  <h2>処理フロー（シングル投票・quiz無）</h2>
+  <div class="mermaid">
+sequenceDiagram
+  participant U as User
+  participant V as VoteView
+  participant VM as RankingDetailViewModel
+  participant VS as VoteService
+  participant PS as PointService
+  participant DB as Supabase
+
+  U->>V: 選択肢タップ + 投票
+  V->>VM: castVote()
+  VM->>PS: consumePoints (revote時のみ)
+  PS-->>VM: ok
+  VM->>VS: castVote()
+  VS->>DB: votes INSERT
+  alt Unique制約違反
+    DB-->>VS: 23505エラー
+    VS-->>VM: VoteError.alreadyVoted
+  else 成功
+    DB-->>VS: ok
+    VS->>DB: choices.voteCount RPC
+    VS->>DB: rankings.voteCount RPC
+    DB-->>VS: ok
+  end
+  VS-->>VM: 完了
+  VM->>V: hasVotedOptimistically=true
+  V->>U: ResultView へ遷移
+  </div>
+
+  <h2>投票モード</h2>
+  <table>
+    <tr><th>モード</th><th>動作</th><th>消費</th></tr>
+    <tr><td><code>RankingMode.single</code></td><td>1選択肢を選ぶ</td><td>初回0pt / revote1: 3pt / revote2: 7pt</td></tr>
+    <tr><td><code>RankingMode.threePoint</code></td><td>3枠を順位付きで選ぶ</td><td>同上（3件のVote INSERT）</td></tr>
+  </table>
+
+  <h2>ビジネスルール</h2>
+  <ul>
+    <li>投票は1ユーザー1ランキング1回が原則（Unique制約: rankingId+userId）</li>
+    <li>再投票は最大3回（voteNumber: 1, 2, 3）まで、ポイント消費で許可</li>
+    <li>クイズ付きランキングは全問正解後のみ投票可能</li>
+    <li>期間外の投票は受け付けない（accessPolicy で判定）</li>
+    <li>投票直後は <code>hasVotedOptimistically</code> で UI 即時更新（楽観UI）</li>
+    <li>削除済みランキング（status: deleted）への投票は不可</li>
+  </ul>
+
+  <h2>クイズゲート機能</h2>
+  <ul>
+    <li>ランキング作成者が3問のクイズを設定</li>
+    <li>全問正解しないと投票画面に進めない</li>
+    <li>不正解時は最初からやり直し（部分通過なし）</li>
+    <li>クイズ作成は <code>+15pt</code> の追加コスト</li>
+  </ul>
+
+  <h2>外部連携</h2>
+  <table>
+    <tr><th>連携先</th><th>用途</th></tr>
+    <tr><td>Supabase votes表</td><td>投票記録</td></tr>
+    <tr><td>Supabase RPC</td><td>choices.voteCount / rankings.voteCount の更新</td></tr>
+    <tr><td>PointService</td><td>再投票時のポイント消費</td></tr>
+  </table>
+
+  <h2>エラー処理</h2>
+  <table>
+    <tr><th>発生条件</th><th>対応</th></tr>
+    <tr><td>ポイント不足</td><td>「ポイントが足りません」アラート</td></tr>
+    <tr><td>既に投票済み（Unique違反）</td><td>「すでに投票済みです」 + ResultView へ</td></tr>
+    <tr><td>期間外</td><td>「投票期間外です」</td></tr>
+    <tr><td>非アトミック途中失敗</td><td>cancelRefund で補償処理</td></tr>
+  </table>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">VoteService.castVote() の4ステップ非アトミック実装</li>
+    <li class="done">isUniqueViolation() で既投票検出（PostgreSQL 23505 SQLState）</li>
+    <li class="done">RankingDetailViewModel.nextVoteNumber で再投票回数管理</li>
+    <li>Supabase Edge Function 化（v1.1検討）でアトミック化</li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default'
+    });
+  </script>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - ジャンルクイズプレイ</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / ジャンルクイズプレイ</div>
+
+  <header class="site-header">
+    <h1>ジャンルクイズプレイ画面</h1>
+    <p>ジャンル別の問題を解くプレイ画面（3モード対応）</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: DT-GQS-02</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>解放済みジャンルの問題を3つのプレイモード（ランダム / 順番通り / 続きから）で解いていく画面。</p>
+
+  <h2>プレイモード</h2>
+  <table>
+    <tr><th>モード</th><th>動作</th></tr>
+    <tr><td>ランダム</td><td>毎回 randomQuestion() で異なる問題</td></tr>
+    <tr><td>順番通り</td><td>position をリセットして1問目から</td></tr>
+    <tr><td>続きから</td><td>保存された position から再開</td></tr>
+  </table>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>進捗バー</td><td>ProgressView</td><td>「N問目 / 全M問」</td></tr>
+    <tr><td>問題文</td><td>Text</td><td>question</td></tr>
+    <tr><td>選択肢ボタン</td><td>Button×4</td><td>choices</td></tr>
+    <tr><td>解説表示</td><td>Overlay</td><td>正解/不正解後の explanation</td></tr>
+    <tr><td>「次の問題へ」</td><td>Button</td><td>続く問題があれば</td></tr>
+  </table>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>表示内容</th></tr>
+    <tr><td>未回答</td><td>問題文 + 選択肢</td></tr>
+    <tr><td>回答後</td><td>正解強調 + 解説</td></tr>
+    <tr><td>全問終了</td><td>結果サマリ画面</td></tr>
+  </table>
+
+  <h2>遷移</h2>
+  <table>
+    <tr><th>操作</th><th>遷移先</th></tr>
+    <tr><td>選択肢タップ</td><td>同画面（結果表示）</td></tr>
+    <tr><td>「次へ」</td><td>同画面（次問題）</td></tr>
+    <tr><td>終了</td><td>GenreQuizShopView へ戻る</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>GenreQuizQuestion {
+    let id: String
+    let question: String
+    let choices: [String]
+    let correct: Int
+    let explanation: String?
+}
+
+GenreProgressService {
+    func recordAnswer(genreId: String, questionId: String, correct: Bool)
+    func getPosition(genreId: String) -> Int
+}</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">プレイ開始時にInterstitial広告（無料ユーザー）</li>
+    <li class="done">回答ごとに GenreProgressService.recordAnswer() で進捗保存</li>
+    <li class="done">「続きから」モードは position を維持</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="genre-quiz-shop.html">ジャンルクイズショップ</a></li>
+    <li><a href="genre-progress.html">進捗ダッシュボード</a></li>
+    <li><a href="../features/genre-quiz.html">ジャンルクイズ機能</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

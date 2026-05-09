@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - カレンダー</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / カレンダー</div>
+
+  <header class="site-header">
+    <h1>カレンダー画面</h1>
+    <p>過去の豆知識を月単位で振り返る</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: DT-CAL-01</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>月単位のカレンダーで過去の豆知識を振り返れる画面。HomeViewの2ページ目（TabView）として実装。
+  ロックされた日は Rewarded広告視聴で解放可能。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>月選択バー</td><td>HStack</td><td>前月・次月・年月表示</td></tr>
+    <tr><td>曜日ヘッダー</td><td>HStack</td><td>日〜土</td></tr>
+    <tr><td>日付グリッド</td><td>LazyVGrid</td><td>当月の日付を6行で表示</td></tr>
+    <tr><td>状態アイコン</td><td>Overlay</td><td>ログイン日: ★、広告視聴日: 🎬、未閲覧: ロック</td></tr>
+    <tr><td>tip表示エリア</td><td>VStack</td><td>選択日のtip（or「閲覧するには広告」）</td></tr>
+  </table>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>表示内容</th></tr>
+    <tr><td>表示可能日</td><td>tipを表示</td></tr>
+    <tr><td>ロック日（未閲覧 + 広告未視聴）</td><td>「広告を見て解放」アラート</td></tr>
+    <tr><td>未来日</td><td>タップ無効</td></tr>
+  </table>
+
+  <h2>遷移</h2>
+  <table>
+    <tr><th>操作</th><th>遷移先</th></tr>
+    <tr><td>表示可能日タップ</td><td>同画面でTipCardView表示</td></tr>
+    <tr><td>ロック日タップ</td><td>解放アラート → Rewarded広告 → markAsAdViewed → tip表示</td></tr>
+    <tr><td>クイズボタン</td><td>QuizView (.sheet)</td></tr>
+    <tr><td>月選択ボタン</td><td>DatePicker</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>HistoryService {
+    func getLoginDates() -> [Date]
+    func getAdViewedDates() -> [Date]
+    func markAsLogin(date: Date)
+    func markAsAdViewed(date: Date)
+}</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">CalendarLogic でその月の日数・曜日オフセット算出（CalendarLogicTestsで検証済）</li>
+    <li class="done">RewardedAdManager で広告視聴 → markAsAdViewed</li>
+    <li class="done">過去のtipは TipLoaderService.getTipForDate(date:) で取得（年単位ローテーション）</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="home.html">ホーム画面</a></li>
+    <li><a href="../features/ad-control.html">広告制御機能</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

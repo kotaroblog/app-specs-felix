@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - コイン経済</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / コイン経済</div>
+
+  <header class="site-header">
+    <h1>コイン経済</h1>
+    <p>アプリ内通貨「コイン」の獲得・消費の仕組み</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">機能ID: DT-FEAT-COIN</span>
+    </div>
+  </header>
+
+  <h2>概要</h2>
+  <p>テーマ購入・ジャンルアンロックに使用するアプリ内通貨。日次ログイン・動画視聴・プレミアム月次配布で獲得。
+  AppGroup UserDefaults に残高を保存し、Widget からも参照可能。</p>
+
+  <h2>関連画面</h2>
+  <ul>
+    <li><a href="../screens/home.html">ホーム画面</a>（残高表示・動画ボーナス）</li>
+    <li><a href="../screens/theme-shop.html">テーマショップ</a>（消費）</li>
+    <li><a href="../screens/genre-quiz-shop.html">ジャンルクイズショップ</a>（消費）</li>
+  </ul>
+
+  <h2>獲得手段</h2>
+  <table>
+    <tr><th>イベント</th><th>付与量</th><th>制約</th></tr>
+    <tr><td>デイリーログインボーナス</td><td>+1コイン/日</td><td>1日1回（lastLoginDateで制限）</td></tr>
+    <tr><td>プレミアム月次配布</td><td>+100コイン</td><td>毎月1日、プレミアムユーザーのみ</td></tr>
+    <tr><td>動画視聴ボーナス</td><td>+3コイン</td><td>1日最大5回</td></tr>
+  </table>
+
+  <h2>消費手段</h2>
+  <table>
+    <tr><th>項目</th><th>消費量</th></tr>
+    <tr><td>有料テーマ購入</td><td>200コイン</td></tr>
+    <tr><td>ジャンルアンロック</td><td>100コイン × 13ジャンル = 1300コイン</td></tr>
+  </table>
+
+  <h2>収支シミュレーション</h2>
+  <div class="callout">
+    <strong>1ヶ月（30日）の最大獲得量</strong>:<br>
+    ログイン: 30 × 1 = 30コイン<br>
+    動画ボーナス: 30 × 5 × 3 = 450コイン<br>
+    プレミアム: +100コイン（プレミアムのみ）<br>
+    <strong>合計: 480〜580コイン/月</strong><br>
+    <br>
+    全ジャンル解放（1300）+ テーマ複数（200×N）に必要なため、自然な課金導線。
+  </div>
+
+  <h2>API</h2>
+  <pre><code>CoinService {
+    func getBalance() -> Int
+    func recordDailyLogin() -> CoinResult
+    func recordMonthlyPremiumBonus() -> CoinResult
+    func recordVideoBonus() -> CoinResult
+    func spendCoins(_ amount: Int) -> Bool
+    func getLoginStreak() -> Int
+    func getRemainingVideoBonusCount() -> Int  // 当日の残り回数
+}
+
+struct CoinResult {
+    let earned: Int
+    let streak: Int
+    let balance: Int
+    let alreadyReceived: Bool
+}</code></pre>
+
+  <h2>ストリーク計算ロジック</h2>
+  <pre><code>// 前日ログイン → 継続 (+1)、そうでなければ 1日目リセット
+streak = (lastLogin == yesterday) ? streak + 1 : 1</code></pre>
+
+  <h2>ビジネスルール</h2>
+  <ul>
+    <li>ログインボーナスは <code>lastLoginDate</code> を AppGroup に保存して二重付与防止</li>
+    <li>動画ボーナスは <code>video_bonus_count_*</code> で当日の取得回数を記録</li>
+    <li>プレミアム月次は毎月1日のみ付与（month文字列で判定）</li>
+    <li>残高 0 でも動画視聴で獲得可能（プレッシャーフリー設計）</li>
+  </ul>
+
+  <h2>外部連携</h2>
+  <table>
+    <tr><th>連携先</th><th>用途</th></tr>
+    <tr><td>AppGroup UserDefaults</td><td>残高・履歴の保存</td></tr>
+    <tr><td>RewardedAdManager</td><td>動画ボーナス時の広告表示</td></tr>
+    <tr><td>PremiumService</td><td>月次ボーナス対象判定</td></tr>
+  </table>
+
+  <h2>エラー処理</h2>
+  <table>
+    <tr><th>発生条件</th><th>対応</th></tr>
+    <tr><td>残高不足</td><td>「コインが足りません」アラート</td></tr>
+    <tr><td>動画ボーナス上限</td><td>「本日の上限に達しました」</td></tr>
+    <tr><td>AppGroup nil</td><td>標準UserDefaultsへフォールバック</td></tr>
+  </table>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">CoinService は <code>@unchecked Sendable</code></li>
+    <li class="done">UserDefaults キー: <code>coin_balance</code>, <code>last_login_date</code>, <code>login_streak</code>, <code>video_bonus_count_*</code></li>
+    <li class="done">CoinResult.alreadyReceived で「すでに本日受取済み」を表現</li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

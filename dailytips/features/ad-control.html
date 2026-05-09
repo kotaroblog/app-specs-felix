@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - 広告制御</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / 広告制御</div>
+
+  <header class="site-header">
+    <h1>広告制御機能</h1>
+    <p>AdMob 4種広告（Banner / Interstitial / Rewarded / AppOpen）の表示制御</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">機能ID: DT-FEAT-AD</span>
+    </div>
+  </header>
+
+  <h2>概要</h2>
+  <p>本アプリは <strong>4種類のAdMob広告</strong> を統合し、画面・タイミング別に最適な広告を出す。
+  プレミアム会員は全広告非表示。動画報酬やカレンダー解放で能動的な広告視聴も可能。</p>
+
+  <h2>広告の種類と表示タイミング</h2>
+  <table>
+    <tr><th>種類</th><th>Manager</th><th>表示タイミング</th><th>無料/プレミアム</th></tr>
+    <tr><td>Banner</td><td>—（BannerAdView）</td><td>HomeView 下部に常時</td><td>無料のみ</td></tr>
+    <tr><td>Interstitial</td><td>InterstitialAdManager</td><td>ジャンルクイズプレイ開始時</td><td>無料のみ</td></tr>
+    <tr><td>Rewarded</td><td>RewardedAdManager</td><td>動画ボーナス・カレンダー解放（能動）</td><td>常時利用可（報酬獲得）</td></tr>
+    <tr><td>AppOpen</td><td>AppOpenAdManager</td><td>起動時・フォアグラウンド復帰時</td><td>無料のみ</td></tr>
+  </table>
+
+  <h2>AdMob ID 構成</h2>
+  <pre><code>enum AdConfig {
+    static let appID = "ca-app-pub-4104853755894501~6924812325"
+
+    #if DEBUG
+    // Google公式テストID
+    static let bannerID       = "ca-app-pub-3940256099942544/2934735716"
+    static let interstitialID = "ca-app-pub-3940256099942544/4411468910"
+    static let rewardedID     = "ca-app-pub-3940256099942544/1712485313"
+    static let appOpenID      = "ca-app-pub-3940256099942544/5575463023"
+    #else
+    // 本番ID（Info.plist管理）
+    #endif
+}</code></pre>
+
+  <h2>関連画面</h2>
+  <ul>
+    <li><a href="../screens/home.html">ホーム画面</a>（Banner / 動画ボーナス）</li>
+    <li><a href="../screens/calendar.html">カレンダー</a>（Rewarded解放）</li>
+    <li><a href="../screens/genre-quiz-play.html">ジャンルクイズプレイ</a>（Interstitial）</li>
+  </ul>
+
+  <h2>各 Manager の責務</h2>
+
+  <h3>RewardedAdManager（@MainActor : NSObject）</h3>
+  <ul>
+    <li><code>show(onReward:onFailed:)</code> で表示</li>
+    <li>視聴完了時 <code>onReward</code> コールバック実行</li>
+    <li>失敗時 <code>onFailed</code> コールバックでエラー通知</li>
+    <li>動画ボーナス: CoinService.recordVideoBonus()</li>
+    <li>カレンダー解放: HistoryService.markAsAdViewed()</li>
+  </ul>
+
+  <h3>InterstitialAdManager</h3>
+  <ul>
+    <li>ジャンルクイズプレイ開始時に表示</li>
+    <li>未ロード時はサイレントで次画面へ</li>
+  </ul>
+
+  <h3>AppOpenAdManager</h3>
+  <ul>
+    <li><code>loadAd()</code> で事前ロード</li>
+    <li><code>show(isPremium:)</code> でプレミアム判定込みで表示</li>
+    <li>scenePhase 変化監視でフォアグラウンド復帰時にも表示</li>
+  </ul>
+
+  <h2>ビジネスルール</h2>
+  <ul>
+    <li>プレミアム会員は <strong>すべて非表示</strong>（Rewarded のみ報酬目的で利用可）</li>
+    <li>広告ロード失敗時は <strong>UXを止めない</strong>（Banner: 高さ0、Interstitial: スキップ）</li>
+    <li>AppOpen は起動 UX を阻害しないため、ロード失敗時はサイレント</li>
+    <li>本番リリース前に <strong>本番AdMob ID</strong> へ切替必須</li>
+  </ul>
+
+  <h2>外部連携</h2>
+  <table>
+    <tr><th>連携先</th><th>用途</th></tr>
+    <tr><td>Google AdMob SDK</td><td>4種広告のロード・表示</td></tr>
+    <tr><td>App Tracking Transparency (ATT)</td><td>パーソナライズ広告のオプトイン</td></tr>
+    <tr><td>Info.plist（NSUserTrackingUsageDescription）</td><td>ATT説明文</td></tr>
+    <tr><td>SKAdNetwork</td><td>アトリビューション計測</td></tr>
+  </table>
+
+  <h2>エラー処理</h2>
+  <table>
+    <tr><th>広告種類</th><th>失敗時の挙動</th></tr>
+    <tr><td>Banner</td><td>高さ0で非表示</td></tr>
+    <tr><td>Interstitial</td><td>サイレントでスキップ</td></tr>
+    <tr><td>Rewarded</td><td>onFailed コールバックで「再試行してください」</td></tr>
+    <tr><td>AppOpen</td><td>サイレントでスキップ</td></tr>
+  </table>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">各Manager は <code>@MainActor : NSObject</code></li>
+    <li class="done">DEBUG/Release で AdConfig がID切替</li>
+    <li class="done">scenePhase == .active で AppOpen 再表示判定</li>
+    <li>AdMob テスト IDが本番に紛れないよう project.yml で確認</li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - 豆知識カード</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / 豆知識カード</div>
+
+  <header class="site-header">
+    <h1>豆知識カード（TipCardView）</h1>
+    <p>1つの豆知識を表示する再利用可能なカードコンポーネント</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: DT-HOME-02</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>豆知識1件をカード形式で表示。ホーム・カレンダー・お気に入り画面で共通利用。
+  ライトスタイル（白背景）と通常スタイル（テーマ背景）の2バリエーション。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>カテゴリバッジ</td><td>Capsule</td><td>tip.category（歴史・科学等）</td></tr>
+    <tr><td>タイトル</td><td>Text (large)</td><td>tip.title</td></tr>
+    <tr><td>本文</td><td>Text</td><td>tip.content</td></tr>
+    <tr><td>♥ ボタン</td><td>Button</td><td>FavoriteService.toggleFavorite</td></tr>
+    <tr><td>共有ボタン</td><td>Button</td><td>ShareCardView 経由</td></tr>
+    <tr><td>クイズボタン</td><td>Button</td><td>tip.quiz があるときのみ表示</td></tr>
+  </table>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>表示内容</th></tr>
+    <tr><td>クイズあり</td><td>クイズボタン表示</td></tr>
+    <tr><td>クイズなし</td><td>クイズボタン非表示</td></tr>
+    <tr><td>お気に入り済</td><td>♥ ハート塗りつぶし</td></tr>
+    <tr><td>未お気に入り</td><td>♡ ハート枠線のみ</td></tr>
+    <tr><td>ライトスタイル（isLightStyle=true）</td><td>白背景・暗テキスト</td></tr>
+    <tr><td>通常スタイル</td><td>テーマグラデーション・明テキスト</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>DailyTip {
+    let id: String
+    let title: String
+    let content: String
+    let category: String
+    let quiz: TipQuiz?
+}</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done"><code>isLightStyle: Bool</code> プロパティで背景色切り替え</li>
+    <li class="done">FavoriteService.toggleFavorite() で UI 即時更新（楽観UI）</li>
+    <li class="done">クイズボタンタップで QuizView を sheet 表示</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="home.html">ホーム画面</a></li>
+    <li><a href="favorites.html">お気に入り一覧</a></li>
+    <li><a href="tip-quiz.html">豆知識クイズ画面</a></li>
+    <li><a href="../features/favorite.html">お気に入り機能</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

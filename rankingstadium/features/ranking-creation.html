@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - ランキング作成機能</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / ランキング作成機能</div>
+
+  <header class="site-header">
+    <h1>ランキング作成機能</h1>
+    <p>5ステップウィザード + 下書き保存 + 公開フロー</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">機能ID: RS-FEAT-CREATE</span>
+    </div>
+  </header>
+
+  <h2>概要</h2>
+  <p>新規ランキングを作成・公開する一連のフロー。基本情報→選択肢→（クイズ）→期間→プレビューの5ステップ。
+  下書き保存・編集モード・選択肢拡張・期間延長などの拡張機能を含む。</p>
+
+  <h2>関連画面</h2>
+  <ul>
+    <li><a href="../screens/create-ranking.html">ランキング作成（5ステップ）</a></li>
+    <li><a href="../screens/drafts.html">下書き一覧</a></li>
+  </ul>
+
+  <h2>処理フロー（公開）</h2>
+  <div class="mermaid">
+sequenceDiagram
+  participant U as User
+  participant V as Step4PreviewView
+  participant VM as CreateRankingViewModel
+  participant RS as RankingService
+  participant PS as PointService
+  participant DB as Supabase
+
+  U->>V: 「公開する」タップ
+  V->>VM: publish()
+  VM->>PS: consumePoints(createRanking, ...)
+  PS->>DB: users.points 減少
+  PS->>DB: point_transactions INSERT
+  alt 残高不足
+    PS-->>VM: insufficientPoints
+    VM-->>U: 「Npt不足」
+  end
+  VM->>RS: createRanking(...)
+  RS->>DB: rankings INSERT (status: active)
+  RS->>DB: choices INSERT (×N)
+  alt hasQuiz
+    RS->>DB: quizzes INSERT (×3)
+  end
+  RS-->>VM: 作成完了
+  VM->>V: 完了画面 → ホーム
+  </div>
+
+  <h2>ビジネスルール</h2>
+  <ul>
+    <li>必須項目: タイトル、主タグ、選択肢3つ以上</li>
+    <li>選択肢上限は基本N、拡張で+10または+15</li>
+    <li>期間は7日 or 14日、拡張可</li>
+    <li>クイズ付与で +15pt の追加コスト、3問必須</li>
+    <li>下書きは最大M件まで保存可（superuser除く）</li>
+    <li>24時間以内の下書き削除なら cancelRefund でポイント返却</li>
+    <li>予約投稿は startsAt を未来日時に設定</li>
+  </ul>
+
+  <h2>外部連携</h2>
+  <table>
+    <tr><th>連携先</th><th>用途</th></tr>
+    <tr><td>Supabase rankings表</td><td>ランキング本体</td></tr>
+    <tr><td>Supabase choices表</td><td>選択肢</td></tr>
+    <tr><td>Supabase quizzes表</td><td>クイズ（hasQuiz=trueのみ）</td></tr>
+    <tr><td>PointService</td><td>消費・無料枠の判定</td></tr>
+    <tr><td>Supabase Storage</td><td>選択肢画像（imageUrl）</td></tr>
+  </table>
+
+  <h2>エラー処理</h2>
+  <table>
+    <tr><th>発生条件</th><th>対応</th></tr>
+    <tr><td>必須項目未入力</td><td>該当ステップへ戻して赤枠表示</td></tr>
+    <tr><td>ポイント不足</td><td>「Npt必要（現在M）」</td></tr>
+    <tr><td>非アトミック途中失敗</td><td>「下書きから再開できます」</td></tr>
+    <tr><td>画像アップロード失敗</td><td>該当選択肢のみエラー表示、再試行</td></tr>
+  </table>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">CreateRankingView は自前 NavigationStack を持たない</li>
+    <li class="done">下書き復元は status==.draft の rankings から取得</li>
+    <li class="done">非アトミック処理（4ステップ）</li>
+    <li>Edge Function 化（v1.1）</li>
+    <li>画像のSupabase Storage連携の安定化</li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default'
+    });
+  </script>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - 豆知識クイズ</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / 豆知識クイズ</div>
+
+  <header class="site-header">
+    <h1>豆知識クイズ画面</h1>
+    <p>豆知識に付随する選択式クイズ</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: DT-QUIZ-01</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>豆知識（tip.quiz）に付随する3〜4択問題を解く画面。正解で連続日数（streak）+1、コインも獲得可能。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>問題文</td><td>Text</td><td>tip.quiz.question</td></tr>
+    <tr><td>選択肢ボタン</td><td>Button×4</td><td>tip.quiz.choices</td></tr>
+    <tr><td>結果表示</td><td>Overlay</td><td>正解 / 不正解の演出</td></tr>
+    <tr><td>正答率表示</td><td>Text</td><td>「N% 正解」</td></tr>
+    <tr><td>連続正解日数</td><td>Text</td><td>「連続N日」</td></tr>
+    <tr><td>獲得コイン</td><td>Text</td><td>「+1 コイン」（正解時）</td></tr>
+  </table>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>表示内容</th></tr>
+    <tr><td>未回答</td><td>選択肢のみ</td></tr>
+    <tr><td>正解</td><td>正解演出 + 統計表示</td></tr>
+    <tr><td>不正解</td><td>正解を提示 + 解説</td></tr>
+    <tr><td>当日回答済み</td><td>「本日は回答済み」表示</td></tr>
+  </table>
+
+  <h2>遷移</h2>
+  <table>
+    <tr><th>操作</th><th>遷移先</th></tr>
+    <tr><td>選択肢タップ</td><td>結果表示（同画面）</td></tr>
+    <tr><td>閉じる</td><td>HomeView（sheetを閉じる）</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>TipQuiz {
+    let question: String
+    let choices: [String]
+    let correct: Int  // index
+}
+
+QuizService {
+    func recordAnswer(tipId: String, correct: Bool)
+    func getStreak() -> Int
+    func hasAnsweredToday() -> Bool
+}</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">QuizService.hasAnsweredToday() で1日1回制限</li>
+    <li class="done">正解時 streak +1 + コイン獲得（CoinService 連携）</li>
+    <li class="done">不正解時 streak リセット</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="home.html">ホーム画面</a></li>
+    <li><a href="tip-card.html">豆知識カード</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

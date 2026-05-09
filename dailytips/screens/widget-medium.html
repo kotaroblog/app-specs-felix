@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - MediumCalendarWidget</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / MediumCalendarWidget</div>
+
+  <header class="site-header">
+    <h1>MediumCalendarWidget（中ウィジェット）</h1>
+    <p>ホーム画面ウィジェット - 週間ログインカレンダーを表示</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: DT-WID-02</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>iOS ホーム画面に配置できる中サイズのウィジェット。今週のログイン状況をカレンダー形式で表示。
+  連続ログイン日数も表示してエンゲージメント維持を支援。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>曜日ヘッダー</td><td>HStack</td><td>日〜土</td></tr>
+    <tr><td>週間グリッド</td><td>HStack</td><td>各日: ログイン済 = ★、未ログイン = ○</td></tr>
+    <tr><td>連続ログイン日数</td><td>Text</td><td>「連続Nログイン中」</td></tr>
+    <tr><td>アプリロゴ</td><td>Image</td><td>右下</td></tr>
+  </table>
+
+  <h2>データソース</h2>
+  <pre><code>WidgetCalendarData {
+    let loginDaysThisWeek: [Bool]   // 7要素（日〜土）
+    let loginStreak: Int
+    let updatedAt: Date
+
+    static func load() -> WidgetCalendarData? {
+        // AppGroup UserDefaults キー: widgetCalendarData
+    }
+}</code></pre>
+
+  <h2>更新タイミング</h2>
+  <ul>
+    <li>本体起動時（HistoryService.syncWidgetData()）</li>
+    <li>1時間ごと（TimelineProvider）</li>
+    <li>翌日0時（自動再取得）</li>
+  </ul>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">CalendarWidgetProvider が TimelineProvider プロトコル実装</li>
+    <li class="done">loginDaysThisWeek の計算は HistoryService.getLoginDates() で当週フィルタ</li>
+    <li>WidgetKit の Smart Stack 対応（v1.x）</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="widget-small.html">SmallTipWidget</a></li>
+    <li><a href="../features/widget-sync.html">Widget同期機能</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

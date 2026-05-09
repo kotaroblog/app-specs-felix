@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - サブスク機能</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / サブスク機能</div>
+
+  <header class="site-header">
+    <h1>サブスクリプション課金機能</h1>
+    <p>StoreKit 2 による月額・年額プレミアム課金</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">機能ID: RS-FEAT-SUB</span>
+    </div>
+  </header>
+
+  <h2>概要</h2>
+  <p>StoreKit 2 を使用した自動更新サブスクリプション。月額と年額の2プランを提供。
+  購入状態は <code>StoreKitService</code> がシングルトンで管理し、Transaction.updates を監視して即時反映。</p>
+
+  <h2>関連画面</h2>
+  <ul>
+    <li><a href="../screens/paywall.html">Paywall画面</a></li>
+    <li><a href="../screens/settings.html">設定画面</a>（復元ボタン）</li>
+  </ul>
+
+  <h2>処理フロー（購入）</h2>
+  <div class="mermaid">
+sequenceDiagram
+  participant U as User
+  participant PV as PaywallView
+  participant SK as StoreKitService
+  participant AS as App Store
+  participant TX as Transaction.updates
+
+  U->>PV: プラン選択 + 購入
+  PV->>SK: purchase(product)
+  SK->>AS: Product.purchase()
+  AS->>U: Apple ID認証
+  U-->>AS: 承認
+  AS-->>SK: 結果(success/userCancelled/pending)
+  alt success
+    SK->>SK: verification チェック
+    SK->>SK: transaction.finish()
+    SK->>SK: isPremium = true
+    SK->>PV: 完了通知
+  else userCancelled
+    SK-->>PV: キャンセル
+  else pending
+    SK-->>PV: 「処理中」
+  end
+  TX-->>SK: バックグラウンド更新通知（自動更新等）
+  SK->>SK: refreshPremiumStatus()
+  </div>
+
+  <h2>商品定義</h2>
+  <table>
+    <tr><th>プラン</th><th>Product ID</th><th>更新</th></tr>
+    <tr><td>月額</td><td><code>com.happyboy1002.RankingStadium.premium.monthly</code></td><td>毎月自動更新</td></tr>
+    <tr><td>年額</td><td><code>com.happyboy1002.RankingStadium.premium.yearly</code></td><td>毎年自動更新</td></tr>
+  </table>
+
+  <h2>プレミアム特典</h2>
+  <ul>
+    <li>広告非表示（実装予定）</li>
+    <li>無料作成枠の拡大</li>
+    <li>月次ポイントボーナス（実装予定）</li>
+    <li>限定機能（v1.1以降）</li>
+  </ul>
+
+  <h2>ビジネスルール</h2>
+  <ul>
+    <li>購入は Apple ID（Family Sharing対応）</li>
+    <li>復元は <code>restorePurchases()</code> でいつでも可</li>
+    <li>本番判定は <code>isAppStoreRelease</code>（DEBUG/TestFlightで偽）</li>
+    <li>起動時に <code>checkCurrentEntitlements()</code> で購買状態確認</li>
+    <li>テスト時は <code>debugOverridePremium</code> フラグで強制プレミアム化</li>
+  </ul>
+
+  <h2>外部連携</h2>
+  <table>
+    <tr><th>連携先</th><th>用途</th></tr>
+    <tr><td>StoreKit 2</td><td>Product 取得・purchase / restore / Transaction.updates</td></tr>
+    <tr><td>App Store Connect</td><td>商品設定・価格・サブスク期間</td></tr>
+    <tr><td>users.isPremium</td><td>サブスク状態のキャッシュ（Supabase）</td></tr>
+  </table>
+
+  <h2>エラー処理</h2>
+  <table>
+    <tr><th>発生条件</th><th>対応</th></tr>
+    <tr><td>商品未取得</td><td>ProgressViewで再試行</td></tr>
+    <tr><td>verification失敗</td><td>「決済の検証に失敗しました」 + サポート誘導</td></tr>
+    <tr><td>userCancelled</td><td>サイレント</td></tr>
+    <tr><td>pending（保護者承認待ち）</td><td>「処理中です」表示、Transaction.updates で後続処理</td></tr>
+    <tr><td>復元時に該当商品なし</td><td>「復元できる商品がありません」</td></tr>
+  </table>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">StoreKitService は <code>@Observable @MainActor</code> シングルトン</li>
+    <li class="done">listenForTransactions() で Transaction.updates 監視（無限Task）</li>
+    <li class="done">products は loadProducts() で月額→年額の順にソート</li>
+    <li class="done">Logger.StoreKit カテゴリ</li>
+    <li>StoreKit Configuration ファイルでローカルテスト</li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default'
+    });
+  </script>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

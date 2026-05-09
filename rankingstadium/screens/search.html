@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - 検索</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / 検索</div>
+
+  <header class="site-header">
+    <h1>検索画面</h1>
+    <p>キーワード・タグでランキングを検索</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: RS-SEARCH-01</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>キーワード・タグ・期間などでランキングを絞り込んで発見する画面。Tab.search のメイン画面。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>検索バー</td><td>SearchField</td><td>title / description にマッチ</td></tr>
+    <tr><td>タグフィルター</td><td>Picker / FlowLayout</td><td>主タグ・副タグでフィルタ</td></tr>
+    <tr><td>ステータスフィルター</td><td>Picker</td><td>すべて / 受付中 / 終了</td></tr>
+    <tr><td>並び順</td><td>Picker</td><td>新着 / 人気（voteCount降順） / 終了間近</td></tr>
+    <tr><td>結果リスト</td><td>List</td><td>RankingCardView</td></tr>
+  </table>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>表示内容</th></tr>
+    <tr><td>検索前</td><td>人気ランキング・最近のランキング</td></tr>
+    <tr><td>検索中</td><td>ProgressView</td></tr>
+    <tr><td>結果あり</td><td>カードリスト</td></tr>
+    <tr><td>結果なし</td><td>「該当するランキングがありません」</td></tr>
+  </table>
+
+  <h2>遷移</h2>
+  <table>
+    <tr><th>操作</th><th>遷移先</th></tr>
+    <tr><td>カードタップ</td><td>RankingDetailView</td></tr>
+    <tr><td>タグタップ</td><td>同画面（タグフィルタON）</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>// SearchViewModel が保持
+struct SearchCriteria {
+    var keyword: String
+    var majorTag: String?
+    var minorTag: String?
+    var status: RankingStatus?
+    var sortBy: SortOrder  // newest / popular / endingSoon
+}</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">SearchViewModel が検索条件を保持</li>
+    <li class="done">debounce 入力（タイピング即時に走らない）</li>
+    <li>検索履歴の保存（v1.1検討）</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="ranking-detail.html">ランキング詳細</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - Paywall</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / Paywall</div>
+
+  <header class="site-header">
+    <h1>Paywall画面</h1>
+    <p>プレミアムサブスクリプションの購入画面</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: RS-PAY-01〜05</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>プレミアム会員の特典を訴求し、月額・年額プランから選択して StoreKit 経由で購入してもらう画面。
+  PaywallView を中心に Header / Plan / Purchase / Benefits / Footer の5つのサブViewで構成。</p>
+
+  <h2>UI 構成（サブView）</h2>
+  <table>
+    <tr><th>サブView</th><th>役割</th></tr>
+    <tr><td>PaywallHeaderView</td><td>キャッチコピー・アイキャッチ画像</td></tr>
+    <tr><td>PaywallBenefitsView</td><td>特典リスト（広告非表示・ポイント増量・無料作成枠拡大 等）</td></tr>
+    <tr><td>PaywallPlanSelectionView</td><td>月額/年額のプラン選択（ボタンスタイル）</td></tr>
+    <tr><td>PaywallPurchaseButton</td><td>購入実行ボタン（StoreKit起動）</td></tr>
+    <tr><td>PaywallFooterView</td><td>利用規約・プライバシーポリシー・「購入を復元」リンク</td></tr>
+  </table>
+
+  <h2>提供商品</h2>
+  <table>
+    <tr><th>プラン</th><th>Product ID</th></tr>
+    <tr><td>月額</td><td><code>com.happyboy1002.RankingStadium.premium.monthly</code></td></tr>
+    <tr><td>年額</td><td><code>com.happyboy1002.RankingStadium.premium.yearly</code></td></tr>
+  </table>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>表示内容</th></tr>
+    <tr><td>商品取得中</td><td>ProgressView</td></tr>
+    <tr><td>商品取得完了</td><td>プラン選択UI表示</td></tr>
+    <tr><td>購入処理中</td><td>ボタン無効化 + ProgressView</td></tr>
+    <tr><td>購入成功</td><td>「ようこそプレミアム会員へ」表示 → 戻る</td></tr>
+    <tr><td>購入失敗</td><td>エラーアラート</td></tr>
+    <tr><td>すでにプレミアム</td><td>「すでにプレミアム会員です」表示</td></tr>
+  </table>
+
+  <h2>遷移</h2>
+  <table>
+    <tr><th>操作</th><th>遷移先</th></tr>
+    <tr><td>プラン選択 + 購入ボタン</td><td>StoreKit 購入フロー</td></tr>
+    <tr><td>復元ボタン</td><td>StoreKitService.restorePurchases()</td></tr>
+    <tr><td>利用規約・プライバシー</td><td>SafariView で表示</td></tr>
+    <tr><td>戻る</td><td>SettingsView</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>StoreKitService {
+    var products: [Product]                // 月額・年額
+    var purchasedProductIDs: Set<String>
+    var isPremium: Bool
+    func purchase(_ product: Product) async throws
+    func restorePurchases() async throws
+}</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">products は loadProducts() で月額→年額の順にソート</li>
+    <li class="done">isAppStoreRelease で本番判定（DEBUG/TestFlight/本番）</li>
+    <li class="done">listenForTransactions() でトランザクション監視</li>
+    <li class="done">checkCurrentEntitlements() で起動時の購買状態確認</li>
+    <li>StoreKit Configuration ファイルでローカルテスト</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="../features/subscription.html">サブスク機能仕様書</a></li>
+    <li><a href="settings.html">設定画面</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

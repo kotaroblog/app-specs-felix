@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - テーマショップ</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / テーマショップ</div>
+
+  <header class="site-header">
+    <h1>テーマショップ</h1>
+    <p>背景グラデーションテーマの選択・購入</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: DT-TH-01</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>無料3種・有料9種の合計12テーマから選択できる画面。有料は <strong>200コイン</strong> で購入。
+  プレミアム会員は全テーマ自動解放（実装検討）。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>コインバッジ</td><td>HStack</td><td>現在のコイン残高</td></tr>
+    <tr><td>テーマカード</td><td>LazyVGrid</td><td>各テーマのプレビュー（グラデーション）</td></tr>
+    <tr><td>選択中バッジ</td><td>Overlay</td><td>適用中テーマに ✓ マーク</td></tr>
+    <tr><td>購入/適用ボタン</td><td>Button</td><td>状態に応じてラベル変化</td></tr>
+  </table>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>表示内容</th></tr>
+    <tr><td>無料テーマ</td><td>「適用」ボタン</td></tr>
+    <tr><td>未購入有料</td><td>「200コインで購入」ボタン</td></tr>
+    <tr><td>購入済</td><td>「適用」ボタン</td></tr>
+    <tr><td>残高不足</td><td>購入アラートで警告</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>AppThemeItem {
+    let id: String
+    let name: String
+    let cost: Int  // 0 or 200
+    let colors: [Color]
+    let begin: UnitPoint
+    let end: UnitPoint
+}
+
+ThemeService {
+    func getSelectedTheme() -> AppThemeItem
+    func setSelectedTheme(id: String)
+    func getUnlockedThemeIds() -> [String]
+    func purchaseTheme(id: String) -> Bool
+}</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">無料テーマ3種は <code>cost: 0</code> で常時アンロック</li>
+    <li class="done">有料9種は購入後に AppGroup に保存（unlocked_themes）</li>
+    <li class="done">適用テーマは ThemeBackgroundView でグラデーション表示</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="home.html">ホーム画面</a></li>
+    <li><a href="../features/coin-economy.html">コイン経済</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

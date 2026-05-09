@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - お気に入り機能</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / お気に入り機能</div>
+
+  <header class="site-header">
+    <h1>お気に入り機能</h1>
+    <p>♥ マークで気になる豆知識をブックマーク</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">機能ID: DT-FEAT-FAV</span>
+    </div>
+  </header>
+
+  <h2>概要</h2>
+  <p>ユーザーが気になった豆知識を ♥ ボタンで保存し、後で FavoritesView から振り返れる機能。
+  AppGroup UserDefaults キー <code>favorite_tips</code> に Tip ID 配列で保存。</p>
+
+  <h2>関連画面</h2>
+  <ul>
+    <li><a href="../screens/favorites.html">お気に入り一覧</a></li>
+    <li><a href="../screens/tip-card.html">豆知識カード</a>（♥ ボタン）</li>
+  </ul>
+
+  <h2>API</h2>
+  <pre><code>final class FavoriteService {  // @unchecked Sendable
+    func getFavorites() -> [String]
+    func isFavorite(id: String) -> Bool
+    func toggleFavorite(id: String)
+}</code></pre>
+
+  <h2>処理フロー</h2>
+  <ol>
+    <li>ユーザーが TipCardView の ♥ ボタンをタップ</li>
+    <li>FavoriteService.toggleFavorite(id:) 実行</li>
+    <li>AppGroup UserDefaults の <code>favorite_tips</code> 配列を更新</li>
+    <li>UI 即時反映（楽観UI）</li>
+  </ol>
+
+  <h2>ビジネスルール</h2>
+  <ul>
+    <li>tipID をキーに保存（永続）</li>
+    <li>件数制限なし</li>
+    <li>ユーザーがアプリを再インストールすると消える（クラウド同期なし）</li>
+  </ul>
+
+  <h2>外部連携</h2>
+  <table>
+    <tr><th>連携先</th><th>用途</th></tr>
+    <tr><td>AppGroup UserDefaults</td><td>お気に入りID配列保存</td></tr>
+  </table>
+
+  <h2>エラー処理</h2>
+  <p>UserDefaults 操作のため通常エラーは発生しない。AppGroup nil 時は standard へフォールバック。</p>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">@unchecked Sendable で並行アクセス対応</li>
+    <li class="done">配列の重複は避ける（追加前に contains チェック）</li>
+    <li>iCloud 同期（v1.x検討）</li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

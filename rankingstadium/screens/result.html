@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - 結果画面</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / 結果画面</div>
+
+  <header class="site-header">
+    <h1>結果画面</h1>
+    <p>ランキングの集計結果を表示</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: RS-VOTE-04</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>投票完了後または閲覧権限を得たユーザー向けに、Choice ごとの voteCount を集計してランキング順に表示する。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>順位リスト</td><td>List</td><td>順位・Choice・票数・票割合の棒グラフ</td></tr>
+    <tr><td>自分の投票ハイライト</td><td>Border</td><td>自分が選んだ Choice を強調表示</td></tr>
+    <tr><td>シェアボタン</td><td>Toolbar</td><td>ShareImageService で結果画像生成</td></tr>
+    <tr><td>再投票ボタン</td><td>Button</td><td>nextVoteNumber ≤ 3 で表示</td></tr>
+  </table>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>表示内容</th></tr>
+    <tr><td>初期表示</td><td>ProgressView</td></tr>
+    <tr><td>表示中</td><td>順位リスト</td></tr>
+    <tr><td>再投票可</td><td>再投票ボタン表示（消費ポイント明示）</td></tr>
+  </table>
+
+  <h2>遷移</h2>
+  <table>
+    <tr><th>操作</th><th>遷移先</th></tr>
+    <tr><td>シェア</td><td>ShareSheet</td></tr>
+    <tr><td>再投票（revote1/revote2）</td><td>VoteView へ戻る（消費確認後）</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>// Choices を voteCount 降順でソート
+choices.sorted { $0.voteCount > $1.voteCount }
+// 自分の投票（hasVotedOptimistically + Vote.choiceId）でハイライト</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">RankingDetailViewModel.nextVoteNumber で再投票ボタン制御</li>
+    <li class="done">ShareImageService で OG画像生成</li>
+    <li>再投票後の即時反映（楽観UI）</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="../features/voting.html">投票機能仕様書</a></li>
+    <li><a href="result-locked.html">結果ロック画面</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

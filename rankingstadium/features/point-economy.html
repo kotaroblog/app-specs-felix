@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - ポイント経済</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / ポイント経済</div>
+
+  <header class="site-header">
+    <h1>ポイント経済</h1>
+    <p>アプリ内通貨「ポイント」の獲得・消費の仕組み</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">機能ID: RS-FEAT-POINT</span>
+    </div>
+  </header>
+
+  <h2>概要</h2>
+  <p>ランキング作成・再投票・閲覧解放などに「ポイント」を消費。日次ログインボーナス・広告報酬で獲得。
+  二重付与防止のためクライアントとDB両方で確認する二層チェック構造。</p>
+
+  <h2>関連画面</h2>
+  <ul>
+    <li>HomeView / MyPageView（ポイント残高表示）</li>
+    <li><a href="../screens/result-locked.html">結果ロック画面</a>（解放消費）</li>
+    <li><a href="../screens/create-ranking.html">ランキング作成</a>（作成消費）</li>
+    <li><a href="../screens/vote-single.html">投票画面</a>（再投票消費）</li>
+  </ul>
+
+  <h2>獲得手段</h2>
+  <table>
+    <tr><th>イベント</th><th>付与量</th><th>制約</th></tr>
+    <tr><td>ログインボーナス</td><td>連続日数に応じて変動</td><td>1日1回（二重付与防止）</td></tr>
+    <tr><td>広告報酬</td><td>動画視聴で N pt</td><td>1日Mまで（実装確認）</td></tr>
+    <tr><td>キャンセル返金</td><td>cancelRefund で消費分の一部</td><td>下書き削除時等</td></tr>
+  </table>
+
+  <h2>消費手段</h2>
+  <table>
+    <tr><th>アクション</th><th>消費ポイント</th><th>PointAction</th></tr>
+    <tr><td>ランキング作成（基本）</td><td>20pt</td><td>createRanking</td></tr>
+    <tr><td>クイズ付与</td><td>+15pt</td><td>createRanking（合算）</td></tr>
+    <tr><td>TOP3ランキング</td><td>20pt</td><td>createRanking</td></tr>
+    <tr><td>選択肢拡張 +10</td><td>10pt</td><td>extendChoices10</td></tr>
+    <tr><td>選択肢拡張 +15</td><td>20pt</td><td>extendChoices15</td></tr>
+    <tr><td>期間延長 +7日</td><td>10pt</td><td>extendPeriod7</td></tr>
+    <tr><td>期間延長 +14日</td><td>20pt</td><td>extendPeriod14</td></tr>
+    <tr><td>1回目の再投票</td><td>3pt</td><td>revote1</td></tr>
+    <tr><td>2回目の再投票</td><td>7pt</td><td>revote2</td></tr>
+    <tr><td>結果閲覧（基本）</td><td>1pt</td><td>viewResult</td></tr>
+    <tr><td>詳細閲覧</td><td>2pt</td><td>viewDetail</td></tr>
+    <tr><td>条件付き閲覧</td><td>3pt</td><td>viewConditional</td></tr>
+  </table>
+
+  <h2>無料作成枠</h2>
+  <p>新規ユーザーには <code>freeCreationRemaining</code> として無料でランキング作成できる枠が用意される。
+  消費前にこのカウンタを優先利用する。</p>
+
+  <h2>ビジネスルール</h2>
+  <ul>
+    <li>消費操作は必ず <code>PointService.consumePoints()</code> 経由（直接 users.points を更新しない）</li>
+    <li>すべての取引は <code>PointTransaction</code> に履歴として記録</li>
+    <li>ログインボーナスは <code>lastLoginDate</code>（クライアント） + <code>point_transactions</code>（DB）の二層で重複防止</li>
+    <li>残高不足時は <code>RankingServiceError.insufficientPoints(required:current:)</code> で必要量を返す</li>
+    <li>下書き削除時、24時間以内かつ未公開なら cancelRefund でポイント返却</li>
+  </ul>
+
+  <h2>外部連携</h2>
+  <table>
+    <tr><th>連携先</th><th>用途</th></tr>
+    <tr><td>Supabase point_transactions表</td><td>取引履歴</td></tr>
+    <tr><td>Supabase users.points</td><td>残高管理</td></tr>
+    <tr><td>AdMob Rewarded広告</td><td>動画報酬の付与</td></tr>
+  </table>
+
+  <h2>エラー処理</h2>
+  <table>
+    <tr><th>発生条件</th><th>対応</th></tr>
+    <tr><td>残高不足</td><td>「Npt不足です（必要M, 現在L）」のアラート</td></tr>
+    <tr><td>ボーナス二重付与検出</td><td>サイレントで既受領扱い</td></tr>
+    <tr><td>消費後のINSERT失敗</td><td>cancelRefundで補償</td></tr>
+  </table>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">PointService.consumePoints() でポイント減少 + point_transactions INSERT を実行</li>
+    <li class="done">PointAction enum で15種のアクションを定義</li>
+    <li class="done">claimLoginBonus() で日次付与（連続ログイン日数カウント）</li>
+    <li>Supabase Edge Function 化（v1.1検討）でアトミック保証</li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

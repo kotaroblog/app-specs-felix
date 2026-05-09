@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - 設定</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / 設定</div>
+
+  <header class="site-header">
+    <h1>設定画面</h1>
+    <p>アプリ全般の設定とアカウント管理</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: RS-SET-01</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>プレミアムアップグレード導線、フィードバック送信、利用規約・プライバシーリンク、ログアウトなどの設定機能を提供。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>セクション</th><th>項目</th><th>動作</th></tr>
+    <tr><td>アカウント</td><td>表示名編集</td><td>テキスト入力 → users更新</td></tr>
+    <tr><td>プレミアム</td><td>「Pro版にアップグレード」</td><td>PaywallView 起動</td></tr>
+    <tr><td>プレミアム</td><td>「購入を復元」</td><td>StoreKitService.restorePurchases()</td></tr>
+    <tr><td>サポート</td><td>フィードバック送信</td><td>FeedbackView 起動</td></tr>
+    <tr><td>サポート</td><td>利用規約</td><td>app-policies/rankingstadium/terms.html を表示</td></tr>
+    <tr><td>サポート</td><td>プライバシーポリシー</td><td>app-policies/rankingstadium/privacy-policy.html を表示</td></tr>
+    <tr><td>その他</td><td>バージョン情報</td><td>1.0 (build 7)</td></tr>
+    <tr><td>その他</td><td>ログアウト</td><td>セッション破棄 → LoginView</td></tr>
+    <tr><td>危険</td><td>アカウント削除</td><td>確認ダイアログ → 削除</td></tr>
+  </table>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>表示内容</th></tr>
+    <tr><td>無料ユーザー</td><td>「Pro版にアップグレード」セル表示</td></tr>
+    <tr><td>プレミアムユーザー</td><td>「プレミアム会員」表示、復元のみ</td></tr>
+  </table>
+
+  <h2>遷移</h2>
+  <table>
+    <tr><th>操作</th><th>遷移先</th></tr>
+    <tr><td>「Pro版にアップグレード」</td><td>PaywallView</td></tr>
+    <tr><td>「フィードバック送信」</td><td>FeedbackView</td></tr>
+    <tr><td>「ログアウト」</td><td>LoginView（authState変化）</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>AppUser（currentUser）
+StoreKitService（isPremium判定）</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">SettingsView は単純な NavigationLink 構成</li>
+    <li class="done">App Tracking Transparency（ATT）リクエストはアプリ起動時に実施</li>
+    <li>アカウント削除フロー（v1.1検討、Apple審査要件）</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="paywall.html">Paywall画面</a></li>
+    <li><a href="../features/subscription.html">サブスク機能仕様書</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

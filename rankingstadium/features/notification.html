@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - 通知機能</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / 通知機能</div>
+
+  <header class="site-header">
+    <h1>通知機能</h1>
+    <p>アプリ内通知の取得・表示・既読管理</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">機能ID: RS-FEAT-NOTIF</span>
+    </div>
+  </header>
+
+  <h2>概要</h2>
+  <p>ユーザー宛のシステム通知（フォロー、ランキング終了、選択肢申請、無料作成枠リセット 等）を Supabase notifications表 から取得し、HomeView のベルアイコンと NotificationListView で表示。</p>
+
+  <h2>関連画面</h2>
+  <ul>
+    <li>HomeView（未読バッジ）</li>
+    <li><a href="../screens/notifications.html">通知一覧画面</a></li>
+  </ul>
+
+  <h2>通知タイプ</h2>
+  <table>
+    <tr><th>type</th><th>説明</th><th>発火条件</th></tr>
+    <tr><td><code>follow</code></td><td>フォローされた</td><td>他ユーザーが follow() 実行時</td></tr>
+    <tr><td><code>ranking_ended</code></td><td>投票したランキングが終了</td><td>endsAt 経過時（バックエンドジョブ）</td></tr>
+    <tr><td><code>choice_request</code></td><td>選択肢申請を受信（作成者向け）</td><td>ChoiceRequestService.create()</td></tr>
+    <tr><td><code>free_creation</code></td><td>無料作成枠の通知</td><td>FreeCreationNotificationService</td></tr>
+  </table>
+
+  <h2>処理フロー</h2>
+  <ol>
+    <li>HomeView 表示時に <code>NotificationService.fetchUnreadCount()</code> で未読数取得</li>
+    <li>ベルアイコンタップで NotificationListView 起動</li>
+    <li>NotificationListView 表示時に <code>fetchNotifications(limit: 50)</code></li>
+    <li>セルタップで <code>markAsRead(id)</code> 実行 + 関連画面へ遷移</li>
+    <li>「すべて既読」で <code>markAllAsRead()</code></li>
+  </ol>
+
+  <h2>ビジネスルール</h2>
+  <ul>
+    <li>通知は時系列降順、最大50件表示</li>
+    <li>未読は背景色強調、既読は通常表示</li>
+    <li>通知タップで自動既読化</li>
+    <li>プッシュ通知は v1.x で検討（現状はアプリ内通知のみ）</li>
+  </ul>
+
+  <h2>外部連携</h2>
+  <table>
+    <tr><th>連携先</th><th>用途</th></tr>
+    <tr><td>Supabase notifications表</td><td>通知データ保存</td></tr>
+    <tr><td>UserNotifications</td><td>v1.x プッシュ通知（未実装）</td></tr>
+  </table>
+
+  <h2>エラー処理</h2>
+  <table>
+    <tr><th>発生条件</th><th>対応</th></tr>
+    <tr><td>通信失敗</td><td>RetryHelper で再試行</td></tr>
+    <tr><td>該当ランキング削除済み</td><td>セルタップで「ランキングが見つかりません」</td></tr>
+  </table>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">NotificationService.fetchNotifications(limit:) で取得</li>
+    <li class="done">Logger.Notification カテゴリ</li>
+    <li>プッシュ通知（APNs）は v1.x（要 .p8 キー登録）</li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

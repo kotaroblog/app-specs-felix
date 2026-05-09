@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - ログイン</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / ログイン</div>
+
+  <header class="site-header">
+    <h1>ログイン画面</h1>
+    <p>Apple Sign In による認証エントリポイント</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: RS-AUTH-01</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>未認証ユーザーがアプリ機能を利用するためのサインイン画面。Apple Sign In のみを認証手段として提供。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>アプリロゴ</td><td>Image</td><td>中央上部に配置</td></tr>
+    <tr><td>キャッチコピー</td><td>Text</td><td>「みんなの推しを、ランキングに」等</td></tr>
+    <tr><td>Apple Sign Inボタン</td><td>SignInWithAppleButton</td><td>標準スタイル、画面下部</td></tr>
+    <tr><td>利用規約・プライバシーリンク</td><td>Link</td><td>フッタにリンク表示</td></tr>
+  </table>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>表示内容</th></tr>
+    <tr><td>初期表示</td><td>サインインボタン表示</td></tr>
+    <tr><td>サインイン中</td><td>ボタン無効化 + ProgressView</td></tr>
+    <tr><td>失敗</td><td>エラーメッセージ表示、ボタン再有効化</td></tr>
+  </table>
+
+  <h2>遷移</h2>
+  <table>
+    <tr><th>操作</th><th>遷移先</th></tr>
+    <tr><td>Apple Sign In成功（新規ユーザー）</td><td>SetupProfileView</td></tr>
+    <tr><td>Apple Sign In成功（既存ユーザー）</td><td>MainTabView</td></tr>
+    <tr><td>Apple Sign Inキャンセル</td><td>同画面（無操作）</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>// ASAuthorizationAppleIDCredential
+// → AppleSignInService → Supabase auth.signInWithIdToken()
+// → AuthViewModel.fetchOrCreateUser()</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">SecRandomCopyBytes で nonce 生成、SHA256 ハッシュ化</li>
+    <li class="done">CheckedContinuation で非同期結果を await キャッチ</li>
+    <li class="done">Supabase セッション復元（キーチェーン経由）</li>
+    <li class="done">Apple Sign In キャンセルはサイレント扱い</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="../flow.html">画面遷移図</a></li>
+    <li><a href="../features/auth.html">認証機能仕様書</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

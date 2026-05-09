@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - Premium</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / Premium</div>
+
+  <header class="site-header">
+    <h1>Premium 購入画面</h1>
+    <p>サブスクリプションプランの購入</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: DT-PRM-01</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>プレミアム会員の特典を訴求し、月額・年額プランから選択して購入してもらう画面。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>ヘッダー</td><td>VStack</td><td>キャッチコピー + アイキャッチ</td></tr>
+    <tr><td>特典リスト</td><td>List</td><td>広告なし・限定テーマ・月次100pt</td></tr>
+    <tr><td>プラン選択</td><td>HStack</td><td>月額・年額（ボタン）</td></tr>
+    <tr><td>購入ボタン</td><td>Button</td><td>StoreKit 起動</td></tr>
+    <tr><td>復元ボタン</td><td>Button</td><td>過去購入の復元</td></tr>
+    <tr><td>利用規約・プライバシー</td><td>Link</td><td>SafariSheetView 経由</td></tr>
+  </table>
+
+  <h2>提供商品</h2>
+  <table>
+    <tr><th>プラン</th><th>Product ID</th></tr>
+    <tr><td>月額</td><td><code>com.happyboy1002.DailyTips.premium_monthly1</code></td></tr>
+    <tr><td>年額</td><td><code>com.happyboy1002.DailyTips.premium_yearly1</code></td></tr>
+  </table>
+
+  <h2>プレミアム特典</h2>
+  <ul>
+    <li>広告なし（Banner / Interstitial / AppOpen / Rewarded すべて非表示）</li>
+    <li>限定テーマすべて解放（実装検討）</li>
+    <li>毎月1日に +100コインボーナス</li>
+    <li>全ジャンル自動アンロック（実装検討）</li>
+  </ul>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>PremiumService {
+    func fetchProducts() async
+    func purchase(_ product: Product) async throws
+    func refreshPremiumStatus() async
+}</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">PremiumService は <code>@Observable @MainActor</code></li>
+    <li class="done">PurchaseError enum で productNotFound / verificationFailed / pending を定義</li>
+    <li class="done">restorePurchases() の動線あり</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="settings.html">設定画面</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

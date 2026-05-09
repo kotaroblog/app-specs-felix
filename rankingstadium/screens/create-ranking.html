@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - ランキング作成</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / ランキング作成</div>
+
+  <header class="site-header">
+    <h1>ランキング作成画面（5ステップ統合）</h1>
+    <p>新規ランキングを作成・公開する5ステップのウィザード形式</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: RS-CR-01〜05</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>ユーザーが新しいランキングを作成・公開するためのウィザード。基本情報→選択肢→（クイズ）→期間→プレビューの順で入力。
+  下書き保存・復元・編集モードに対応。</p>
+
+  <div class="callout">
+    <strong>設計上の特記</strong>: <code>CreateRankingView</code> は<strong>自前 NavigationStack を持たない</strong>。
+    呼び出し元（MainTabView/MyPageView）がwrap する設計。ネストされた NavigationStack による navigationDestination 伝播破壊を防止。
+  </div>
+
+  <h2>ステップ構成</h2>
+  <div class="mermaid">
+flowchart LR
+  S1[Step1<br/>基本情報] --> S2[Step2<br/>選択肢]
+  S2 --> SQ{クイズ付き?}
+  SQ -- yes --> SQuiz[StepQuiz<br/>クイズ作成]
+  SQuiz --> S3[Step3<br/>期間/モード]
+  SQ -- no --> S3
+  S3 --> S4[Step4<br/>プレビュー]
+  S4 -- 公開 --> Done[完了]
+  S4 -- 下書き保存 --> Drafts[DraftListView]
+  </div>
+
+  <h2>各ステップの入力項目</h2>
+
+  <h3>Step1: 基本情報（RS-CR-02）</h3>
+  <ul class="kv-list">
+    <li><span class="k">タイトル</span><span class="v">必須・最大50字</span></li>
+    <li><span class="k">説明</span><span class="v">任意・最大200字</span></li>
+    <li><span class="k">主タグ</span><span class="v">必須（TagDefinitionから選択）</span></li>
+    <li><span class="k">副タグ</span><span class="v">任意</span></li>
+  </ul>
+
+  <h3>Step2: 選択肢（RS-CR-03）</h3>
+  <ul class="kv-list">
+    <li><span class="k">選択肢追加</span><span class="v">最低3つ、最大Mまで（拡張+10/+15で増加）</span></li>
+    <li><span class="k">画像アップロード</span><span class="v">任意・各選択肢に1枚</span></li>
+    <li><span class="k">並べ替え</span><span class="v">drag&drop（displayOrder）</span></li>
+    <li><span class="k">shortLabel</span><span class="v">画像表示用の短いラベル</span></li>
+  </ul>
+
+  <h3>StepQuiz: クイズ作成（オプション、RS-CR-04）</h3>
+  <ul class="kv-list">
+    <li><span class="k">追加コスト</span><span class="v">+15pt</span></li>
+    <li><span class="k">問題数</span><span class="v">3問</span></li>
+    <li><span class="k">入力項目</span><span class="v">問題文・正解・ヒント・displayOrder</span></li>
+  </ul>
+
+  <h3>Step3: 期間・モード（RS-CR-04 or 05）</h3>
+  <ul class="kv-list">
+    <li><span class="k">投票モード</span><span class="v">single（シングル） / threePoint（TOP3）</span></li>
+    <li><span class="k">期間</span><span class="v">7日 / 14日（拡張可、+10pt or +20pt）</span></li>
+    <li><span class="k">予約投稿</span><span class="v">公開日時を指定可</span></li>
+    <li><span class="k">公開設定</span><span class="v">isPublic / isAnonymous</span></li>
+  </ul>
+
+  <h3>Step4: プレビュー・公開（RS-CR-05）</h3>
+  <p>入力内容を一覧表示し、消費ポイント明示。「公開する」「下書き保存」「キャンセル」を選択。</p>
+
+  <h2>消費ポイント（RankingService）</h2>
+  <table>
+    <tr><th>項目</th><th>消費ポイント</th></tr>
+    <tr><td>基本作成</td><td>20pt</td></tr>
+    <tr><td>クイズ付与</td><td>+15pt</td></tr>
+    <tr><td>選択肢拡張 +10</td><td>+10pt</td></tr>
+    <tr><td>選択肢拡張 +15</td><td>+20pt</td></tr>
+    <tr><td>期間延長 +7日</td><td>+10pt</td></tr>
+    <tr><td>期間延長 +14日</td><td>+20pt</td></tr>
+  </table>
+
+  <h2>状態管理</h2>
+  <table>
+    <tr><th>状態</th><th>説明</th></tr>
+    <tr><td>新規作成</td><td>初期状態、すべて空</td></tr>
+    <tr><td>下書き編集</td><td>既存draft IDを引き継ぎ復元</td></tr>
+    <tr><td>公開処理中</td><td>非アトミック処理、失敗時は補償</td></tr>
+    <tr><td>公開完了</td><td>RankingStatus.active へ更新</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>Ranking {
+    var title: String
+    var majorTag: String
+    var minorTag: String?
+    var mode: RankingMode  // single / threePoint
+    var hasQuiz: Bool
+    var startsAt: Date
+    var endsAt: Date
+    var isPublic: Bool
+    var isAnonymous: Bool
+    var status: RankingStatus  // draft → active
+    var pointsConsumed: Int
+}
+// + Choices: [Choice]
+// + Quizzes: [Quiz] (hasQuiz=trueのみ)</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">CreateRankingViewModel が全ステップの状態を保持</li>
+    <li class="done">下書き復元: 24時間以内ならポイント返却可能</li>
+    <li class="done">非アトミック作成（ranking INSERT → choices → quizzes → ポイント消費）</li>
+    <li class="done">RetryHelper で読込再試行</li>
+    <li>Edge Function化（v1.1検討）</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="../features/ranking-creation.html">ランキング作成機能仕様書</a></li>
+    <li><a href="drafts.html">下書き一覧画面</a></li>
+    <li><a href="../features/point-economy.html">ポイント経済仕様書</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（5ステップ統合）</td></tr>
+  </table>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default'
+    });
+  </script>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>

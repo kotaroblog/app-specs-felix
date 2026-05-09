@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - 通知機能</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / 通知機能</div>
+
+  <header class="site-header">
+    <h1>通知機能</h1>
+    <p>毎日の豆知識リマインドをローカル通知で配信</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">機能ID: DT-FEAT-NOTIF</span>
+    </div>
+  </header>
+
+  <h2>概要</h2>
+  <p>UserNotifications フレームワーク（ローカル通知）を使い、ユーザーが設定した時刻に「今日の豆知識」リマインダーを毎日配信。
+  プッシュ通知（APNs）は使用せず、サーバー不要のローカル完結型。</p>
+
+  <h2>関連画面</h2>
+  <ul>
+    <li><a href="../screens/settings.html">設定画面</a>（通知ON/OFF・時刻設定）</li>
+  </ul>
+
+  <h2>処理フロー</h2>
+  <ol>
+    <li>初回 ON 時、通知許可をリクエスト</li>
+    <li>許可されたら指定時刻で <code>UNCalendarNotificationTrigger</code> をスケジュール</li>
+    <li>毎日その時刻にリマインダー表示</li>
+    <li>OFF 時、すべての通知を <code>removeAllPendingNotificationRequests</code> でキャンセル</li>
+    <li>時刻変更時は再スケジュール</li>
+  </ol>
+
+  <h2>API</h2>
+  <pre><code>@MainActor
+final class NotificationService {
+    func setEnabled(_ enabled: Bool, at time: Date)
+    func setTime(_ time: Date)
+    func getEnabled() -> Bool
+    func scheduleDailyNotification(at time: Date)
+}</code></pre>
+
+  <h2>通知内容</h2>
+  <table>
+    <tr><th>項目</th><th>内容</th></tr>
+    <tr><td>title</td><td>「今日の豆知識」</td></tr>
+    <tr><td>body</td><td>「新しい知識をチェックしよう」 or その日の tip タイトル</td></tr>
+    <tr><td>sound</td><td>default</td></tr>
+    <tr><td>repeats</td><td>true（毎日）</td></tr>
+  </table>
+
+  <h2>ビジネスルール</h2>
+  <ul>
+    <li>初回ON時のみ通知許可ダイアログを表示</li>
+    <li>許可拒否されたら設定アプリへの誘導アラート</li>
+    <li>時刻はユーザー設定可（デフォルトは8時）</li>
+    <li>通知タップでアプリ起動 → HomeView</li>
+  </ul>
+
+  <h2>外部連携</h2>
+  <table>
+    <tr><th>連携先</th><th>用途</th></tr>
+    <tr><td>UserNotifications</td><td>ローカル通知のスケジューリング</td></tr>
+    <tr><td>Info.plist</td><td>通知許可ダイアログの表示文言</td></tr>
+  </table>
+
+  <h2>エラー処理</h2>
+  <table>
+    <tr><th>発生条件</th><th>対応</th></tr>
+    <tr><td>通知許可拒否</td><td>「設定アプリで通知を有効に」アラート + 設定アプリ起動誘導</td></tr>
+    <tr><td>scheduleDailyNotification 失敗</td><td>Logger.error、UI 上は無視</td></tr>
+  </table>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">NotificationService は @MainActor</li>
+    <li class="done">UserDefaults キー: <code>notification_enabled</code>, <code>notification_time</code></li>
+    <li>プッシュ通知（APNs）は用途なし → 実装予定なし</li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-09</footer>
+</div>
+</body>
+</html>
