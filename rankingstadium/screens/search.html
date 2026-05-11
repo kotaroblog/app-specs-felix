@@ -15,7 +15,7 @@
     <h1>検索画面</h1>
     <p>キーワード・タグでランキングを検索</p>
     <div class="section-meta">
-      <span class="tag done">v1.0</span>
+      <span class="tag done">v1.1</span>
       <span class="tag">画面ID: RS-SEARCH-01</span>
     </div>
   </header>
@@ -30,7 +30,15 @@
     <tr><td>タグフィルター</td><td>Picker / FlowLayout</td><td>主タグ・副タグでフィルタ</td></tr>
     <tr><td>ステータスフィルター</td><td>Picker</td><td>すべて / 受付中 / 終了</td></tr>
     <tr><td>並び順</td><td>Picker</td><td>新着 / 人気（voteCount降順） / 終了間近</td></tr>
-    <tr><td>結果リスト</td><td>List</td><td>RankingCardView</td></tr>
+    <tr><td>結果リスト</td><td>List</td><td>RankingCardView（後述のレイアウト刷新版）</td></tr>
+    <tr><td>RankingCardView レイアウト</td><td>VStack</td><td>
+      ・右上に大きめランクバッジ（32px円、Sは虹グラデ）<br>
+      ・投票タイプバッジ（シングル / TOP3）をタグ群の上に配置<br>
+      ・大タグ・小タグを別行で表示<br>
+      ・左下に作成者アイコン + 表示名（匿名は別表記）<br>
+      ・クイズ通過バッジは <code>hasQuiz=true</code> のみ
+    </td></tr>
+    <tr><td>バナー広告</td><td>共通配置</td><td>MainTabView の <code>safeAreaInset(.bottom)</code> でタブバー直上に配置（プレミアム時は非表示）。検索画面個別の広告領域は持たない</td></tr>
   </table>
 
   <h2>状態</h2>
@@ -75,9 +83,10 @@ struct SearchCriteria {
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-05-10</td><td>RankingCardView レイアウト刷新（右上ランクバッジ・投票タイプバッジ・タグ縦並び・作成者表示・クイズ通過バッジ条件表示）／バナー広告を MainTabView 共通配置へ移動</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-05-10</footer>
 </div>
 </body>
 </html>

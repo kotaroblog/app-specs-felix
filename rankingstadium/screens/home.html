@@ -15,7 +15,7 @@
     <h1>ホーム画面</h1>
     <p>ランキング一覧（受付中・終了済）の閲覧と検索エントリポイント</p>
     <div class="section-meta">
-      <span class="tag done">v1.0</span>
+      <span class="tag done">v1.1</span>
       <span class="tag">画面ID: RS-HOME-01</span>
     </div>
   </header>
@@ -28,9 +28,17 @@
     <tr><th>要素</th><th>種類</th><th>説明</th></tr>
     <tr><td>NavigationBar</td><td>固定</td><td>タイトル「ランスタ」、右上に通知ベル</td></tr>
     <tr><td>フィードPicker</td><td>Picker (segmented)</td><td>「受付中 / 終了済」切り替え</td></tr>
-    <tr><td>ランキングカードリスト</td><td>List</td><td>RankingCardView（タイトル・タグ・voteCount・voteTier）</td></tr>
+    <tr><td>ランキングカードリスト</td><td>List</td><td>RankingCardView（後述のレイアウト刷新版）</td></tr>
+    <tr><td>RankingCardView レイアウト</td><td>VStack</td><td>
+      ・右上に大きめランクバッジ（32px円、Sは虹グラデ、A〜Gは色分け）<br>
+      ・投票タイプバッジ（シングル: グレー / TOP3: 淡い緑 GRN002）をタグ群の上部に配置<br>
+      ・大タグ・小タグを別行で表示（縦並び）<br>
+      ・左下に作成者アイコン + 表示名（匿名投稿時は「匿名」表記に切替）<br>
+      ・クイズ通過バッジは <code>hasQuiz=true</code> の場合のみ表示
+    </td></tr>
     <tr><td>未読バッジ</td><td>NotificationBadge</td><td>通知ベルアイコン上部</td></tr>
     <tr><td>引き下げリフレッシュ</td><td>refreshable</td><td>最新化トリガー</td></tr>
+    <tr><td>バナー広告</td><td>共通配置</td><td>MainTabView の <code>safeAreaInset(.bottom)</code> でタブバー直上に配置されるため、ホーム個別の広告領域は持たない（プレミアム時は非表示）</td></tr>
   </table>
 
   <h2>状態</h2>
@@ -67,7 +75,9 @@
     <li class="done">HomeViewModel が active/ended を管理</li>
     <li class="done">RetryHelper で読込再試行</li>
     <li class="done">未読通知数は NotificationService.fetchUnreadCount() で取得</li>
-    <li>ページネーション（無限スクロール）は v1.1 検討</li>
+    <li class="done">バナー広告は MainTabView 側で <code>safeAreaInset(.bottom)</code> に共通配置（全タブ共通・プレミアム時非表示）</li>
+    <li class="done">scenePhase=.active 復帰時にもログインボーナス判定を実行。アプリ非終了で日をまたいだ場合も連続日数が加算される</li>
+    <li>ページネーション（無限スクロール）は v1.2 検討</li>
   </ul>
 
   <h2>関連</h2>
@@ -81,9 +91,10 @@
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-05-10</td><td>RankingCardView レイアウト刷新（右上ランクバッジ・投票タイプバッジ・タグ縦並び・作成者表示・クイズ通過バッジ条件表示）／バナー広告を MainTabView 共通配置へ移動／scenePhase=.active 復帰時のログインボーナス判定を追記</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-05-10</footer>
 </div>
 </body>
 </html>

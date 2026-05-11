@@ -15,7 +15,7 @@
     <h1>マイページ</h1>
     <p>自分のプロフィール・作成ランキング・選択肢申請の管理</p>
     <div class="section-meta">
-      <span class="tag done">v1.0</span>
+      <span class="tag done">v1.1</span>
       <span class="tag">画面ID: RS-MYPAGE-01</span>
     </div>
   </header>
@@ -30,9 +30,14 @@
     <tr><td>ポイント情報セクション</td><td>NavigationLink</td><td>PointGuideView へ</td></tr>
     <tr><td>無料作成枠表示</td><td>Text</td><td>freeCreationRemaining</td></tr>
     <tr><td>「動画で広告報酬」</td><td>Button</td><td>Rewarded広告 → PointAction.adReward（実装確認）</td></tr>
-    <tr><td>作成ランキング一覧</td><td>List</td><td>自分が作成したランキング</td></tr>
+    <tr><td>作成ランキング一覧</td><td>List（タブ切替）</td><td>
+      「作成した」タブで自分が作成したランキングを表示。<br>
+      ・<strong>並び順</strong>: 予約公開（scheduled）を最上部にクライアント側でソート、以降は通常順序<br>
+      ・draft / created / recentlyCancelled の3リストを並列再取得して整合させる
+    </td></tr>
     <tr><td>下書き編集ボタン</td><td>NavigationLink</td><td>DraftListView へ</td></tr>
     <tr><td>選択肢申請一覧</td><td>NavigationLink</td><td>ChoiceRequestsListView へ（pending有のみ）</td></tr>
+    <tr><td>バナー広告</td><td>共通配置</td><td>MainTabView の <code>safeAreaInset(.bottom)</code> でタブバー直上に共通配置（プレミアム時は非表示）</td></tr>
   </table>
 
   <h2>状態</h2>
@@ -60,8 +65,10 @@
   <h2>実装メモ</h2>
   <ul class="checklist">
     <li class="done">MyPageViewModel が currentUser とランキング一覧を保持</li>
-    <li class="done">CreateRankingView は自前 NavigationStack を持たないため、MyPageViewのNavigationStackで動作</li>
+    <li class="done">CreateRankingView は自前 NavigationStack を持たないため、MyPageView の NavigationStack で動作</li>
     <li class="done">選択肢申請件数で動線を出し分け</li>
+    <li class="done">「下書きに戻す」直後の「予約公開」バッジ残留バグを修正。draft / created / recentlyCancelled の3リストを並列再取得して状態整合を担保</li>
+    <li class="done">「作成した」タブはクライアント側で予約公開（scheduled）を最上部にソート</li>
   </ul>
 
   <h2>関連</h2>
@@ -75,9 +82,10 @@
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-05-10</td><td>「下書きに戻す」直後の予約公開バッジ残留バグ修正（draft/created/recentlyCancelled 3リスト並列再取得）／「作成した」タブで予約公開をクライアント側で最上部ソート／バナー広告を MainTabView 共通配置へ統一</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-05-10</footer>
 </div>
 </body>
 </html>

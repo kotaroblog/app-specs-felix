@@ -15,7 +15,7 @@
     <h1>シングル投票画面</h1>
     <p>1つの選択肢を選んで投票するモード（RankingMode.single）</p>
     <div class="section-meta">
-      <span class="tag done">v1.0</span>
+      <span class="tag done">v1.1</span>
       <span class="tag">画面ID: RS-VOTE-02</span>
     </div>
   </header>
@@ -26,11 +26,28 @@
   <h2>UI 構成</h2>
   <table>
     <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>RankingHeaderView（Xスタイル）</td><td>VStack</td><td>
+      画面上部の共通ヘッダ。以下7段構成。<br>
+      1段目: 作成者アバター + 表示名 + フォローボタン（Xスタイル） + 右上に大きなランクバッジ（44px円、Sは虹グラデ）<br>
+      2段目: 投票タイプバッジ（シングル/TOP3） + クイズ通過バッジ（hasQuiz=true のみ）<br>
+      3段目: 大タグ<br>
+      4段目: 小タグ<br>
+      5段目: 投票期間 + 残り時間<br>
+      6段目: タイトル（選択肢直前に再表示）<br>
+      7段目: 説明文（存在する場合のみ）
+    </td></tr>
     <tr><td>選択肢グリッド</td><td>LazyVGrid</td><td>各 Choice をカード表示（label + image）</td></tr>
     <tr><td>選択ハイライト</td><td>Border</td><td>選択中の Choice を視覚化</td></tr>
     <tr><td>投票ボタン</td><td>Button</td><td>選択完了でアクティブ化</td></tr>
     <tr><td>消費ポイント表示</td><td>Text</td><td>「投票には Npt を消費します」</td></tr>
+    <tr><td>バナー広告</td><td>共通配置</td><td>MainTabView の <code>safeAreaInset(.bottom)</code> でタブバー直上に共通配置（プレミアム時は非表示）</td></tr>
   </table>
+
+  <h2>レイアウト変更（v1.1）</h2>
+  <ul>
+    <li>VoteView 内の重複タイトル表示は削除（タイトルは RankingHeaderView 6段目に集約）</li>
+    <li>戻るボタン横の <code>navigationTitle</code> は維持</li>
+  </ul>
 
   <h2>状態</h2>
   <table>
@@ -78,9 +95,10 @@
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-05-10</td><td>RankingHeaderView を Xスタイル化（7段構成）／VoteView の重複タイトル表示を削除／バナー広告を MainTabView 共通配置へ統一</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-05-10</footer>
 </div>
 </body>
 </html>
