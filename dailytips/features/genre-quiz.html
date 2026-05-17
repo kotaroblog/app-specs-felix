@@ -15,14 +15,14 @@
     <h1>ジャンルクイズ機能</h1>
     <p>13ジャンル別の問題集とコイン経済の連携</p>
     <div class="section-meta">
-      <span class="tag done">v1.0</span>
+      <span class="tag done">v1.1</span>
       <span class="tag">機能ID: DT-FEAT-GENRE</span>
     </div>
   </header>
 
   <h2>概要</h2>
-  <p>13ジャンルから興味のあるものをコインで解放し、3つのプレイモード（ランダム/順番/続きから）で問題を解いていく機能。
-  進捗・履歴は AppGroup に保存。</p>
+  <p>13ジャンルから興味のあるものをコインで解放し、4つのプレイモード（ランダム/順番/続きから/お試し）で問題を解いていく機能。
+  進捗・履歴は AppGroup に保存。v1.1 で無料体験枠（雑学完全無料 + 全ジャンル5問お試し）を追加。</p>
 
   <h2>関連画面</h2>
   <ul>
@@ -32,8 +32,42 @@
     <li><a href="../screens/genre-progress.html">進捗ダッシュボード</a></li>
   </ul>
 
-  <h2>13ジャンル</h2>
-  <p>歴史 / 科学 / 地理 / 文学・言語 / 芸術・音楽 / スポーツ / 食・料理 / 自然・動植物 / 宇宙・天文 / テクノロジー・IT / 医学・健康 / 心理学 / 雑学・トリビア</p>
+  <h2>13ジャンル（1,300問）</h2>
+  <p>表示順は <strong>雑学・トリビア（無料）</strong> を先頭に配置。残り12ジャンルは有料（100pt）。</p>
+  <ol>
+    <li><strong>雑学・トリビア（無料 / cost: 0）</strong></li>
+    <li>歴史</li>
+    <li>科学</li>
+    <li>地理</li>
+    <li>文学・言語</li>
+    <li>芸術・音楽</li>
+    <li>スポーツ</li>
+    <li>食・料理</li>
+    <li>自然・動植物</li>
+    <li>宇宙・天文</li>
+    <li>テクノロジー・IT</li>
+    <li>医学・健康</li>
+    <li>心理学（v1.1で追加）</li>
+  </ol>
+
+  <h2>無料体験枠（v1.1）</h2>
+  <table>
+    <tr><th>枠</th><th>対象</th><th>挙動</th></tr>
+    <tr><td>完全無料ジャンル</td><td>雑学・トリビア（cost=0）</td><td>全100問プレイ可能・進捗記録あり</td></tr>
+    <tr><td>お試し5問</td><td>他12ジャンル（未解放時）</td><td><code>GenrePlayMode.freeTrial</code> で最初の5問のみ出題。<strong>進捗記録なし</strong>。終了時に「残り95問を解放しよう」誘導カード表示</td></tr>
+  </table>
+  <pre><code>// Models
+enum GenrePlayMode {
+    case random, sequential, continued, freeTrial   // freeTrial を追加
+}
+enum GenreFreeAccess {
+    static let freeTrialQuestionCount = 5
+}
+
+// GenreQuizService
+func freeTrialQuestions(for genreId: String) -> [GenreQuizQuestion]
+func isQuestionInFreeTrial(genreId: String, questionId: Int) -> Bool
+// getUnlockedGenreIds は cost=0 ジャンルを自動的に解放済み扱いするよう改修</code></pre>
 
   <h2>API</h2>
   <pre><code>@MainActor
@@ -108,9 +142,10 @@ final class GenreProgressService {  // @unchecked Sendable
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-05-17</td><td>v1.0.5: 心理学100問追加で全13ジャンル1300問に。無料体験枠を追加（雑学完全無料・他12ジャンルは5問お試し）。表示順を変更し雑学を最上位に。GenrePlayMode に .freeTrial を追加</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-05-17</footer>
 </div>
 </body>
 </html>

@@ -15,7 +15,7 @@
     <h1>コイン経済</h1>
     <p>アプリ内通貨「コイン」の獲得・消費の仕組み</p>
     <div class="section-meta">
-      <span class="tag done">v1.0</span>
+      <span class="tag done">v1.1</span>
       <span class="tag">機能ID: DT-FEAT-COIN</span>
     </div>
   </header>
@@ -57,15 +57,25 @@
     全ジャンル解放（1300）+ テーマ複数（200×N）に必要なため、自然な課金導線。
   </div>
 
+  <h2>今日獲得pt 追跡（v1.1）</h2>
+  <p>1日のpt獲得合計を自動集計し、ホーム画面に表示する。日付が変わると自動でリセット。</p>
+  <ul>
+    <li>すべての pt 獲得経路（ログイン・動画・クイズ正解・月次ボーナス）で <code>addTodayEarned()</code> が呼ばれる</li>
+    <li>UserDefaults キー: <code>coin_today_earned_date</code>(yyyy-MM-dd) / <code>coin_today_earned_amount</code>(Int)</li>
+    <li>消費（spendCoins）は今日獲得ptに影響しない</li>
+  </ul>
+
   <h2>API</h2>
   <pre><code>CoinService {
     func getBalance() -> Int
     func recordDailyLogin() -> CoinResult
     func recordMonthlyPremiumBonus() -> CoinResult
-    func recordVideoBonus() -> CoinResult
+    func recordVideoBonus() -> Bool
     func spendCoins(_ amount: Int) -> Bool
+    func addCoins(_ amount: Int)               // 内部で addTodayEarned 自動呼出
     func getLoginStreak() -> Int
     func getRemainingVideoBonusCount() -> Int  // 当日の残り回数
+    func getTodayEarnedPoints() -> Int          // v1.1: 今日獲得pt合計
 }
 
 struct CoinResult {
@@ -114,9 +124,10 @@ streak = (lastLogin == yesterday) ? streak + 1 : 1</code></pre>
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-05-17</td><td>今日獲得pt 追跡（getTodayEarnedPoints）を追加。動画視聴トーストに残高遷移(Xpt→Ypt)表示。動画視聴ボタンをホーム画面にも配置（ジャンル別クイズ・テーマショップに加え）</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-05-17</footer>
 </div>
 </body>
 </html>

@@ -24,7 +24,7 @@
     <li><span class="k">マネタイズ</span><span class="v">サブスクリプション（月額/年額）+ AdMob 4種広告（Banner/Interstitial/Rewarded/AppOpen）</span></li>
     <li><span class="k">ステータス</span><span class="v">リリース済</span></li>
     <li><span class="k">リリース時期</span><span class="v">2026年4月</span></li>
-    <li><span class="k">バージョン</span><span class="v">1.0.4 (build 15)</span></li>
+    <li><span class="k">バージョン</span><span class="v">1.0.5 (build 17)</span></li>
     <li><span class="k">表示名</span><span class="v">デイリー豆知識</span></li>
     <li><span class="k">Widget拡張</span><span class="v">あり（Small / Medium）</span></li>
     <li><span class="k">App Group</span><span class="v"><code>group.com.happyboy1002.DailyTips</code></span></li>
@@ -34,7 +34,26 @@
   <p>
     毎日1つの豆知識を表示する日めくりアプリ。豆知識ごとのクイズ、ジャンル別クイズショップ、テーマショップ、
     Widget表示、コイン経済（ログインボーナス・動画報酬）を組み合わせて継続利用を促す設計。
+    v1.0.5 では学習メモ・検索・復習通知・無料体験枠などの新機能を追加し、教育アプリとしての価値を強化。
   </p>
+
+  <h2>v1.0.5 主な変更点（2026-05-17）</h2>
+  <ul>
+    <li>学習メモ機能（各日付に300字メモ・カレンダーに📝マーク）</li>
+    <li>検索機能（タイトル・カテゴリ検索／お気に入り/既読/年度フィルター／検索結果から広告解放）</li>
+    <li>復習通知（忘却曲線: 1日後・3日後・7日後の夜21:00）</li>
+    <li>動画視聴ポイント獲得（1日5回・+3pt/回・全画面導線）</li>
+    <li>無料体験枠（雑学・トリビアを完全無料化／他12ジャンルは最初の5問お試し）</li>
+    <li>新ジャンル「心理学」100問追加（全13ジャンル1300問に）</li>
+    <li>新テーマ「ベージュ」追加＋テーマ状態バッジ（使用中/購入済/無料/未購入）</li>
+    <li>連続ログイン・連続正解バッジ表示／今日獲得pt表示</li>
+    <li>Widget に今日のクイズ問題を表示（解説はアプリで）</li>
+    <li>カレンダーに「今日」ジャンプボタン／2025/4/1 以前への遡及制限</li>
+    <li>SNS共有を画像カード付き（1080×1080）に刷新</li>
+    <li>アプリ起動広告の信頼性改善（SDK初期化待ち・4時間期限管理）</li>
+    <li>シート（モーダル）内からのリワード広告表示対応</li>
+    <li>App Group権限の正式設定（データ消失リスク解消）</li>
+  </ul>
 
   <h2>全体仕様書</h2>
   <div class="card-grid">
@@ -70,6 +89,8 @@
     <a class="card" href="screens/tip-card.html"><div class="title">豆知識カード</div><div class="desc">再利用カードコンポーネント</div><div class="meta"><span class="tag">DT-HOME-02</span></div></a>
     <a class="card" href="screens/favorites.html"><div class="title">お気に入り一覧</div><div class="desc">♥ マークしたtips</div><div class="meta"><span class="tag">DT-HOME-03</span></div></a>
     <a class="card" href="screens/share-card.html"><div class="title">共有カード</div><div class="desc">SNS共有用画像生成</div><div class="meta"><span class="tag">DT-HOME-04</span></div></a>
+    <a class="card" href="screens/search.html"><div class="title">検索</div><div class="desc">タイトル・カテゴリ検索＋フィルター</div><div class="meta"><span class="tag">DT-HOME-05</span></div></a>
+    <a class="card" href="screens/memo-edit.html"><div class="title">メモ編集</div><div class="desc">日付ごとの学習メモ入力</div><div class="meta"><span class="tag">DT-HOME-06</span></div></a>
     <a class="card" href="screens/calendar.html"><div class="title">カレンダー</div><div class="desc">過去tipの月単位振り返り</div><div class="meta"><span class="tag">DT-CAL-01</span></div></a>
     <a class="card" href="screens/tip-quiz.html"><div class="title">豆知識クイズ</div><div class="desc">tip付随の選択式クイズ</div><div class="meta"><span class="tag">DT-QUIZ-01</span></div></a>
     <a class="card" href="screens/genre-quiz-shop.html"><div class="title">ジャンルクイズショップ</div><div class="desc">13ジャンル解放</div><div class="meta"><span class="tag">DT-GQS-01</span></div></a>
@@ -92,10 +113,12 @@
     <a class="card" href="features/review-prompt.html"><div class="title">レビュー誘導</div><div class="desc">5回目・20回目起動でin-app review</div></a>
     <a class="card" href="features/notification.html"><div class="title">通知</div><div class="desc">毎日のローカル通知</div></a>
     <a class="card" href="features/favorite.html"><div class="title">お気に入り</div><div class="desc">tipID配列でブックマーク</div></a>
-    <a class="card" href="features/genre-quiz.html"><div class="title">ジャンルクイズ</div><div class="desc">13ジャンル × 3モード</div></a>
+    <a class="card" href="features/genre-quiz.html"><div class="title">ジャンルクイズ</div><div class="desc">13ジャンル × プレイモード / 無料枠 / お試し</div></a>
+    <a class="card" href="features/study-memo.html"><div class="title">学習メモ</div><div class="desc">各日付に300字のメモを保存</div></a>
+    <a class="card" href="features/search.html"><div class="title">検索</div><div class="desc">過去の豆知識をキーワード・カテゴリで検索</div></a>
   </div>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-05-17</footer>
 </div>
 </body>
 </html>

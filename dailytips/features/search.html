@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - 検索機能</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / 検索</div>
+
+  <header class="site-header">
+    <h1>検索機能</h1>
+    <p>過去732件の豆知識をキーワード・カテゴリで検索・フィルタリング</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">機能ID: DT-FEAT-SEARCH</span>
+    </div>
+  </header>
+
+  <h2>概要</h2>
+  <p>v1.0.5 で追加された機能。daily_tips.json に格納された 732件（v1: 366 + v2: 366）の豆知識を、
+  キーワード（タイトル・カテゴリ）と複数フィルター（お気に入り・既読/未読・カテゴリ別）で検索できる。
+  検索結果からロックされた豆知識を開いた場合、広告視聴で解放可能。</p>
+
+  <h2>関連画面</h2>
+  <ul>
+    <li><a href="../screens/home.html">ホーム画面</a>（トップバーに🔍ボタン）</li>
+    <li><a href="../screens/search.html">検索画面</a></li>
+  </ul>
+
+  <h2>仕様</h2>
+  <table>
+    <tr><th>項目</th><th>内容</th></tr>
+    <tr><td>アクセス</td><td>ホーム画面のトップバー右側「🔍」アイコン</td></tr>
+    <tr><td>検索対象</td><td>タイトル + カテゴリ（大文字小文字を区別しない）</td></tr>
+    <tr><td>フィルター</td><td>お気に入りのみ・既読/未読・カテゴリ別（横スクロールチップ）</td></tr>
+    <tr><td>表示形式</td><td>件数表示 + リスト（カテゴリバッジ＋日付＋タイトル）</td></tr>
+    <tr><td>日付表記</td><td>「2025年度 1月1日」「2026年度 1月1日」で年度を区別</td></tr>
+    <tr><td>ロック対応</td><td>ロック対象を開いた場合、専用シートで「広告を見て解放」ボタン表示</td></tr>
+  </table>
+
+  <h2>API</h2>
+  <pre><code>// TipLoaderService
+func getAllTips() -> [DailyTip]
+func searchTips(keyword: String) -> [DailyTip]
+    // タイトル・カテゴリで部分一致（lowercased で大文字小文字区別なし）</code></pre>
+
+  <h2>処理フロー</h2>
+  <ol>
+    <li>ホーム画面の🔍ボタンタップ → SearchView がシートで表示</li>
+    <li>onAppear で <code>cachedFavorites</code>(Set&lt;String&gt;) と <code>allCategories</code> を初期化（パフォーマンス対策）</li>
+    <li>キーワード入力 → results computed property で TipLoaderService.searchTips() を呼ぶ</li>
+    <li>フィルターチップで絞り込み（カテゴリ・お気に入り・既読/未読）</li>
+    <li>結果リストから tip をタップ → SearchResultDetailSheet で詳細表示</li>
+    <li>ロック対象の場合は「広告を見て解放する」ボタンを表示</li>
+    <li>動画視聴完了 → HistoryService.markAsAdViewed() → 通常の TipCardView に切り替わる</li>
+  </ol>
+
+  <h2>パフォーマンス最適化</h2>
+  <p>body 評価のたびに <code>FavoriteService.getFavorites()</code> や <code>TipLoaderService.getAllTips()</code> を呼ぶと
+  キーワード入力時に重くなるため、<code>@State</code> でキャッシュ化（onAppear で1回ロード）。</p>
+
+  <h2>ビジネスルール</h2>
+  <ul>
+    <li>検索結果は v1/v2 両方表示（「2025年度」「2026年度」で区別）</li>
+    <li>結果から開く際、過去日付のロックは尊重（カレンダー画面と同じ判定）</li>
+    <li>ロック解放はリワード広告視聴 + HistoryService への記録</li>
+    <li>プレミアム会員は全件閲覧可</li>
+  </ul>
+
+  <h2>関連型・連携</h2>
+  <table>
+    <tr><th>連携先</th><th>用途</th></tr>
+    <tr><td>TipLoaderService</td><td>豆知識データの取得・検索</td></tr>
+    <tr><td>FavoriteService</td><td>お気に入りフィルター（キャッシュ済み）</td></tr>
+    <tr><td>HistoryService</td><td>ロック解放時の記録</td></tr>
+    <tr><td>RewardedAdManager</td><td>ロック解放のための広告視聴</td></tr>
+  </table>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-17</td><td>初版作成（v1.0.5 新機能として追加）</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-17</footer>
+</div>
+</body>
+</html>

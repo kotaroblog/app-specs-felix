@@ -15,7 +15,7 @@
     <h1>設定画面</h1>
     <p>通知設定・プレミアム状態・各種設定</p>
     <div class="section-meta">
-      <span class="tag done">v1.0</span>
+      <span class="tag done">v1.1</span>
       <span class="tag">画面ID: DT-SET-01</span>
     </div>
   </header>
@@ -26,8 +26,9 @@
   <h2>UI 構成</h2>
   <table>
     <tr><th>セクション</th><th>項目</th><th>動作</th></tr>
-    <tr><td>通知</td><td>通知ON/OFF</td><td>NotificationService.setEnabled</td></tr>
-    <tr><td>通知</td><td>通知時刻</td><td>DatePicker（時刻のみ）</td></tr>
+    <tr><td>通知</td><td>通知ON/OFF</td><td>NotificationService.setEnabled（毎日豆知識リマインダー）</td></tr>
+    <tr><td>通知</td><td>通知時刻</td><td>DatePicker（時刻のみ、デフォルト8:00）</td></tr>
+    <tr><td>通知</td><td>復習通知ON/OFF</td><td>1日後・3日後・7日後の夜21:00に忘却曲線通知</td></tr>
     <tr><td>プレミアム</td><td>状態表示</td><td>「プレミアム会員」or「無料」</td></tr>
     <tr><td>プレミアム</td><td>「Pro版にアップグレード」</td><td>PremiumView 起動（無料時のみ）</td></tr>
     <tr><td>プレミアム</td><td>「購入を復元」</td><td>StoreKit restore</td></tr>
@@ -35,7 +36,7 @@
     <tr><td>サポート</td><td>プライバシーポリシー</td><td>SafariSheetView</td></tr>
     <tr><td>サポート</td><td>利用規約</td><td>SafariSheetView</td></tr>
     <tr><td>その他</td><td>キャッシュクリア</td><td>UserDefaults初期化</td></tr>
-    <tr><td>その他</td><td>バージョン情報</td><td>1.0.4 (build 15)</td></tr>
+    <tr><td>その他</td><td>バージョン情報</td><td>1.0.5 (build 17)</td></tr>
     <tr><td>デバッグ</td><td>デバッグメニュー</td><td>#if DEBUG || TESTFLIGHT のみ表示</td></tr>
   </table>
 
@@ -69,15 +70,17 @@
     <li><a href="premium.html">Premium画面</a></li>
     <li><a href="privacy-policy.html">プライバシーポリシー</a></li>
     <li><a href="../features/notification.html">通知機能</a></li>
+    <li><a href="../features/review-notification.html">復習通知（忘却曲線）</a></li>
   </ul>
 
   <h2>変更履歴</h2>
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-05-17</td><td>v1.0.5: 復習通知トグル追加、バージョンを1.0.5 (build 17)に更新</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-05-17</footer>
 </div>
 </body>
 </html>

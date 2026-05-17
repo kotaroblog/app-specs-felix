@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - 学習メモ機能</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / 学習メモ</div>
+
+  <header class="site-header">
+    <h1>学習メモ機能</h1>
+    <p>各日付に300字以内のメモを保存できる学習日記機能</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">機能ID: DT-FEAT-MEMO</span>
+    </div>
+  </header>
+
+  <h2>概要</h2>
+  <p>各日付に対して300字以内の「学習メモ」を保存できる。豆知識を読んだ気づき・覚えたいこと・関連する自分の体験などを記録する学習日記として機能。
+  カレンダー画面に📝マークで可視化され、過去の振り返りやリテンション向上に寄与する。</p>
+
+  <h2>関連画面</h2>
+  <ul>
+    <li><a href="../screens/home.html">ホーム画面</a>（カレンダーセルに📝マーク）</li>
+    <li><a href="../screens/calendar.html">カレンダー画面</a>（同上）</li>
+    <li><a href="../screens/tip-card.html">豆知識カード</a>（メモボタン）</li>
+    <li>メモ編集画面（シート表示・MemoEditView）</li>
+  </ul>
+
+  <h2>仕様</h2>
+  <table>
+    <tr><th>項目</th><th>内容</th></tr>
+    <tr><td>文字数上限</td><td><strong>300字</strong>（リアルタイムカウンター表示・超過時は保存ボタン無効化）</td></tr>
+    <tr><td>編集可能範囲</td><td>過去・当日いずれも自由（最古日付 2025/4/1 以降）</td></tr>
+    <tr><td>保存先</td><td>AppGroup UserDefaults</td></tr>
+    <tr><td>カレンダー表示</td><td>メモあり日付の右上に <strong>📝</strong> マーク</td></tr>
+    <tr><td>削除</td><td>編集画面の「メモを削除」ボタン（確認ダイアログ付き）</td></tr>
+  </table>
+
+  <h2>API</h2>
+  <pre><code>@MainActor
+final class MemoService {
+    static let shared: MemoService
+    static let maxLength = 300
+
+    func getMemo(for date: Date) -> String?
+    func hasMemo(for date: Date) -> Bool
+    func getAllMemoDateKeys() -> Set&lt;String&gt;
+    func setMemo(_ text: String, for date: Date)
+    func removeMemo(for date: Date)
+}</code></pre>
+
+  <h2>データ構造（UserDefaults）</h2>
+  <table>
+    <tr><th>キー</th><th>型</th><th>用途</th></tr>
+    <tr><td><code>memo_text_yyyy-MM-dd</code></td><td>String</td><td>該当日付のメモ本文（最大300字）</td></tr>
+    <tr><td><code>memo_dates</code></td><td>[String]</td><td>メモ登録済み日付リスト（インデックス用）</td></tr>
+  </table>
+
+  <h2>処理フロー</h2>
+  <ol>
+    <li>ユーザーが豆知識カードの「メモ」ボタンをタップ</li>
+    <li>MemoEditView がシートで表示される</li>
+    <li>onAppear で <code>MemoService.shared.getMemo(for:)</code> から既存メモを読み込み</li>
+    <li>ユーザーがTextEditorで入力（300字以内・リアルタイムカウンター）</li>
+    <li>「保存」タップで <code>setMemo</code> 実行 → <code>AppViewModel.reloadMemoDates()</code></li>
+    <li>カレンダー再描画時、メモあり日付に📝マークが表示される</li>
+  </ol>
+
+  <h2>ビジネスルール</h2>
+  <ul>
+    <li>空文字を保存すると <code>removeMemo</code> と同等扱い</li>
+    <li>300字超過時は自動的に prefix で切り詰め</li>
+    <li>カレンダーの範囲外日付（2025/4/1 以前）にはメモを保存しない（UI でタップ不可）</li>
+    <li>メモは AppGroup 経由でWidgetからも参照可能だが、現状Widget表示には未使用</li>
+  </ul>
+
+  <h2>容量見積もり</h2>
+  <p>1メモ最大300字（UTF-8で約900バイト）× 365日 × 数年 でも数百KB程度。UserDefaults の容量制限内（数MB）に十分収まる。</p>
+
+  <h2>関連型・連携</h2>
+  <table>
+    <tr><th>連携先</th><th>用途</th></tr>
+    <tr><td>AppGroup UserDefaults</td><td>メモ本文と日付インデックスの永続化</td></tr>
+    <tr><td>AppViewModel.memoDateKeys</td><td>カレンダー再描画用のキャッシュ（Set&lt;String&gt;）</td></tr>
+  </table>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-17</td><td>初版作成（v1.0.5 新機能として追加）</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-17</footer>
+</div>
+</body>
+</html>

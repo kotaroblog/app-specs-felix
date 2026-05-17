@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - メモ編集画面</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / メモ編集</div>
+
+  <header class="site-header">
+    <h1>メモ編集画面</h1>
+    <p>日付ごとの学習メモを入力・保存・削除する</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: DT-HOME-06</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>v1.0.5 で新規追加。各日付の豆知識に対する気づき・覚えたいこと・関連する自分の体験を300字以内で記録する学習日記機能のUI。</p>
+
+  <h2>アクセス導線</h2>
+  <ul>
+    <li>豆知識カード（TipCardView）の「メモ」ボタンタップで MemoEditView がシート表示</li>
+    <li>編集対象の日付は呼び出し元から <code>quizDate</code> として渡される</li>
+  </ul>
+
+  <h2>UI構成</h2>
+  <ol>
+    <li><strong>ナビゲーション</strong>:
+      <ul>
+        <li>タイトル: 「メモを編集」or 「メモを追加」（既存メモ有無で切替）</li>
+        <li>左: 「キャンセル」</li>
+        <li>右: 「保存」（変更あり＆300字以内のときのみ有効）</li>
+      </ul>
+    </li>
+    <li><strong>背景</strong>: 現在のテーマ色のグラデーション</li>
+    <li><strong>日付ヘッダー</strong>: 「2026年5月17日 日曜日」形式</li>
+    <li><strong>TextEditor</strong>: 白背景・最低200pt・最大320pt</li>
+    <li><strong>文字数カウンター</strong>: 右下「N / 300」表示（超過時は赤色）</li>
+    <li><strong>削除ボタン</strong>: 既存メモの場合のみ表示（赤系、確認アラート付き）</li>
+  </ol>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>説明</th></tr>
+    <tr><td>memoText</td><td>編集中のメモ本文（@State）</td></tr>
+    <tr><td>initialText</td><td>onAppear で読み込んだ初期値（変更検出用）</td></tr>
+    <tr><td>isDeleteConfirmPresented</td><td>削除確認アラートの表示状態</td></tr>
+  </table>
+
+  <h2>アクション</h2>
+  <table>
+    <tr><th>アクション</th><th>処理</th></tr>
+    <tr><td>onAppear</td><td>MemoService.shared.getMemo(for:) で既存メモを読み込み</td></tr>
+    <tr><td>保存タップ</td><td>MemoService.shared.setMemo() → AppViewModel.reloadMemoDates() → dismiss</td></tr>
+    <tr><td>削除タップ</td><td>確認アラート → 「削除する」で MemoService.shared.removeMemo() → dismiss</td></tr>
+    <tr><td>キャンセル</td><td>dismiss（変更破棄）</td></tr>
+  </table>
+
+  <h2>バリデーション</h2>
+  <ul>
+    <li>300字超過時: 保存ボタン無効化、カウンターを赤色に</li>
+    <li>変更がない場合: 保存ボタン無効化</li>
+    <li>空文字保存: 内部的に removeMemo と同じ扱い</li>
+  </ul>
+
+  <h2>関連機能</h2>
+  <ul>
+    <li><a href="../features/study-memo.html">学習メモ機能（feature）</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-17</td><td>初版作成（v1.0.5 新規画面）</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-17</footer>
+</div>
+</body>
+</html>

@@ -15,22 +15,28 @@
     <h1>SmallTipWidget（小ウィジェット）</h1>
     <p>ホーム画面ウィジェット - 当日の豆知識タイトルを表示</p>
     <div class="section-meta">
-      <span class="tag done">v1.0</span>
+      <span class="tag done">v1.1</span>
       <span class="tag">画面ID: DT-WID-01</span>
     </div>
   </header>
 
   <h2>目的・役割</h2>
-  <p>iOS ホーム画面に配置できる小サイズのウィジェット。当日の豆知識のカテゴリとタイトルを表示。
-  タップでアプリ起動。</p>
+  <p>iOS ホーム画面に配置できる小サイズのウィジェット。当日の豆知識カテゴリとタイトル、
+  またはクイズがある日はクイズ問題文と「タップして答えを見る」CTAを表示。タップでアプリ起動。</p>
 
   <h2>UI 構成</h2>
   <table>
     <tr><th>要素</th><th>種類</th><th>説明</th></tr>
     <tr><td>カテゴリバッジ</td><td>Capsule</td><td>tip.category</td></tr>
     <tr><td>タイトル</td><td>Text</td><td>tip.title（短縮表示）</td></tr>
+    <tr><td>クイズ問題文</td><td>Text</td><td>クイズあり日のみ表示。問題文を短縮して表示</td></tr>
+    <tr><td>CTA テキスト</td><td>Text</td><td>「タップして答えを見る」（クイズあり日のみ）</td></tr>
     <tr><td>アプリロゴ</td><td>Image</td><td>右下小さく</td></tr>
   </table>
+
+  <div class="callout">
+    クイズの解説はアプリ内でのみ閲覧可能。ウィジェットには問題文のみ表示する。
+  </div>
 
   <h2>データソース</h2>
   <pre><code>WidgetTipData {
@@ -69,9 +75,10 @@
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-05-17</td><td>v1.0.5: クイズあり日のクイズ問題文表示とCTAを追加</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-05-17</footer>
 </div>
 </body>
 </html>

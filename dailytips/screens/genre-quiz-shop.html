@@ -13,29 +13,35 @@
 
   <header class="site-header">
     <h1>ジャンルクイズショップ</h1>
-    <p>13ジャンルから興味のあるものをコイン購入で解放</p>
+    <p>13ジャンルから興味のあるものをコイン購入で解放（雑学・トリビアは無料）</p>
     <div class="section-meta">
-      <span class="tag done">v1.0</span>
+      <span class="tag done">v1.1</span>
       <span class="tag">画面ID: DT-GQS-01</span>
     </div>
   </header>
 
   <h2>目的・役割</h2>
-  <p>13のジャンル（歴史・科学・地理 等）から興味のあるものを <strong>100コイン</strong> で解放し、ジャンル別クイズで集中学習する画面。</p>
+  <p>13のジャンルから興味のあるものを解放し、ジャンル別クイズで集中学習する画面。
+  「雑学・トリビア」は完全無料（cost: 0）、その他12ジャンルは最初の5問が無料お試し、全問解放は <strong>100コイン</strong>。</p>
 
   <h2>UI 構成</h2>
   <table>
     <tr><th>要素</th><th>種類</th><th>説明</th></tr>
     <tr><td>コインバッジ</td><td>HStack</td><td>現在のコイン残高</td></tr>
-    <tr><td>ジャンルカード</td><td>LazyVGrid</td><td>13ジャンル × （icon, name, cost or プレイボタン）</td></tr>
-    <tr><td>進捗ボタン</td><td>NavigationLink</td><td>GenreProgressView</td></tr>
+    <tr><td>動画ボーナスボタン</td><td>Button</td><td>+3pt獲得（1日5回まで）</td></tr>
+    <tr><td>ジャンルカード</td><td>LazyVGrid</td><td>13ジャンル × （icon, name, バッジ, cost or プレイボタン）</td></tr>
+    <tr><td>ジャンルカードバッジ</td><td>Overlay</td><td>「無料」「お試し5問」バッジを色別で表示</td></tr>
+    <tr><td>実績サマリー</td><td>VStack</td><td>回答数・正解数・正答率・解放済みジャンル数を上部に表示</td></tr>
+    <tr><td>進捗ボタン</td><td>NavigationLink</td><td>GenreProgressView（「詳細 ›」リンク）</td></tr>
     <tr><td>履歴ボタン</td><td>NavigationLink</td><td>GenreQuizHistoryView</td></tr>
   </table>
 
   <h2>状態</h2>
   <table>
     <tr><th>状態</th><th>表示内容</th></tr>
-    <tr><td>未アンロック</td><td>「100コインで解放」ボタン</td></tr>
+    <tr><td>完全無料ジャンル（雑学・トリビア）</td><td>「無料」バッジ + 「プレイ」ボタン</td></tr>
+    <tr><td>未アンロック（5問お試し）</td><td>「お試し5問」バッジ + 「試してみる」ボタン</td></tr>
+    <tr><td>未アンロック（100コイン解放）</td><td>「100コインで解放」ボタン</td></tr>
     <tr><td>残高不足</td><td>「コインが足りません」アラート</td></tr>
     <tr><td>アンロック済</td><td>「プレイ」ボタン → モード選択</td></tr>
   </table>
@@ -65,8 +71,12 @@ GenreQuizService {
   <h2>実装メモ</h2>
   <ul class="checklist">
     <li class="done">13ジャンルの定義は GenreDefinition の static 定数</li>
+    <li class="done">雑学・トリビアは <code>cost: 0</code> で常時アンロック扱い</li>
+    <li class="done">お試し5問は解放前にプレビュープレイ（回答記録はしない）</li>
     <li class="done">unlockGenre() で CoinService.spendCoins(100) → 成功で AppGroup に保存</li>
-    <li class="done">プレイ開始時に Interstitial広告を挟む</li>
+    <li class="done">プレイ開始時に Interstitial広告を挟む（無料ユーザー）</li>
+    <li class="done">動画ボーナスボタンから RewardedAdManager.show() を起動</li>
+    <li class="done">実績サマリーの「詳細 ›」は GenreProgressView へ遷移</li>
   </ul>
 
   <h2>関連</h2>
@@ -74,15 +84,17 @@ GenreQuizService {
     <li><a href="genre-quiz-play.html">ジャンルクイズプレイ画面</a></li>
     <li><a href="genre-progress.html">進捗ダッシュボード</a></li>
     <li><a href="../features/genre-quiz.html">ジャンルクイズ機能</a></li>
+    <li><a href="../features/coin-economy.html">コイン経済</a></li>
   </ul>
 
   <h2>変更履歴</h2>
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-05-17</td><td>v1.0.5: 無料体験枠（雑学無料・他5問お試し）、動画ボーナスボタン、実績サマリー、状態バッジを追加</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-05-17</footer>
 </div>
 </body>
 </html>

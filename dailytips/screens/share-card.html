@@ -15,14 +15,15 @@
     <h1>共有カード（ShareCardView）</h1>
     <p>豆知識をSNSでシェアするための画像生成View</p>
     <div class="section-meta">
-      <span class="tag done">v1.0</span>
+      <span class="tag done">v1.1</span>
       <span class="tag">画面ID: DT-HOME-04</span>
     </div>
   </header>
 
   <h2>目的・役割</h2>
-  <p>豆知識を画像化して X / Instagram / LINE 等にシェアできるカード。
-  ImageRenderer でレンダリングし、UIActivityViewController（ShareSheet）に渡す。</p>
+  <p>豆知識を1080×1080の正方形画像として生成し、X / LINE 等にシェアできるカード。
+  ImageRenderer でレンダリングし、UIActivityViewController（ShareSheet）に渡す。
+  ハッシュタグ5種と App Store URL を付与。</p>
 
   <h2>UI 構成</h2>
   <p>非表示Viewとして実装され、レンダリング専用。可視UIは持たない。</p>
@@ -34,7 +35,8 @@
     <tr><td>タイトル</td><td>tip.title（大きめ）</td></tr>
     <tr><td>本文</td><td>tip.content（要約）</td></tr>
     <tr><td>アプリロゴ</td><td>右下に小さく</td></tr>
-    <tr><td>App Storeリンク</td><td>テキスト or QRコード</td></tr>
+    <tr><td>ハッシュタグ</td><td>5種のハッシュタグ（カテゴリ連動）</td></tr>
+    <tr><td>App Storeリンク</td><td>テキストURL（ShareService.appStoreURL）</td></tr>
   </table>
 
   <h2>処理フロー</h2>
@@ -51,9 +53,10 @@
 
   <h2>実装メモ</h2>
   <ul class="checklist">
-    <li class="done">ShareService.renderCardImage() で ImageRenderer 使用</li>
-    <li class="done">ShareService.shareText() で X 用テキスト生成（ハッシュタグ込み）</li>
-    <li>App Storeリンクは <code>ShareService.appStoreURL</code> 定数</li>
+    <li class="done">ShareService.renderCardImage() で ImageRenderer 使用（1080×1080固定）</li>
+    <li class="done">ShareService.shareText() で X 用テキスト生成（ハッシュタグ5種込み）</li>
+    <li class="done">App Storeリンクは <code>ShareService.appStoreURL</code> 定数</li>
+    <li class="done">Instagram Stories 対応は削除（仕様変更により動作不可のため廃止）</li>
   </ul>
 
   <h2>関連</h2>
@@ -65,9 +68,10 @@
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-05-17</td><td>v1.0.5: 画像サイズを1080×1080に明記、ハッシュタグ5種追加、Instagram Stories対応を廃止</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-05-17</footer>
 </div>
 </body>
 </html>

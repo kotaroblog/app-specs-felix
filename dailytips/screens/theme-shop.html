@@ -13,24 +13,34 @@
 
   <header class="site-header">
     <h1>テーマショップ</h1>
-    <p>背景グラデーションテーマの選択・購入</p>
+    <p>背景グラデーションテーマの選択・購入（全14テーマ）</p>
     <div class="section-meta">
-      <span class="tag done">v1.0</span>
+      <span class="tag done">v1.1</span>
       <span class="tag">画面ID: DT-TH-01</span>
     </div>
   </header>
 
   <h2>目的・役割</h2>
-  <p>無料3種・有料9種の合計12テーマから選択できる画面。有料は <strong>200コイン</strong> で購入。
-  プレミアム会員は全テーマ自動解放（実装検討）。</p>
+  <p>無料3種・有料11種の合計14テーマから選択できる画面（v1.0.5 で「ベージュ」を追加し14テーマに）。
+  有料テーマは <strong>200コイン</strong> で購入。動画ボーナスからコインを獲得して購入を促す設計。</p>
 
   <h2>UI 構成</h2>
   <table>
     <tr><th>要素</th><th>種類</th><th>説明</th></tr>
     <tr><td>コインバッジ</td><td>HStack</td><td>現在のコイン残高</td></tr>
+    <tr><td>動画ボーナスボタン</td><td>Button</td><td>+3pt獲得（1日5回まで）</td></tr>
     <tr><td>テーマカード</td><td>LazyVGrid</td><td>各テーマのプレビュー（グラデーション）</td></tr>
-    <tr><td>選択中バッジ</td><td>Overlay</td><td>適用中テーマに ✓ マーク</td></tr>
+    <tr><td>状態バッジ</td><td>Overlay</td><td>4状態を色別バッジ＋鍵アイコンで表示（下記参照）</td></tr>
     <tr><td>購入/適用ボタン</td><td>Button</td><td>状態に応じてラベル変化</td></tr>
+  </table>
+
+  <h2>テーマ状態バッジ一覧</h2>
+  <table>
+    <tr><th>状態</th><th>バッジ</th><th>背景色</th><th>アイコン</th></tr>
+    <tr><td>使用中</td><td>「使用中」</td><td>青</td><td>checkmark.circle</td></tr>
+    <tr><td>購入済（未適用）</td><td>「購入済」</td><td>緑</td><td>checkmark</td></tr>
+    <tr><td>無料</td><td>「無料」</td><td>グレー</td><td>（なし）</td></tr>
+    <tr><td>未購入</td><td>「200pt」</td><td>オレンジ</td><td>lock.fill</td></tr>
   </table>
 
   <h2>状態</h2>
@@ -38,7 +48,8 @@
     <tr><th>状態</th><th>表示内容</th></tr>
     <tr><td>無料テーマ</td><td>「適用」ボタン</td></tr>
     <tr><td>未購入有料</td><td>「200コインで購入」ボタン</td></tr>
-    <tr><td>購入済</td><td>「適用」ボタン</td></tr>
+    <tr><td>購入済（未適用）</td><td>「適用」ボタン</td></tr>
+    <tr><td>使用中</td><td>「使用中」表示（ボタン無効）</td></tr>
     <tr><td>残高不足</td><td>購入アラートで警告</td></tr>
   </table>
 
@@ -62,8 +73,11 @@ ThemeService {
   <h2>実装メモ</h2>
   <ul class="checklist">
     <li class="done">無料テーマ3種は <code>cost: 0</code> で常時アンロック</li>
-    <li class="done">有料9種は購入後に AppGroup に保存（unlocked_themes）</li>
+    <li class="done">有料11種は購入後に AppGroup に保存（unlocked_themes）</li>
+    <li class="done">v1.0.5 で「ベージュ」テーマを追加（計14テーマ）</li>
     <li class="done">適用テーマは ThemeBackgroundView でグラデーション表示</li>
+    <li class="done">状態バッジは4色（青・緑・グレー・オレンジ）で一目瞭然</li>
+    <li class="done">動画ボーナスボタンから RewardedAdManager.show() を起動</li>
   </ul>
 
   <h2>関連</h2>
@@ -76,9 +90,10 @@ ThemeService {
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-05-17</td><td>v1.0.5: 「ベージュ」テーマ追加（計14テーマ）、状態バッジ4種、動画ボーナスボタンを追加</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-05-17</footer>
 </div>
 </body>
 </html>

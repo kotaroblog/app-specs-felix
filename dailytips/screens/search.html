@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - 検索画面</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">DailyTips</a> / 検索画面</div>
+
+  <header class="site-header">
+    <h1>検索画面</h1>
+    <p>過去の豆知識をキーワード・カテゴリ・お気に入り・既読/未読で絞り込む</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: DT-HOME-05</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>v1.0.5 で新規追加。daily_tips.json 内 732件の豆知識への導線。過去に読んだ／興味のあるトピックの再発見と再学習を促す。</p>
+
+  <h2>アクセス導線</h2>
+  <ul>
+    <li>ホーム画面トップバーの「🔍」ボタンタップでシート表示</li>
+  </ul>
+
+  <h2>UI構成</h2>
+  <ol>
+    <li><strong>検索フィールド</strong>: 🔍 アイコン + TextField + クリアボタン（×）</li>
+    <li><strong>フィルター行</strong>（横スクロール）:
+      <ul>
+        <li>お気に入りのみ（heart.fill アイコン付きトグル）</li>
+        <li>既読 / 未読 / すべて（排他選択）</li>
+        <li>区切り線</li>
+        <li>全カテゴリ / 各カテゴリ別（タップで絞り込み）</li>
+      </ul>
+    </li>
+    <li><strong>結果リスト</strong>:
+      <ul>
+        <li>「N件」表示</li>
+        <li>カテゴリバッジ + 日付（例:「2025年度 1月1日」）+ タイトル</li>
+        <li>タップで詳細シート（SearchResultDetailSheet）表示</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h2>検索結果から開いた際の挙動</h2>
+  <table>
+    <tr><th>条件</th><th>表示</th></tr>
+    <tr><td>プレミアム会員 or 当日 or ログイン済み or 広告視聴済み</td><td>通常の TipCardView</td></tr>
+    <tr><td>ロック対象</td><td>🔒 ロック表示 + 「広告を見て解放する」ボタン + プレミアム誘導文</td></tr>
+  </table>
+  <p>ロック解放ボタンタップで <code>RewardedAdManager.show</code> → 視聴完了で <code>HistoryService.markAsAdViewed</code> → 通常表示に切り替わる。</p>
+
+  <h2>パフォーマンス対策</h2>
+  <ul>
+    <li>onAppear で <code>cachedFavorites</code>(Set&lt;String&gt;) と <code>allCategories</code> を初期化</li>
+    <li>body 評価ごとに Service を呼ばないよう @State 化</li>
+  </ul>
+
+  <h2>関連機能</h2>
+  <ul>
+    <li><a href="../features/search.html">検索機能（feature）</a></li>
+    <li><a href="../features/ad-control.html">広告制御（ロック解放）</a></li>
+    <li><a href="../features/favorite.html">お気に入り（フィルター用）</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-05-17</td><td>初版作成（v1.0.5 新規画面）</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-05-17</footer>
+</div>
+</body>
+</html>

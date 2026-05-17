@@ -15,7 +15,7 @@
     <h1>広告制御機能</h1>
     <p>AdMob 4種広告（Banner / Interstitial / Rewarded / AppOpen）の表示制御</p>
     <div class="section-meta">
-      <span class="tag done">v1.0</span>
+      <span class="tag done">v1.1</span>
       <span class="tag">機能ID: DT-FEAT-AD</span>
     </div>
   </header>
@@ -74,9 +74,16 @@
 
   <h3>AppOpenAdManager</h3>
   <ul>
-    <li><code>loadAd()</code> で事前ロード</li>
+    <li><code>loadAd()</code> で事前ロード（SDK初期化完了後に実行）</li>
     <li><code>show(isPremium:)</code> でプレミアム判定込みで表示</li>
-    <li>scenePhase 変化監視でフォアグラウンド復帰時にも表示</li>
+    <li>scenePhase 変化監視でフォアグラウンド復帰時に自動再ロード</li>
+    <li>ATT許可後にロード再試行</li>
+    <li>広告の有効期限を4時間で管理（期限切れは再ロード）</li>
+  </ul>
+
+  <h3>シート内からのリワード広告</h3>
+  <ul>
+    <li><code>topMostViewController()</code> で最上位VCを取得して表示（シート内から呼び出し可能）</li>
   </ul>
 
   <h2>ビジネスルール</h2>
@@ -108,18 +115,21 @@
   <h2>実装メモ</h2>
   <ul class="checklist">
     <li class="done">各Manager は <code>@MainActor : NSObject</code></li>
-    <li class="done">DEBUG/Release で AdConfig がID切替</li>
-    <li class="done">scenePhase == .active で AppOpen 再表示判定</li>
-    <li>AdMob テスト IDが本番に紛れないよう project.yml で確認</li>
+    <li class="done">DEBUG/Release で AdConfig がID切替（DEBUGはGoogle公式テストID使用）</li>
+    <li class="done">scenePhase == .active で AppOpen 再表示判定・自動再ロード</li>
+    <li class="done">AppOpen 広告: SDK初期化完了待ち → ATT許可後に再試行 → 4時間有効期限管理</li>
+    <li class="done">DEBUGビルドではアプリ起動広告をスキップ（開発効率確保）</li>
+    <li class="done">topMostViewController() でシート内から Rewarded 広告表示可能</li>
   </ul>
 
   <h2>変更履歴</h2>
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-05-17</td><td>v1.0.5: AppOpen広告の信頼性改善（SDK初期化待ち・ATT後再試行・4時間有効期限）、シート内リワード対応、DEBUGビルドでの起動広告スキップを追加</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-05-17</footer>
 </div>
 </body>
 </html>

@@ -15,7 +15,7 @@
     <h1>豆知識カード（TipCardView）</h1>
     <p>1つの豆知識を表示する再利用可能なカードコンポーネント</p>
     <div class="section-meta">
-      <span class="tag done">v1.0</span>
+      <span class="tag done">v1.1</span>
       <span class="tag">画面ID: DT-HOME-02</span>
     </div>
   </header>
@@ -32,6 +32,7 @@
     <tr><td>本文</td><td>Text</td><td>tip.content</td></tr>
     <tr><td>♥ ボタン</td><td>Button</td><td>FavoriteService.toggleFavorite</td></tr>
     <tr><td>共有ボタン</td><td>Button</td><td>ShareCardView 経由</td></tr>
+    <tr><td>メモボタン</td><td>Button</td><td>📝 学習メモ入力シート（StudyMemoView）を起動</td></tr>
     <tr><td>クイズボタン</td><td>Button</td><td>tip.quiz があるときのみ表示</td></tr>
   </table>
 
@@ -42,6 +43,7 @@
     <tr><td>クイズなし</td><td>クイズボタン非表示</td></tr>
     <tr><td>お気に入り済</td><td>♥ ハート塗りつぶし</td></tr>
     <tr><td>未お気に入り</td><td>♡ ハート枠線のみ</td></tr>
+    <tr><td>メモあり</td><td>メモボタンに 📝 強調表示</td></tr>
     <tr><td>ライトスタイル（isLightStyle=true）</td><td>白背景・暗テキスト</td></tr>
     <tr><td>通常スタイル</td><td>テーマグラデーション・明テキスト</td></tr>
   </table>
@@ -60,6 +62,8 @@
     <li class="done"><code>isLightStyle: Bool</code> プロパティで背景色切り替え</li>
     <li class="done">FavoriteService.toggleFavorite() で UI 即時更新（楽観UI）</li>
     <li class="done">クイズボタンタップで QuizView を sheet 表示</li>
+    <li class="done">メモボタンタップで StudyMemoView を sheet 表示（300字以内）</li>
+    <li class="done">メモ保存キー: <code>memo_text_yyyy-MM-dd</code>（AppGroup UserDefaults）</li>
   </ul>
 
   <h2>関連</h2>
@@ -68,15 +72,17 @@
     <li><a href="favorites.html">お気に入り一覧</a></li>
     <li><a href="tip-quiz.html">豆知識クイズ画面</a></li>
     <li><a href="../features/favorite.html">お気に入り機能</a></li>
+    <li><a href="../features/study-memo.html">学習メモ機能</a></li>
   </ul>
 
   <h2>変更履歴</h2>
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-05-17</td><td>v1.0.5: メモボタン追加、メモあり状態追加、学習メモ機能へのリンク追加</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-05-17</footer>
 </div>
 </body>
 </html>

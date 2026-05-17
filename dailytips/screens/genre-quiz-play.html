@@ -15,21 +15,29 @@
     <h1>ジャンルクイズプレイ画面</h1>
     <p>ジャンル別の問題を解くプレイ画面（3モード対応）</p>
     <div class="section-meta">
-      <span class="tag done">v1.0</span>
+      <span class="tag done">v1.1</span>
       <span class="tag">画面ID: DT-GQS-02</span>
     </div>
   </header>
 
   <h2>目的・役割</h2>
-  <p>解放済みジャンルの問題を3つのプレイモード（ランダム / 順番通り / 続きから）で解いていく画面。</p>
+  <p>解放済みジャンルの問題を4つのプレイモード（ランダム / 順番通り / 続きから / お試し）で解いていく画面。</p>
 
   <h2>プレイモード</h2>
   <table>
-    <tr><th>モード</th><th>動作</th></tr>
-    <tr><td>ランダム</td><td>毎回 randomQuestion() で異なる問題</td></tr>
-    <tr><td>順番通り</td><td>position をリセットして1問目から</td></tr>
-    <tr><td>続きから</td><td>保存された position から再開</td></tr>
+    <tr><th>モード</th><th>動作</th><th>進捗記録</th></tr>
+    <tr><td>ランダム</td><td>未回答問題からランダムに出題</td><td>あり</td></tr>
+    <tr><td>順番通り</td><td>position をリセットして1問目から</td><td>あり</td></tr>
+    <tr><td>続きから</td><td>保存された position から再開</td><td>あり</td></tr>
+    <tr><td>お試し（v1.1）</td><td>未解放ジャンルで最初の5問のみ出題</td><td><strong>なし</strong>（解放後に改めて記録）</td></tr>
   </table>
+
+  <h2>お試しモード終了画面（v1.1）</h2>
+  <p>お試し5問終了時、「お試し終了！」ヘッダーと「残り95問を解放しよう！」誘導カード（オレンジ→ピンクのグラデーション）を表示する。</p>
+  <ul>
+    <li>「\(genre.cost)ptで全問解放、または毎日のptを貯めて挑戦できます」の文言</li>
+    <li>アイコンは sparkles（trophy ではない）</li>
+  </ul>
 
   <h2>UI 構成</h2>
   <table>
@@ -89,9 +97,10 @@ GenreProgressService {
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-05-17</td><td>v1.0.5: お試しモード（freeTrial）を追加。終了画面に解放誘導カード表示</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-05-17</footer>
 </div>
 </body>
 </html>
