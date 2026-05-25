@@ -136,6 +136,7 @@ flowchart LR
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（5ステップ統合）</td></tr>
+    <tr><td>1.1</td><td>2026-05-25</td><td>各ステップ下部のボタン領域がタブバー上の AdMob バナー（50pt）と重なり「下書き保存」ボタンが隠れる問題を修正（safeAreaInset 内 VStack の bottom padding を非プレミアム時 +50pt 増し）。公開確認モーダル（PublishConfirmSheet）の medium detent で説明文・注意文が切れる問題を修正（VStack+Spacer 構造 → ScrollView + safeAreaInset でボタン下部固定、本文スクロール可能に）</td></tr>
   </table>
 
   <script>
@@ -145,7 +146,7 @@ flowchart LR
     });
   </script>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-05-25</footer>
 </div>
 </body>
 </html>
