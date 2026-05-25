@@ -40,9 +40,9 @@
   <table>
     <tr><th>状態</th><th>表示内容</th></tr>
     <tr><td>完全無料ジャンル（雑学・トリビア）</td><td>「無料」バッジ + 「プレイ」ボタン</td></tr>
-    <tr><td>未アンロック（5問お試し）</td><td>「お試し5問」バッジ + 「試してみる」ボタン</td></tr>
-    <tr><td>未アンロック（100コイン解放）</td><td>「100コインで解放」ボタン</td></tr>
-    <tr><td>残高不足</td><td>「コインが足りません」アラート</td></tr>
+    <tr><td>未アンロック（5問お試し未使用）</td><td>ピンク「お試し5問」バッジ + 「お試し5問」ボタン + 「100ptで解放」ボタン</td></tr>
+    <tr><td>未アンロック（5問お試し使用済み）<strong>v1.0.7</strong></td><td>グレー「お試し済み」バッジ + 無効化「お試し済み」ラベル + 「100ptで解放」ボタンのみ操作可</td></tr>
+    <tr><td>残高不足</td><td>「ptが不足しています」アラート</td></tr>
     <tr><td>アンロック済</td><td>「プレイ」ボタン → モード選択</td></tr>
   </table>
 
@@ -72,7 +72,8 @@ GenreQuizService {
   <ul class="checklist">
     <li class="done">13ジャンルの定義は GenreDefinition の static 定数</li>
     <li class="done">雑学・トリビアは <code>cost: 0</code> で常時アンロック扱い</li>
-    <li class="done">お試し5問は解放前にプレビュープレイ（回答記録はしない）</li>
+    <li class="done">お試し5問は解放前にプレビュープレイ（回答記録はしない）。<strong>v1.0.7 から1ジャンル1回限り</strong>（5問完走時に <code>markFreeTrialUsed(for:)</code> でフラグ記録）</li>
+    <li class="done">v1.0.7: <code>@State playSession: GenrePlaySession?</code> で genre+mode をアトミックに渡し、シート presentation 時の race condition を排除</li>
     <li class="done">unlockGenre() で CoinService.spendCoins(100) → 成功で AppGroup に保存</li>
     <li class="done">プレイ開始時に Interstitial広告を挟む（無料ユーザー）</li>
     <li class="done">動画ボーナスボタンから RewardedAdManager.show() を起動</li>
@@ -92,9 +93,10 @@ GenreQuizService {
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
     <tr><td>1.1</td><td>2026-05-17</td><td>v1.0.5: 無料体験枠（雑学無料・他5問お試し）、動画ボーナスボタン、実績サマリー、状態バッジを追加</td></tr>
+    <tr><td>1.2</td><td>2026-05-25</td><td>v1.0.7: お試し5問を1ジャンル1回限りに制限（「お試し済み」バッジ追加）。GenrePlaySession 導入で race condition を解消。価格表記「コイン」→「pt」に統一</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-17</footer>
+  <footer class="site-footer">最終更新: 2026-05-25</footer>
 </div>
 </body>
 </html>

@@ -133,6 +133,7 @@ enum WidgetAppGroup {
     <tr><td><code>unlocked_themes</code></td><td>[String]</td><td>購入済テーマID配列</td></tr>
     <tr><td><code>unlocked_genres</code></td><td>[String]</td><td>アンロック済ジャンルID配列</td></tr>
     <tr><td><code>genre_progress_*</code></td><td>Codable</td><td>ジャンル別の回答数・正解数・位置</td></tr>
+    <tr><td><code>genre_free_trial_used_{id}</code></td><td>Bool</td><td>お試し5問の使用済みフラグ（v1.0.7）。true なら再挑戦不可</td></tr>
     <tr><td><code>quiz_streak</code></td><td>Int</td><td>クイズ正解連続数</td></tr>
     <tr><td><code>login_dates</code></td><td>[String]</td><td>カレンダー表示用ログイン日</td></tr>
     <tr><td><code>ad_viewed_dates</code></td><td>[String]</td><td>カレンダー表示用広告視聴日</td></tr>
@@ -181,6 +182,7 @@ enum WidgetAppGroup {
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
+    <tr><td>1.1</td><td>2026-05-25</td><td>v1.0.7: <code>genre_free_trial_used_{id}</code> キー追加（お試し1回限り制限フラグ）</td></tr>
   </table>
 
   <script>
@@ -190,7 +192,7 @@ enum WidgetAppGroup {
     });
   </script>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-05-25</footer>
 </div>
 </body>
 </html>

@@ -24,7 +24,7 @@
     <li><span class="k">マネタイズ</span><span class="v">サブスクリプション（月額/年額）+ AdMob 4種広告（Banner/Interstitial/Rewarded/AppOpen）</span></li>
     <li><span class="k">ステータス</span><span class="v">リリース済</span></li>
     <li><span class="k">リリース時期</span><span class="v">2026年4月</span></li>
-    <li><span class="k">バージョン</span><span class="v">1.0.5 (build 17)</span></li>
+    <li><span class="k">バージョン</span><span class="v">1.0.7 (build 19)</span></li>
     <li><span class="k">表示名</span><span class="v">デイリー豆知識</span></li>
     <li><span class="k">Widget拡張</span><span class="v">あり（Small / Medium）</span></li>
     <li><span class="k">App Group</span><span class="v"><code>group.com.happyboy1002.DailyTips</code></span></li>
@@ -36,6 +36,15 @@
     Widget表示、コイン経済（ログインボーナス・動画報酬）を組み合わせて継続利用を促す設計。
     v1.0.5 では学習メモ・検索・復習通知・無料体験枠などの新機能を追加し、教育アプリとしての価値を強化。
   </p>
+
+  <h2>v1.0.7 主な変更点（2026-05-25）</h2>
+  <ul>
+    <li>ジャンルクイズ「お試し5問」を1ジャンル1回限りに制限（再挑戦不可・<code>お試し済み</code>バッジ表示）</li>
+    <li>お試しモードで6問目以降が解けてしまう race condition を修正（<code>GenrePlaySession</code> 構造体でジャンル+モードをアトミック化）</li>
+    <li>テーマショップの価格表記を「枚」→「pt」に統一（ログインボーナス文言も含む4箇所）</li>
+    <li>アプリ起動広告：<code>#if DEBUG return</code> バイパス削除でシミュレータでもテスト広告で動作確認可能に</li>
+    <li><code>SKAdNetworkItems</code> 71件追加（AdMob 公式推奨リスト）— Release/TestFlight での App Open Ad fill rate 改善</li>
+  </ul>
 
   <h2>v1.0.5 主な変更点（2026-05-17）</h2>
   <ul>

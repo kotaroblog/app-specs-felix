@@ -54,20 +54,31 @@
   <table>
     <tr><th>枠</th><th>対象</th><th>挙動</th></tr>
     <tr><td>完全無料ジャンル</td><td>雑学・トリビア（cost=0）</td><td>全100問プレイ可能・進捗記録あり</td></tr>
-    <tr><td>お試し5問</td><td>他12ジャンル（未解放時）</td><td><code>GenrePlayMode.freeTrial</code> で最初の5問のみ出題。<strong>進捗記録なし</strong>。終了時に「残り95問を解放しよう」誘導カード表示</td></tr>
+    <tr><td>お試し5問</td><td>他12ジャンル（未解放時）</td><td><code>GenrePlayMode.freeTrial</code> で最初の5問のみ出題。<strong>進捗記録なし</strong>。終了時に「残り95問を解放しよう」誘導カード表示。<strong>v1.0.7: 1ジャンル1回限りに制限</strong>（完走後は「お試し済み」バッジで再挑戦不可）</td></tr>
   </table>
   <pre><code>// Models
-enum GenrePlayMode {
-    case random, sequential, continued, freeTrial   // freeTrial を追加
+enum GenrePlayMode: Equatable {
+    case random, sequential, continued, freeTrial
 }
 enum GenreFreeAccess {
     static let freeTrialQuestionCount = 5
 }
 
+// v1.0.7: genre + mode をアトミックに渡してシート presentation 時の race condition を防止
+struct GenrePlaySession: Identifiable, Equatable {
+    let genre: GenreDefinition
+    let mode: GenrePlayMode
+    var id: String { "\(genre.id)-\(mode)" }
+}
+
 // GenreQuizService
 func freeTrialQuestions(for genreId: String) -> [GenreQuizQuestion]
 func isQuestionInFreeTrial(genreId: String, questionId: Int) -> Bool
-// getUnlockedGenreIds は cost=0 ジャンルを自動的に解放済み扱いするよう改修</code></pre>
+
+// v1.0.7: お試し使用済みフラグ管理（GenreProgressService）
+func isFreeTrialUsed(for genreId: String) -> Bool
+func markFreeTrialUsed(for genreId: String)
+// UserDefaults キー: "genre_free_trial_used_{id}"</code></pre>
 
   <h2>API</h2>
   <pre><code>@MainActor
@@ -143,9 +154,10 @@ final class GenreProgressService {  // @unchecked Sendable
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
     <tr><td>1.1</td><td>2026-05-17</td><td>v1.0.5: 心理学100問追加で全13ジャンル1300問に。無料体験枠を追加（雑学完全無料・他12ジャンルは5問お試し）。表示順を変更し雑学を最上位に。GenrePlayMode に .freeTrial を追加</td></tr>
+    <tr><td>1.2</td><td>2026-05-25</td><td>v1.0.7: お試し5問を1ジャンル1回限りに制限（<code>isFreeTrialUsed</code> フラグ・<code>markFreeTrialUsed</code> 追加）。6問目以降が解ける race condition を <code>GenrePlaySession</code> 導入で修正（<code>@State playTarget+playMode</code> の2変数連続更新を1変数集約）</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-17</footer>
+  <footer class="site-footer">最終更新: 2026-05-25</footer>
 </div>
 </body>
 </html>

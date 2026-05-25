@@ -118,8 +118,9 @@
     <li class="done">DEBUG/Release で AdConfig がID切替（DEBUGはGoogle公式テストID使用）</li>
     <li class="done">scenePhase == .active で AppOpen 再表示判定・自動再ロード</li>
     <li class="done">AppOpen 広告: SDK初期化完了待ち → ATT許可後に再試行 → 4時間有効期限管理</li>
-    <li class="done">DEBUGビルドではアプリ起動広告をスキップ（開発効率確保）</li>
+    <li class="done">DEBUGビルドでもテスト広告ID（AdConfig 経由）でアプリ起動広告を表示し動作確認可能（v1.0.7で改修）</li>
     <li class="done">topMostViewController() でシート内から Rewarded 広告表示可能</li>
+    <li class="done">SKAdNetworkItems 71件を Info.plist に登録（AdMob 公式推奨リスト）</li>
   </ul>
 
   <h2>変更履歴</h2>
@@ -127,9 +128,10 @@
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
     <tr><td>1.1</td><td>2026-05-17</td><td>v1.0.5: AppOpen広告の信頼性改善（SDK初期化待ち・ATT後再試行・4時間有効期限）、シート内リワード対応、DEBUGビルドでの起動広告スキップを追加</td></tr>
+    <tr><td>1.2</td><td>2026-05-25</td><td>v1.0.7: AppOpen広告の <code>#if DEBUG return</code> バイパスを削除しテスト広告で動作確認可能に。SKAdNetworkItems 71件追加（Release/TestFlight での App Open Ad fill rate 改善）</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-17</footer>
+  <footer class="site-footer">最終更新: 2026-05-25</footer>
 </div>
 </body>
 </html>

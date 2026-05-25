@@ -98,9 +98,10 @@ GenreProgressService {
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
     <tr><td>1.1</td><td>2026-05-17</td><td>v1.0.5: お試しモード（freeTrial）を追加。終了画面に解放誘導カード表示</td></tr>
+    <tr><td>1.2</td><td>2026-05-25</td><td>v1.0.7: お試し5問完走時に <code>GenreProgressService.markFreeTrialUsed(for:)</code> でフラグ記録。<code>GenrePlaySession</code> 構造体でジャンル+モードを渡す形式に変更（race condition 解消）</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-17</footer>
+  <footer class="site-footer">最終更新: 2026-05-25</footer>
 </div>
 </body>
 </html>
