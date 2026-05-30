@@ -15,7 +15,7 @@
     <h1>下書き一覧</h1>
     <p>未公開の作成中ランキング（status: draft）の管理</p>
     <div class="section-meta">
-      <span class="tag done">v1.0</span>
+      <span class="tag done">v1.1</span>
       <span class="tag">画面ID: RS-CR-06</span>
     </div>
   </header>
@@ -26,7 +26,12 @@
   <h2>UI 構成</h2>
   <table>
     <tr><th>要素</th><th>種類</th><th>説明</th></tr>
-    <tr><td>下書きリスト</td><td>List</td><td>タイトル・更新日時・残り猶予時間表示</td></tr>
+    <tr><td>最近取り消したランキングセクション</td><td>Section（上部）</td><td>
+      「最近取り消したランキング（24時間以内）」として画面上部に表示。<br>
+      ここから「<strong>下書きに戻す</strong>」操作が可能。<br>
+      24時間を過ぎると自動的に非表示（リストから消える）
+    </td></tr>
+    <tr><td>下書きリスト</td><td>List</td><td>タイトル・更新日時・残り猶予時間表示。各カードに「<strong>下書き</strong>」バッジ固定表示（予約取り消しボタンは非表示）</td></tr>
     <tr><td>編集ボタン</td><td>Button</td><td>CreateRankingViewへ復元遷移</td></tr>
     <tr><td>削除ボタン</td><td>Swipe Action</td><td>左スワイプで削除確認</td></tr>
     <tr><td>「すべて削除」</td><td>Toolbar</td><td>確認後に一括削除</td></tr>
@@ -44,6 +49,7 @@
   <table>
     <tr><th>操作</th><th>遷移先</th></tr>
     <tr><td>下書きセルタップ</td><td>CreateRankingView（編集mode、draftId引き継ぎ）</td></tr>
+    <tr><td>「下書きに戻す」タップ</td><td>同画面（recentlyCancelled → drafts セクションへ移動）</td></tr>
     <tr><td>削除確定</td><td>同画面（リスト更新）</td></tr>
   </table>
 
@@ -57,6 +63,8 @@ let drafts = await rankingService.fetchDrafts(userId: currentUserId)
     <li class="done">DraftListView は MyPageView と CreateRankingView 双方から開ける</li>
     <li class="done">削除時、refundEligible なら PointTransaction で cancelRefund 計上</li>
     <li class="done">Logger.DraftList カテゴリで操作ログ出力</li>
+    <li class="done">下書きカードは「下書き」バッジ固定表示。予約取り消しボタンは非表示</li>
+    <li class="done">「最近取り消したランキング（24時間以内）」セクションを上部に表示し、「下書きに戻す」操作を提供</li>
   </ul>
 
   <h2>関連</h2>
@@ -69,9 +77,10 @@ let drafts = await rankingService.fetchDrafts(userId: currentUserId)
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-05-30</td><td>TF 1.0(18) 反映: 下書きカードに「下書き」バッジ固定・予約取り消しボタン非表示を明記／「最近取り消したランキング（24時間以内）」セクションを画面上部に追加し「下書きに戻す」操作導線を整備</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-05-30</footer>
 </div>
 </body>
 </html>

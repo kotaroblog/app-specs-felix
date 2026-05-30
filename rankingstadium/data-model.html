@@ -201,6 +201,10 @@ struct Quiz: Codable, Identifiable {
     <strong>二重付与防止</strong>: <code>PointService.claimLoginBonus()</code> はクライアント側 <code>lastLoginDate</code> + DB <code>point_transactions</code> の二層チェックで日次ボーナスの二重付与を防いでいる。
   </div>
 
+  <div class="callout warn">
+    <strong>users.last_login_date は DATE 型・クライアントから "yyyy-MM-dd" 文字列で送信</strong>: <code>users.last_login_date</code> は Supabase の DATE 型カラム。Swift Date 型のまま送ると Supabase が ISO8601 タイムスタンプを UTC で日付化するため、JST 端末では JST 5/30 00:00 が UTC 5/29 15:00 → "2026-05-29" として保存される（前日扱い）。これを防ぐため、クライアントは <code>LoginBonusUpdate.lastLoginDate</code> を <strong>ローカルTZ基準の "yyyy-MM-dd" 文字列</strong>（<code>pointDateOnlyFormatter</code> で生成）で送信する。
+  </div>
+
   <h2>関連ファイル</h2>
   <ul>
     <li><code>RankingStadium/Models/AppUser.swift</code></li>
@@ -221,6 +225,7 @@ struct Quiz: Codable, Identifiable {
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
+    <tr><td>1.1</td><td>2026-05-30</td><td>TF 1.0(18) 反映: users.last_login_date を DATE 型・"yyyy-MM-dd" 文字列送信仕様として明文化（UTCずれによる前日保存バグ修正）</td></tr>
   </table>
 
   <script>
@@ -230,7 +235,7 @@ struct Quiz: Codable, Identifiable {
     });
   </script>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-05-30</footer>
 </div>
 </body>
 </html>

@@ -15,7 +15,7 @@
     <h1>シングル投票画面</h1>
     <p>1つの選択肢を選んで投票するモード（RankingMode.single）</p>
     <div class="section-meta">
-      <span class="tag done">v1.1</span>
+      <span class="tag done">v1.2</span>
       <span class="tag">画面ID: RS-VOTE-02</span>
     </div>
   </header>
@@ -38,7 +38,7 @@
     </td></tr>
     <tr><td>選択肢グリッド</td><td>LazyVGrid</td><td>各 Choice をカード表示（label + image）</td></tr>
     <tr><td>選択ハイライト</td><td>Border</td><td>選択中の Choice を視覚化</td></tr>
-    <tr><td>投票ボタン</td><td>Button</td><td>選択完了でアクティブ化</td></tr>
+    <tr><td>投票ボタン</td><td>Button</td><td>選択完了でアクティブ化。<strong>ScrollView 直下の VStack 最下部に直接配置</strong>（旧仕様の .safeAreaInset から変更: MainTabView の AdBanner と z-order が逆転し投票ボタンが広告バナーに隠れる問題を解消）</td></tr>
     <tr><td>消費ポイント表示</td><td>Text</td><td>「投票には Npt を消費します」</td></tr>
     <tr><td>バナー広告</td><td>共通配置</td><td>MainTabView の <code>safeAreaInset(.bottom)</code> でタブバー直上に共通配置（プレミアム時は非表示）</td></tr>
   </table>
@@ -47,6 +47,12 @@
   <ul>
     <li>VoteView 内の重複タイトル表示は削除（タイトルは RankingHeaderView 6段目に集約）</li>
     <li>戻るボタン横の <code>navigationTitle</code> は維持</li>
+  </ul>
+
+  <h2>レイアウト変更（v1.2）</h2>
+  <ul>
+    <li>選択肢タップのヒットエリア: 行（HStack + Spacer）全体をヒット可能に（<code>buttonStyle(.plain)</code> + Spacer の SwiftUI 既知問題対策）</li>
+    <li>投票ボタンの配置を <code>.safeAreaInset</code> から ScrollView 直下 VStack 最下部への直接配置に変更（AdBanner との z-order 逆転解消）</li>
   </ul>
 
   <h2>状態</h2>
@@ -96,9 +102,10 @@
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
     <tr><td>1.1</td><td>2026-05-10</td><td>RankingHeaderView を Xスタイル化（7段構成）／VoteView の重複タイトル表示を削除／バナー広告を MainTabView 共通配置へ統一</td></tr>
+    <tr><td>1.2</td><td>2026-05-30</td><td>TF 1.0(18) 反映: 選択肢ヒットエリアを行全体に拡張（buttonStyle(.plain) + Spacer 対策）／投票ボタンを .safeAreaInset から ScrollView 直下 VStack 最下部配置に変更（AdBanner z-order 問題解消）</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-10</footer>
+  <footer class="site-footer">最終更新: 2026-05-30</footer>
 </div>
 </body>
 </html>
