@@ -39,19 +39,55 @@
     <tr><td>4</td><td>暇つぶし</td><td>高</td><td>高</td><td>△</td></tr>
   </table>
 
+  <h2>App Store Connect 入力文字ルール</h2>
+  <div class="callout warn">
+    App Store Connect の各テキストフィールドは特殊文字に厳しい。「このフィールドには1つ以上の無効な文字が含まれています」エラーが出やすい文字を排除すること。
+  </div>
+  <h3>禁止文字（使用しないこと）</h3>
+  <table>
+    <tr><th>種類</th><th>具体例</th><th>理由</th></tr>
+    <tr><td>罫線・線描画</td><td><code>─</code> <code>━</code> <code>│</code> <code>┃</code> <code>┌</code> <code>┐</code></td><td>BOX DRAWING（U+2500-257F）は拒否される</td></tr>
+    <tr><td>半角円記号</td><td><code>¥</code></td><td>環境依存。「480円」「年額3,800円」表記に統一</td></tr>
+    <tr><td>制御文字・不可視文字</td><td>（見えない文字）</td><td>コピペ時に紛れ込みやすく拒否原因になる</td></tr>
+    <tr><td>Variation Selector付き絵文字</td><td><code>🗳️</code> <code>🧠️</code></td><td>FE0F 修飾子で拒否ケースあり。基本は絵文字省略推奨</td></tr>
+    <tr><td>HTMLエンティティ生記述</td><td><code>&amp;nbsp;</code> <code>&amp;copy;</code></td><td>プレーンテキスト扱いされない</td></tr>
+  </table>
+  <h3>安全な代替パターン</h3>
+  <table>
+    <tr><th>用途</th><th>NG</th><th>OK</th></tr>
+    <tr><td>装飾区切り</td><td><code>────────────────</code></td><td><code>【見出し】</code> または空行</td></tr>
+    <tr><td>金額表記</td><td><code>¥480</code></td><td><code>480円</code> / <code>月額480円</code></td></tr>
+    <tr><td>強調マーク</td><td><code>■ 機能</code></td><td><code>【機能】</code> / <code>◆ 機能</code></td></tr>
+    <tr><td>絵文字</td><td><code>🎉🏆🗳</code></td><td>原則省略。使うなら単独絵文字のみ</td></tr>
+    <tr><td>連絡先</td><td><code>📧 mail@...</code></td><td><code>メール: mail@...</code></td></tr>
+    <tr><td>箇条書き</td><td><code>✓ 特典</code></td><td><code>・特典</code></td></tr>
+  </table>
+  <h3>文字数制限（参考）</h3>
+  <table>
+    <tr><th>項目</th><th>上限</th></tr>
+    <tr><td>アプリ名</td><td>30字</td></tr>
+    <tr><td>サブタイトル</td><td>30字</td></tr>
+    <tr><td>プロモテキスト</td><td>170字（いつでも更新可・審査不要）</td></tr>
+    <tr><td>キーワードフィールド</td><td>100字（カンマ区切り、半角スペース不要）</td></tr>
+    <tr><td>説明文</td><td>4,000字</td></tr>
+  </table>
+
   <h2>App Store Connect 設定（v1.0 確定版）</h2>
   <ul class="kv-list">
     <li><span class="k">アプリ名（30字）</span><span class="v"><strong>ランスタ - みんなの推しランキング投票</strong>（19字）</span></li>
     <li><span class="k">サブタイトル（30字）</span><span class="v"><strong>好きなものTOP3をみんなで決めるSNS</strong>（18字）</span></li>
-    <li><span class="k">プロモテキスト（170字）</span><span class="v">🎉 リリース記念キャンペーン中！プレミアム会員（広告非表示・作成無制限・TOP3投票モード）が月¥480から。あなたの「推し」「好きなもの」のランキングを作って、みんなで投票しよう。アニメ・スポーツ・グルメ・音楽……どんなテーマでもOK！（136字）</span></li>
+    <li><span class="k">プロモテキスト（170字）</span><span class="v">リリース記念キャンペーン中！プレミアム会員（広告非表示・作成無制限・TOP3投票モード）が月額480円から。あなたの「推し」「好きなもの」のランキングを作って、みんなで投票しよう。アニメ・スポーツ・グルメ・音楽……どんなテーマでもOK！（134字、絵文字と¥記号を除去しApp Store Connect互換に）</span></li>
     <li><span class="k">キーワードフィールド（100字）</span><span class="v">ランキング,投票,推し,意見,TOP3,SNS,コミュニティ,クイズ,暇つぶし,推し活,ランキングメーカー,投票箱,ベスト3,人気投票,ランキング作成（72字、追加余裕分あり）</span></li>
     <li><span class="k">メインカテゴリ</span><span class="v">エンターテインメント</span></li>
     <li><span class="k">サブカテゴリ</span><span class="v">ソーシャルネットワーキング</span></li>
     <li><span class="k">年齢制限</span><span class="v"><strong>12+</strong>（ユーザー生成コンテンツありだが不適切通報機能完備、暴力/性的表現/ギャンブルなし）</span></li>
   </ul>
 
-  <h2>説明文（v1.0 確定版、約950字）</h2>
-  <pre style="white-space: pre-wrap; background: #f7f7f7; padding: 16px; border-radius: 8px; font-family: inherit; font-size: 0.92em; line-height: 1.7;">■ あなたの推しを、ランキングで決めよう
+  <h2>説明文（v1.0 確定版・App Store Connect 互換、約900字）</h2>
+  <div class="callout warn">
+    App Store Connect は罫線（Box Drawing 文字 ────）・一部絵文字・半角円記号 ¥ などを拒否することがある。本文は安全な記号のみで構成。
+  </div>
+  <pre style="white-space: pre-wrap; background: #f7f7f7; padding: 16px; border-radius: 8px; font-family: inherit; font-size: 0.92em; line-height: 1.7;">あなたの推しを、ランキングで決めよう
 
 「最強の少年漫画主人公は？」「好きなラーメンの味は？」「推しのジブリ作品TOP3は？」
 そんな問いに、みんなで答えを出すランキング投稿アプリ「ランスタ」です。
@@ -59,54 +95,50 @@
 通勤の暇つぶしに、推し活の議論に、友達との話題作りに。
 あなたが作ったランキングが、知らない誰かの「あるある！」を呼びます。
 
-────────────────
-■ 主な機能
-────────────────
 
-🏆 ランキングを「作る」
+【主な機能】
+
+◆ ランキングを「作る」
 3ステップで誰でも簡単。タイトル・選択肢・期間を決めるだけで、すぐに公開できます。
 カテゴリは「アニメ」「スポーツ」「音楽」「生活・グルメ」「ゲーム」など豊富に選べます。
 
-🗳 ランキングに「投票する」
-シングル投票（1位だけ選ぶ）と TOP3 投票（1位〜3位を順位付け）の2モード。
+◆ ランキングに「投票する」
+シングル投票（1位だけ選ぶ）と TOP3 投票（1位から3位を順位付け）の2モード。
 TOP3モードは「ガチで選びたい」シーンにぴったり。
 
-🧠 クイズゲートで「ガチ勢」に絞る
+◆ クイズゲートで「ガチ勢」に絞る
 作成者はクイズを設定可能。正解した人だけが投票できる仕組みで、テーマを深く理解しているファンの意見だけを集められます。
 
-📊 結果をリアルタイムで確認
+◆ 結果をリアルタイムで確認
 途中経過・最終結果がグラフで表示。「結果をシェア」ボタンでSNSにも投稿できます。
 
-👥 フォロー機能
+◆ フォロー機能
 気になる人をフォローして、新しいランキングをチェック。
 
-────────────────
-■ プレミアム会員（任意）
-────────────────
 
-月¥480 / 年¥3,800 で以下の特典：
-✓ 広告非表示
-✓ ランキング作成無制限
-✓ TOP3 投票モード作成
-✓ 長期間ランキング（最大30日）
-✓ 選択肢30個まで設定可能
-✓ 結果閲覧が無料に
+【プレミアム会員（任意）】
 
-────────────────
-■ こんな人におすすめ
-────────────────
+月額480円 / 年額3,800円 で以下の特典：
+・広告非表示
+・ランキング作成無制限
+・TOP3 投票モード作成
+・長期間ランキング（最大30日）
+・選択肢30個まで設定可能
+・結果閲覧が無料に
+
+
+【こんな人におすすめ】
 
 ・推しランキングを作って、ファンと共有したい
 ・好きなもののベスト3を、みんなの意見でも見たい
 ・SNSで議論しているテーマを、ランキングで可視化したい
 ・通勤や休憩の暇つぶしに、面白い投票がしたい
 
-────────────────
-■ サポート・お問い合わせ
-────────────────
+
+【サポート・お問い合わせ】
 
 ご意見・ご要望はアプリ内のフィードバック画面、または下記までお気軽にお寄せください。
-📧 felixapps2026@outlook.jp
+felixapps2026@outlook.jp
 
 プライバシーポリシー: https://kotaroblog.github.io/app-policies/rankingstadium/privacy-policy.html
 利用規約: https://kotaroblog.github.io/app-policies/rankingstadium/terms.html
@@ -152,6 +184,7 @@ TOP3モードは「ガチで選びたい」シーンにぴったり。
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（要マーケ担当レビュー）</td></tr>
     <tr><td>1.1</td><td>2026-05-31</td><td>App Store Connect 設定確定: アプリ名・サブタイトル・プロモテキスト・キーワード・カテゴリ・年齢制限・説明文全文を v1.0 リリース向けに確定</td></tr>
+    <tr><td>1.2</td><td>2026-05-31</td><td>App Store Connect 入力文字ルール表を新設。罫線（────）・¥記号・絵文字でASCの「無効な文字」エラーが出るため、説明文・プロモテキストから除去。安全な代替パターン（【】/数字＋円/◆/省略）に統一</td></tr>
   </table>
 
   <footer class="site-footer">最終更新: 2026-05-31</footer>
