@@ -66,7 +66,7 @@
     <li>消費操作は必ず <code>PointService.consumePoints()</code> 経由（直接 users.points を更新しない）</li>
     <li>すべての取引は <code>PointTransaction</code> に履歴として記録</li>
     <li>ログインボーナスは <code>lastLoginDate</code>（クライアント） + <code>point_transactions</code>（DB）の二層で重複防止</li>
-    <li>連続ログイン日数判定は <code>DateComponents</code>（年・月・日）ベースで比較。タイムゾーン依存による誤判定（UTC変換で前日扱いされる問題）を排除</li>
+    <li>連続ログイン日数判定は <code>DateComponents</code> の <strong>year/month/day を個別 Int 比較</strong>。<code>DateComponents ==</code> 演算子は内部の calendar/timeZone も比較対象に含まれるため、参照インスタンスが異なると偽 false 判定（連続日でも非連続扱い）となるバグを根本回避</li>
     <li><code>users.last_login_date</code> は DATE 型カラムのため、クライアントは Date 型ではなく <strong>ローカルTZ基準の "yyyy-MM-dd" 文字列</strong>（<code>pointDateOnlyFormatter</code>）で送信する。Date 型送信時の UTC ずれ（JST 端末で前日扱い）を防ぐため</li>
     <li>ログインボーナスは<strong>中央ポップアップ</strong>で表示（OKボタンまたは半透明背景タップで閉じる）。旧仕様の上部トースト（3秒自動消去）から変更</li>
     <li>残高不足時は <code>RankingServiceError.insufficientPoints(required:current:)</code> で必要量を返す</li>
@@ -95,7 +95,8 @@
     <li class="done">PointAction enum で15種のアクションを定義</li>
     <li class="done">claimLoginBonus() で日次付与（連続ログイン日数カウント: 1日目=1pt / 2日目=2pt / 3日目以降=3pt）</li>
     <li class="done">ログインボーナス UI: 中央ポップアップ（OKボタン or 半透明背景タップで閉じる）</li>
-    <li class="done">日付比較は DateComponents（year/month/day）ベース。Date 型送信によるタイムゾーンずれ問題を解消</li>
+    <li class="done">日付比較は DateComponents の year/month/day を <strong>個別 Int 比較</strong>。<code>DateComponents ==</code> の calendar/timeZone 参照差による偽 false 判定を排除</li>
+    <li class="done">広告報酬（claimAdReward）の付与は <code>RewardedAdManager.shared.show(onReward:)</code> による <strong>GADRewardedAd 視聴完了コールバック内</strong>のみで発火。広告を見ずに付与される loophole は構造的に存在しない</li>
     <li>Supabase Edge Function 化（v1.1検討）でアトミック保証</li>
   </ul>
 
@@ -104,9 +105,10 @@
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
     <tr><td>1.1</td><td>2026-05-30</td><td>TF 1.0(18) 反映: ログインボーナス表示を上部トーストから中央ポップアップに変更／連続日数判定を DateComponents（年・月・日）ベースに変更（TZ依存バグ解消）／ボーナス量を明記（1日目=1pt, 2日目=2pt, 3日目以降=3pt）</td></tr>
+    <tr><td>1.2</td><td>2026-06-02</td><td>TF 1.0(19)〜(22) 反映: 連続日数判定の DateComponents 比較を <code>==</code> から year/month/day 個別 Int 比較に変更（参照差で偽 false になるバグの根本対処）／広告報酬（ポイント獲得・結果アンロック）の付与経路を <code>RewardedAdManager.shared.show(onReward:)</code> による GADRewardedAd 視聴完了コールバックのみに統一（広告未視聴 loophole 解消）</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-30</footer>
+  <footer class="site-footer">最終更新: 2026-06-02</footer>
 </div>
 </body>
 </html>

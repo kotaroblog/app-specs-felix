@@ -29,7 +29,8 @@
     <tr><th>要素</th><th>種類</th><th>説明</th></tr>
     <tr><td>ロックアイコン</td><td>SF Symbol</td><td>「lock.fill」</td></tr>
     <tr><td>説明テキスト</td><td>Text</td><td>「投票期間が終了しました。閲覧にはポイントが必要です」</td></tr>
-    <tr><td>閲覧解放ボタン</td><td>Button</td><td>「Npt消費して結果を見る」（PointAction.viewResult）</td></tr>
+    <tr><td>閲覧解放ボタン（ポイント）</td><td>Button</td><td>「Npt消費して結果を見る」（PointAction.viewResult）</td></tr>
+    <tr><td>閲覧解放ボタン（広告）</td><td>Button</td><td>「動画広告を視聴して結果を見る」。<code>RewardedAdManager.shared.show(onReward:)</code> による GADRewardedAd 視聴完了コールバック内で <code>unlocked_rankings</code> に INSERT。1日 N 回まで（<code>adUnlockRemainingCount</code>）</td></tr>
     <tr><td>戻るボタン</td><td>Toolbar</td><td>RankingDetailView または前画面へ</td></tr>
   </table>
 
@@ -58,6 +59,8 @@ PointAction.viewConditional  // 3pt</code></pre>
   <ul class="checklist">
     <li class="done">RankingAccessPolicy で閲覧不可と判定された場合のみ表示</li>
     <li class="done">解放後の状態は accessPolicy に反映され、再表示時にスキップ</li>
+    <li class="done">広告視聴アンロック: <code>RewardedAdManager.shared.show(onReward:)</code> で GADRewardedAd を表示し、視聴完了コールバック内で <code>performUnlock(userId:rankingId:)</code> を呼ぶ。広告未表示時は「広告の準備中です」エラー表示</li>
+    <li>広告アンロックの 1 日上限管理（adUnlockRemainingCount）</li>
   </ul>
 
   <h2>関連</h2>
@@ -71,9 +74,10 @@ PointAction.viewConditional  // 3pt</code></pre>
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-06-02</td><td>TF 1.0(21) 反映: 広告視聴アンロックを GADRewardedAd 連動の正規実装に変更。旧仕様の「広告視聴シミュレートで即時アンロック」（loophole）を削除し、<code>RewardedAdManager.shared.show(onReward:)</code> による視聴完了コールバックでのみ <code>unlocked_rankings</code> INSERT が走る構造に</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-06-02</footer>
 </div>
 </body>
 </html>
