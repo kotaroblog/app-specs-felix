@@ -205,6 +205,67 @@ struct Quiz: Codable, Identifiable {
     <strong>users.last_login_date は DATE 型・クライアントから "yyyy-MM-dd" 文字列で送信</strong>: <code>users.last_login_date</code> は Supabase の DATE 型カラム。Swift Date 型のまま送ると Supabase が ISO8601 タイムスタンプを UTC で日付化するため、JST 端末では JST 5/30 00:00 が UTC 5/29 15:00 → "2026-05-29" として保存される（前日扱い）。これを防ぐため、クライアントは <code>LoginBonusUpdate.lastLoginDate</code> を <strong>ローカルTZ基準の "yyyy-MM-dd" 文字列</strong>（<code>pointDateOnlyFormatter</code> で生成）で送信する。
   </div>
 
+  <h2>アカウント削除フロー</h2>
+
+  <div class="callout">
+    App Store ガイドライン <strong>5.1.1(v)</strong>（Sign in with Apple を使うアプリはアプリ内でアカウント削除を提供する義務）対応として、設定画面の「アカウントを削除」から Supabase RPC <code>delete_account()</code> を呼び出す。
+  </div>
+
+  <h3>RPC <code>delete_account()</code> 仕様</h3>
+  <table>
+    <tr><th>項目</th><th>内容</th></tr>
+    <tr><td>定義</td><td><code>SECURITY DEFINER</code> / <code>set search_path = ''</code></td></tr>
+    <tr><td>実行権限</td><td><code>authenticated</code> ロールのみ（<code>anon</code> 不可）</td></tr>
+    <tr><td>マイグレーション</td><td><code>supabase/migrations/026_delete_account_rpc.sql</code></td></tr>
+  </table>
+
+  <h3>削除順序</h3>
+
+  <div class="callout warn">
+    <strong>設計上の前提（FK 制約）</strong><br>
+    <code>users.auth_id → auth.users(id)</code> は <code>ON DELETE CASCADE</code> 設定済みのため、<code>auth.users</code> を削除すれば <code>public.users</code> も自動削除される。<br>
+    しかし <code>rankings.creator_id</code> / <code>votes</code> / <code>choice_requests</code> / <code>reports</code> / <code>point_transactions</code> / <code>favorites</code> / <code>unlocked_rankings</code> / <code>device_fingerprints</code> の user・ranking 参照は <strong>CASCADE 未設定</strong>。そのため <code>auth.users</code> をいきなり削除すると FK 制約違反になる。よって RPC 内で以下の順に明示削除する。
+  </div>
+
+  <table>
+    <tr><th>順序</th><th>削除対象</th><th>削除キー</th><th>補足</th></tr>
+    <tr>
+      <td>1</td>
+      <td>自分が作成したランキングに紐づく子レコード（他ユーザー分含む）</td>
+      <td><code>ranking_id</code> 参照</td>
+      <td><code>votes</code> / <code>choice_requests</code> / <code>reports</code> / <code>favorites</code> / <code>unlocked_rankings</code> / <code>point_transactions</code> / <code>notifications</code>。<code>choices</code> / <code>quizzes</code> は <code>rankings</code> への CASCADE で同時削除されるため明示不要。</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>自分自身が他ランキングに対して作成したデータ</td>
+      <td><code>user_id</code> / <code>requester_id</code> / <code>reporter_id</code> 参照</td>
+      <td><code>votes</code> / <code>choice_requests</code> / <code>reports</code> / <code>favorites</code> / <code>unlocked_rankings</code> / <code>point_transactions</code> / <code>device_fingerprints</code></td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>自分が作成した <code>rankings</code></td>
+      <td>—</td>
+      <td><code>choices</code> / <code>quizzes</code> は CASCADE で同時削除</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><code>auth.users</code></td>
+      <td>—</td>
+      <td><code>public.users</code> が CASCADE で自動削除。<code>follows</code> / <code>notification_settings</code> / <code>notifications(user_id)</code> も CASCADE。<code>feedbacks.user_id</code> は <code>SET NULL</code> で匿名化。</td>
+    </tr>
+  </table>
+
+  <h3>iOS 側実装</h3>
+  <ul>
+    <li><code>AuthViewModel.deleteAccount()</code> が RPC を呼び出す。</li>
+    <li>成功後はローカルセッションのみクリア（<code>signOut(scope: .local)</code>）して <code>authState = .unauthenticated</code> に遷移。</li>
+    <li>設定画面で確認アラート・削除されるデータの説明・失敗時アラートを表示。</li>
+  </ul>
+
+  <div class="callout warn">
+    <strong>未対応事項</strong>: Sign in with Apple のリフレッシュトークン revoke（Apple REST API）はサーバー（Edge Function）が必要なため本バージョンでは未実装。審査で revoke まで求められた場合に別途 Edge Function を追加する。
+  </div>
+
   <h2>関連ファイル</h2>
   <ul>
     <li><code>RankingStadium/Models/AppUser.swift</code></li>
@@ -226,6 +287,7 @@ struct Quiz: Codable, Identifiable {
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
     <tr><td>1.1</td><td>2026-05-30</td><td>TF 1.0(18) 反映: users.last_login_date を DATE 型・"yyyy-MM-dd" 文字列送信仕様として明文化（UTCずれによる前日保存バグ修正）</td></tr>
+    <tr><td>1.2</td><td>2026-06-04</td><td>アカウント削除フロー（<code>delete_account</code> RPC, マイグレーション026）を追記。App Store ガイドライン 5.1.1(v) 対応。</td></tr>
   </table>
 
   <script>
@@ -235,7 +297,7 @@ struct Quiz: Codable, Identifiable {
     });
   </script>
 
-  <footer class="site-footer">最終更新: 2026-05-30</footer>
+  <footer class="site-footer">最終更新: 2026-06-04</footer>
 </div>
 </body>
 </html>
