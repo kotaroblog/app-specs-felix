@@ -29,6 +29,7 @@ erDiagram
   AppUser ||--o{ PointTransaction : has
   AppUser ||--o{ AppNotification : receives
   AppUser ||--o{ Follow : "follows/followed_by"
+  AppUser ||--o{ Block : "blocker/blocked"
   Ranking ||--o{ Choice : contains
   Ranking ||--o{ Vote : "voted on"
   Ranking ||--o{ Quiz : has
@@ -87,6 +88,12 @@ erDiagram
     String correctAnswer
     String answerHint
     Int displayOrder
+  }
+  Block {
+    UUID id
+    UUID blockerId
+    UUID blockedId
+    Date createdAt
   }
   </div>
 
@@ -205,6 +212,41 @@ struct Quiz: Codable, Identifiable {
     <strong>users.last_login_date は DATE 型・クライアントから "yyyy-MM-dd" 文字列で送信</strong>: <code>users.last_login_date</code> は Supabase の DATE 型カラム。Swift Date 型のまま送ると Supabase が ISO8601 タイムスタンプを UTC で日付化するため、JST 端末では JST 5/30 00:00 が UTC 5/29 15:00 → "2026-05-29" として保存される（前日扱い）。これを防ぐため、クライアントは <code>LoginBonusUpdate.lastLoginDate</code> を <strong>ローカルTZ基準の "yyyy-MM-dd" 文字列</strong>（<code>pointDateOnlyFormatter</code> で生成）で送信する。
   </div>
 
+  <h2>blocks テーブル</h2>
+
+  <div class="callout">
+    App Store ガイドライン <strong>1.2</strong>（ユーザー生成コンテンツのモデレーション義務）および <strong>5.1.1</strong>（プライバシー保護）対応として追加。
+    マイグレーション: <code>supabase/migrations/027_blocks.sql</code>
+  </div>
+
+  <h3>カラム定義</h3>
+  <table>
+    <tr><th>カラム</th><th>型</th><th>説明</th></tr>
+    <tr><td><code>id</code></td><td>UUID PK</td><td>ブロックレコード識別子（auto-generated）</td></tr>
+    <tr><td><code>blocker_id</code></td><td>UUID, FK → users(id) ON DELETE CASCADE</td><td>ブロックした側の内部ユーザーID</td></tr>
+    <tr><td><code>blocked_id</code></td><td>UUID, FK → users(id) ON DELETE CASCADE</td><td>ブロックされた側の内部ユーザーID</td></tr>
+    <tr><td><code>created_at</code></td><td>TIMESTAMPTZ</td><td>ブロック日時</td></tr>
+  </table>
+
+  <div class="callout warn">
+    <strong>blocker_id / blocked_id は内部 users.id</strong>（auth_id ではない）。アカウント削除時は users への <code>ON DELETE CASCADE</code> で blocks レコードも自動削除される。
+  </div>
+
+  <h3>制約</h3>
+  <table>
+    <tr><th>制約</th><th>内容</th></tr>
+    <tr><td>UNIQUE</td><td><code>(blocker_id, blocked_id)</code> — 同一ペアの二重ブロック防止</td></tr>
+    <tr><td>CHECK</td><td><code>blocker_id &lt;&gt; blocked_id</code> — 自己ブロック防止</td></tr>
+  </table>
+
+  <h3>RLS ポリシー</h3>
+  <table>
+    <tr><th>ポリシー名</th><th>操作</th><th>条件</th></tr>
+    <tr><td><code>blocks_select</code></td><td>SELECT</td><td><code>blocker_id = auth.uid() OR blocked_id = auth.uid()</code>（当事者のみ可視）</td></tr>
+    <tr><td><code>blocks_insert</code></td><td>INSERT</td><td><code>blocker_id = auth.uid()</code>（自分がブロックする場合のみ）</td></tr>
+    <tr><td><code>blocks_delete</code></td><td>DELETE</td><td><code>blocker_id = auth.uid()</code>（自分のブロックのみ解除可）</td></tr>
+  </table>
+
   <h2>アカウント削除フロー</h2>
 
   <div class="callout">
@@ -280,6 +322,8 @@ struct Quiz: Codable, Identifiable {
     <li><code>RankingStadium/Models/Feedback.swift</code></li>
     <li><code>RankingStadium/Models/TagDefinition.swift</code></li>
     <li><code>RankingStadium/Services/SupabaseService.swift</code></li>
+    <li><code>RankingStadium/Services/BlockService.swift</code></li>
+    <li><code>supabase/migrations/027_blocks.sql</code></li>
   </ul>
 
   <h2>変更履歴</h2>
@@ -288,6 +332,7 @@ struct Quiz: Codable, Identifiable {
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
     <tr><td>1.1</td><td>2026-05-30</td><td>TF 1.0(18) 反映: users.last_login_date を DATE 型・"yyyy-MM-dd" 文字列送信仕様として明文化（UTCずれによる前日保存バグ修正）</td></tr>
     <tr><td>1.2</td><td>2026-06-04</td><td>アカウント削除フロー（<code>delete_account</code> RPC, マイグレーション026）を追記。App Store ガイドライン 5.1.1(v) 対応。</td></tr>
+    <tr><td>1.3</td><td>2026-06-05</td><td>blocks テーブル定義を追記（マイグレーション027）。App Store ガイドライン 1.2 / 5.1.1 対応。ER図に Block エンティティ追加。</td></tr>
   </table>
 
   <script>
@@ -297,7 +342,7 @@ struct Quiz: Codable, Identifiable {
     });
   </script>
 
-  <footer class="site-footer">最終更新: 2026-06-04</footer>
+  <footer class="site-footer">最終更新: 2026-06-05</footer>
 </div>
 </body>
 </html>

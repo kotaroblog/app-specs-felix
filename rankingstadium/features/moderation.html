@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - モデレーション機能（ブロック・通報）</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / モデレーション機能</div>
+
+  <header class="site-header">
+    <h1>モデレーション機能（ブロック・通報）</h1>
+    <p>App Store ガイドライン 1.2 / 5.1.1 対応 — ユーザーが有害コンテンツ・投稿者を自衛できる仕組み</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">機能ID: RS-FEAT-MOD</span>
+    </div>
+  </header>
+
+  <h2>概要</h2>
+  <p>
+    App Store Guideline <strong>1.2</strong>（UGCアプリはモデレーション手段を提供する義務）および
+    <strong>5.1.1</strong>（プライバシー保護）への対応として、以下の2機能を実装した。
+  </p>
+  <ul>
+    <li><strong>ブロック機能</strong> — 特定ユーザーをブロックし、フィード全体からその投稿を除外する</li>
+    <li><strong>通報機能</strong> — ランキングやユーザーを8種類の理由で通報し、運営が確認できる仕組みを提供する</li>
+  </ul>
+
+  <h2>関連画面</h2>
+  <ul>
+    <li><a href="../screens/profile.html">ユーザープロフィール</a>（ブロック導線: ヘッダーメニュー）</li>
+    <li><a href="../screens/ranking-detail.html">ランキング詳細</a>（ブロック・通報導線: ツールバー「…」メニュー）</li>
+    <li><a href="../screens/home.html">ホーム</a>（ブロックユーザーの投稿除外が適用される）</li>
+    <li><a href="../screens/search.html">検索</a>（ブロックユーザーの投稿除外が適用される）</li>
+    <li><a href="../screens/mypage.html">マイページ</a>（フォロー中フィードへのブロック除外適用）</li>
+  </ul>
+
+  <!-- ================== ブロック機能 ================== -->
+  <h2>1. ブロック機能</h2>
+
+  <h3>BlockService API</h3>
+  <table>
+    <tr><th>メソッド</th><th>説明</th></tr>
+    <tr><td><code>block(targetUserId: UUID)</code></td><td>ブロック実行。blocks テーブルに INSERT。同時にフォロー関係を双方向で解除する。</td></tr>
+    <tr><td><code>unblock(targetUserId: UUID)</code></td><td>ブロック解除。blocks テーブルから DELETE。</td></tr>
+    <tr><td><code>isBlocked(targetUserId: UUID) async -> Bool</code></td><td>対象ユーザーをブロック中か判定。</td></tr>
+    <tr><td><code>fetchBlockedUserIds() async throws -> [UUID]</code></td><td>自分がブロックしたユーザーIDの一覧を取得。RetryHelper で保護。</td></tr>
+  </table>
+
+  <h3>フィード除外の仕組み</h3>
+  <div class="callout">
+    <code>BlockService.fetchBlockedUserIds()</code> で取得したID群を PostgREST の否定IN（<code>creator_id=not.in.(id1,id2,...)</code>）でクエリに挿入する <strong>excludingBlockedCreators</strong> ヘルパーを介して、以下の全フィードに適用する。
+  </div>
+  <table>
+    <tr><th>フィード</th><th>適用箇所</th></tr>
+    <tr><td>ホーム — 新着 / 人気 / 終了間近 / 終了後</td><td>全タブ共通で <code>excludingBlockedCreators</code> を挿入</td></tr>
+    <tr><td>検索 — 投票中 / 終了後</td><td>検索クエリ構築時に挿入</td></tr>
+    <tr><td>マイページ — フォロー中</td><td>フォロー取得後のフィルタで挿入</td></tr>
+  </table>
+
+  <h3>ブロック処理フロー</h3>
+  <div class="mermaid">
+sequenceDiagram
+  participant U as User
+  participant V as ProfileView / RankingDetailView
+  participant VM as ViewModel
+  participant BS as BlockService
+  participant FS as FollowService
+  participant DB as Supabase
+
+  U->>V: 「…」メニュー → 「このユーザーをブロック」
+  V->>VM: block(targetUserId)
+  VM->>BS: block(targetUserId)
+  BS->>DB: INSERT blocks (blocker_id, blocked_id)
+  BS->>FS: unfollow(targetUserId) / removeFollower(targetUserId)
+  FS->>DB: DELETE follows (双方向)
+  DB-->>BS: 成功
+  BS-->>VM: 完了
+  VM-->>V: UI更新（ブロック済み表示）
+  V-->>U: 確認トースト表示
+  </div>
+
+  <h3>ブロック導線</h3>
+  <table>
+    <tr><th>画面</th><th>導線</th><th>補足</th></tr>
+    <tr><td>ProfileView</td><td>ヘッダー右の「…」ボタン → 「ブロック」</td><td>自分のプロフィールでは表示しない</td></tr>
+    <tr><td>RankingDetailView</td><td>ツールバー「…」メニュー → 「この投稿者をブロック」</td><td>匿名ランキングでも creator_id は内部的に存在するため到達可能</td></tr>
+  </table>
+
+  <h3>ビジネスルール（ブロック）</h3>
+  <ul>
+    <li>自分自身のブロック不可（DB CHECK 制約 + UI 側でも防止）</li>
+    <li>ブロック時はフォロー関係（自分→相手 / 相手→自分 の両方）を自動解除</li>
+    <li>ブロックIDの取得は <code>RetryHelper</code> で最大3回リトライ保護</li>
+    <li>ブロック後も相手のランキングURLを直接開いた場合は表示する（フィードから除外するが閲覧まで制限しない）</li>
+    <li>ブロックされた側には通知を送らない</li>
+  </ul>
+
+  <!-- ================== 通報機能 ================== -->
+  <h2>2. 通報機能</h2>
+
+  <h3>ReportReason 一覧</h3>
+  <table>
+    <tr><th>enum ケース</th><th>表示ラベル</th></tr>
+    <tr><td><code>discrimination</code></td><td>差別・ヘイトスピーチ</td></tr>
+    <tr><td><code>violence</code></td><td>暴力・脅迫</td></tr>
+    <tr><td><code>self_harm</code></td><td>自傷・自殺に関する内容</td></tr>
+    <tr><td><code>sexual</code></td><td>性的なコンテンツ</td></tr>
+    <tr><td><code>illegal</code></td><td>違法行為・詐欺</td></tr>
+    <tr><td><code>personal_info</code></td><td>個人情報の無断掲載</td></tr>
+    <tr><td><code>spam</code></td><td>スパム・繰り返し投稿</td></tr>
+    <tr><td><code>other</code></td><td>その他</td></tr>
+  </table>
+
+  <h3>通報導線</h3>
+  <div class="callout">
+    通報の導線は <strong>RankingDetailView のツールバー「…」メニュー</strong>に集約する。
+    投票前（VoteView / ThreePointVoteView / 結果ロック画面）でも同メニューから通報可能。
+  </div>
+  <table>
+    <tr><th>画面・状態</th><th>通報可否</th></tr>
+    <tr><td>RankingDetailView（投票前）</td><td>可</td></tr>
+    <tr><td>VoteView / ThreePointVoteView</td><td>可（ツールバー経由）</td></tr>
+    <tr><td>結果ロック画面（ResultLockedView）</td><td>可</td></tr>
+    <tr><td>結果画面（ResultView）</td><td>可</td></tr>
+  </table>
+
+  <h3>通報処理フロー</h3>
+  <div class="mermaid">
+sequenceDiagram
+  participant U as User
+  participant V as RankingDetailView
+  participant VM as ReportViewModel
+  participant DB as Supabase reports
+
+  U->>V: 「…」→ 「通報する」
+  V->>U: 通報理由シート表示（8種類）
+  U->>V: 理由を選択
+  V->>VM: submitReport(rankingId, reason)
+  VM->>DB: INSERT reports (reporter_id, ranking_id, reason)
+  DB-->>VM: 成功
+  VM-->>V: 完了
+  V-->>U: 「通報しました」トースト
+  </div>
+
+  <h3>ビジネスルール（通報）</h3>
+  <ul>
+    <li>同一ユーザーが同一ランキングを複数回通報することは可能（理由が異なる場合を考慮し制限しない）</li>
+    <li>通報後の処理（非表示化・削除）は運営が手動で対応する</li>
+    <li>通報者に対して結果フィードバックはしない</li>
+    <li>通報データは <code>reports</code> テーブルに保存し、<code>isResolved</code> フラグで解決済みを管理</li>
+  </ul>
+
+  <!-- ================== 外部連携・エラー ================== -->
+  <h2>外部連携</h2>
+  <table>
+    <tr><th>連携先</th><th>用途</th><th>備考</th></tr>
+    <tr><td>Supabase blocks テーブル</td><td>ブロック関係の保存・参照</td><td>RLS で当事者のみ可視</td></tr>
+    <tr><td>Supabase reports テーブル</td><td>通報データの保存</td><td>既存テーブル</td></tr>
+    <tr><td>FollowService</td><td>ブロック時のフォロー関係解除</td><td>双方向 unfollow</td></tr>
+    <tr><td>RetryHelper</td><td>fetchBlockedUserIds の通信失敗保護</td><td>最大3回リトライ</td></tr>
+  </table>
+
+  <h2>エラー処理</h2>
+  <table>
+    <tr><th>発生条件</th><th>対応</th></tr>
+    <tr><td>blocks テーブルへの INSERT 失敗（通信エラー）</td><td>RetryHelper でリトライ。失敗時はエラーアラート表示</td></tr>
+    <tr><td>UNIQUE 制約違反（すでにブロック済み）</td><td>「すでにブロックしています」メッセージ表示（UI側では通常起きない）</td></tr>
+    <tr><td>CHECK 制約違反（自己ブロック）</td><td>UI 側で防止しているため通常到達しない</td></tr>
+    <tr><td>fetchBlockedUserIds 失敗</td><td>空リストにフォールバック（フィード除外が動かなくなるため、次回起動時に再試行）</td></tr>
+    <tr><td>通報 INSERT 失敗</td><td>エラーアラート表示。リトライは手動（再度通報操作）</td></tr>
+  </table>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">BlockService — block / unblock / isBlocked / fetchBlockedUserIds 実装済み</li>
+    <li class="done">excludingBlockedCreators ヘルパー — ホーム全タブ・検索・マイページフォロー中フィードに適用済み</li>
+    <li class="done">ブロック導線 — ProfileView ヘッダー + RankingDetailView ツールバー「…」メニュー</li>
+    <li class="done">匿名ランキングでも creator_id は内部的に保持しており「この投稿者をブロック」に到達可能</li>
+    <li class="done">通報導線 — RankingDetailView ツールバー「…」メニューに集約（投票前/後/ロック画面すべてで通報可）</li>
+    <li class="done">ReportReason 8種実装済み</li>
+    <li>ブロック一覧画面（自分がブロックしたユーザーを確認・解除）は v1.1 以降で検討</li>
+    <li>reports テーブルの運営管理ダッシュボード（Supabase Studio で対応）は別途整備</li>
+  </ul>
+
+  <h2>関連ファイル</h2>
+  <ul>
+    <li><code>RankingStadium/Services/BlockService.swift</code></li>
+    <li><code>RankingStadium/Services/ReportService.swift</code></li>
+    <li><code>RankingStadium/Models/Block.swift</code></li>
+    <li><code>RankingStadium/Models/Report.swift</code></li>
+    <li><code>supabase/migrations/027_blocks.sql</code></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-06-05</td><td>初版作成。ブロック機能・通報機能の仕様を記述。App Store ガイドライン 1.2 / 5.1.1 対応。</td></tr>
+  </table>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default'
+    });
+  </script>
+
+  <footer class="site-footer">最終更新: 2026-06-05</footer>
+</div>
+</body>
+</html>

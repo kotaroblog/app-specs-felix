@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - ATT（App Tracking Transparency）</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / ATT</div>
+
+  <header class="site-header">
+    <h1>ATT（App Tracking Transparency）</h1>
+    <p>iOS 14.5+ 必須のトラッキング許可ダイアログ制御仕様</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">機能ID: RS-FEAT-ATT</span>
+    </div>
+  </header>
+
+  <h2>概要</h2>
+  <p>
+    Apple の App Tracking Transparency（ATT）フレームワークに基づき、AdMob による IDFA（広告識別子）利用前にユーザーの許可を求める。
+    許可状況に応じて GoogleMobileAds v12 がパーソナライズ広告と非パーソナライズ広告を自動で切り替える。
+  </p>
+
+  <h2>関連画面</h2>
+  <ul>
+    <li><a href="../screens/home.html">ホーム</a>（認証後の初回表示時にプロンプト要求）</li>
+    <li><a href="../screens/settings.html">設定</a>（システム設定への誘導リンク）</li>
+  </ul>
+
+  <h2>プロンプト表示タイミング</h2>
+  <div class="callout">
+    <code>ContentView</code> の <code>authenticated</code> 遷移（ホーム表示後）で
+    <code>ATTrackingManager.requestTrackingAuthorization</code> を1回要求する。
+  </div>
+  <table>
+    <tr><th>条件</th><th>動作</th></tr>
+    <tr><td>アプリが <code>active</code> のとき</td><td>プロンプトを表示する</td></tr>
+    <tr><td>アプリが <code>inactive</code> のとき</td><td>プロンプトを表示しない（OSが無視するため）</td></tr>
+    <tr><td><code>scenePhase</code> が <code>.active</code> に復帰したとき</td><td>未許諾（<code>.notDetermined</code>）であれば再試行して取り逃しを防ぐ</td></tr>
+    <tr><td>すでに許可 / 拒否済み</td><td>再プロンプトは表示しない（OS 制御）</td></tr>
+  </table>
+
+  <h2>処理フロー</h2>
+  <div class="mermaid">
+sequenceDiagram
+  participant App as ContentView
+  participant ATT as ATTrackingManager
+  participant GAD as GoogleMobileAds
+
+  App->>App: authenticated 遷移 (ホーム表示)
+  App->>App: scenePhase == .active を確認
+  App->>ATT: requestTrackingAuthorization()
+  ATT-->>App: status (.authorized / .denied / .restricted / .notDetermined)
+
+  alt status == .authorized
+    App->>GAD: IDFA 利用 (パーソナライズ広告)
+  else status != .authorized
+    App->>GAD: IDFA 非利用 (非パーソナライズ広告)
+  end
+
+  Note over App: scenePhase 復帰時に .notDetermined なら再試行
+  </div>
+
+  <h2>NSUserTrackingUsageDescription</h2>
+  <div class="callout">
+    <code>Info.plist</code> に設定するユーザー向け説明文（App Store 審査で具体性を求められる）:
+  </div>
+  <blockquote>
+    あなたの興味・関心に合った広告を表示するため、広告識別子（IDFA）の利用許可をお願いしています。許可しない場合も、アプリの全機能をご利用いただけます。
+  </blockquote>
+
+  <h2>GoogleMobileAds v12 との連携</h2>
+  <table>
+    <tr><th>ATT ステータス</th><th>AdMob の動作</th></tr>
+    <tr><td><code>.authorized</code></td><td>IDFA を利用したパーソナライズ広告を配信</td></tr>
+    <tr><td><code>.denied</code> / <code>.restricted</code></td><td>IDFA を利用しない非パーソナライズ広告を配信</td></tr>
+    <tr><td><code>.notDetermined</code></td><td>非パーソナライズ広告（プロンプト未回答の間）</td></tr>
+  </table>
+  <div class="callout">
+    GoogleMobileAds v12 は ATT の許可状況を自動で検出し、IDFA 利用 / 非パーソナライズを切り替える。
+    アプリ側でフラグを手動設定する必要はない。
+  </div>
+
+  <h2>ビジネスルール</h2>
+  <ul>
+    <li>ATT プロンプトはアプリ起動中に1度のみ表示（iOS OS 制御）</li>
+    <li>許可・拒否にかかわらず、アプリの全機能を利用可能とする</li>
+    <li>設定アプリから後から変更可能であることを設定画面で案内する</li>
+    <li>プロンプトは <code>active</code> 状態のときのみ要求し、<code>inactive</code> 時は要求しない</li>
+  </ul>
+
+  <h2>外部連携</h2>
+  <table>
+    <tr><th>連携先</th><th>用途</th><th>備考</th></tr>
+    <tr><td>AppTrackingTransparency フレームワーク</td><td>ATT ダイアログの制御</td><td>iOS 14.5+ 必須</td></tr>
+    <tr><td>GoogleMobileAds v12</td><td>ATT 許可状況に応じた広告配信切替</td><td>自動切替（手動設定不要）</td></tr>
+  </table>
+
+  <h2>エラー処理</h2>
+  <table>
+    <tr><th>発生条件</th><th>対応</th></tr>
+    <tr><td><code>requestTrackingAuthorization</code> が <code>inactive</code> 状態で呼ばれた</td><td><code>scenePhase == .active</code> のガードで防止</td></tr>
+    <tr><td>プロンプト表示後も <code>.notDetermined</code> のまま</td><td><code>scenePhase</code> 復帰時に再試行</td></tr>
+  </table>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">ContentView の authenticated 分岐後に ATT 要求処理を実装</li>
+    <li class="done">scenePhase 監視で復帰時の再試行を実装</li>
+    <li class="done">NSUserTrackingUsageDescription を具体的な文言で Info.plist に設定</li>
+    <li class="done">GoogleMobileAds v12 の自動切替を確認済み</li>
+  </ul>
+
+  <h2>関連ファイル</h2>
+  <ul>
+    <li><code>RankingStadium/App/ContentView.swift</code>（ATT 要求処理）</li>
+    <li><code>RankingStadium/Resources/Info.plist</code>（NSUserTrackingUsageDescription）</li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-06-05</td><td>初版作成。ATT プロンプト制御・GoogleMobileAds v12 連携の仕様を記述。</td></tr>
+  </table>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default'
+    });
+  </script>
+
+  <footer class="site-footer">最終更新: 2026-06-05</footer>
+</div>
+</body>
+</html>
