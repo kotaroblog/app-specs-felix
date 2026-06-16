@@ -41,6 +41,7 @@ erDiagram
     UUID id
     String displayName
     Bool isPremium
+    Bool isComp
     Int points
     Int loginStreak
     Int freeCreationRemaining
@@ -104,11 +105,54 @@ erDiagram
     let id: UUID
     var displayName: String
     var isPremium: Bool
+    var isComp: Bool              // 招待プレミアム枠フラグ（CodingKey: is_comp）
     var points: Int
     var loginStreak: Int
     var freeCreationRemaining: Int
     // ... 他プロフィール項目
+
+    // StoreKit課金または招待枠のどちらかでプレミアム機能を解放する集約プロパティ
+    var hasPremiumAccess: Bool { isPremium || isComp }
+
+    enum CodingKeys: String, CodingKey {
+        case id, displayName = "display_name", isPremium = "is_premium"
+        case isComp = "is_comp", points, loginStreak = "login_streak"
+        case freeCreationRemaining = "free_creation_remaining"
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        displayName = try c.decode(String.self, forKey: .displayName)
+        isPremium = try c.decodeIfPresent(Bool.self, forKey: .isPremium) ?? false
+        isComp = try c.decodeIfPresent(Bool.self, forKey: .isComp) ?? false  // 旧クライアント互換
+        points = try c.decode(Int.self, forKey: .points)
+        loginStreak = try c.decodeIfPresent(Int.self, forKey: .loginStreak) ?? 0
+        freeCreationRemaining = try c.decodeIfPresent(Int.self, forKey: .freeCreationRemaining) ?? 0
+    }
 }</code></pre>
+
+  <h3>users テーブル — is_comp カラム</h3>
+
+  <div class="callout">
+    マイグレーション: <code>supabase/migrations/028_add_is_comp.sql</code>
+  </div>
+
+  <table>
+    <tr><th>カラム</th><th>型</th><th>説明</th></tr>
+    <tr>
+      <td><code>is_comp</code></td>
+      <td><code>BOOLEAN NOT NULL DEFAULT FALSE</code></td>
+      <td>招待プレミアム枠フラグ。運営が Supabase SQL Editor（service_role）から手動付与・取り消しを行う。StoreKit 課金とは別系統で、<code>syncPremiumStatusToSupabase()</code> による起動時同期では上書きされない（恒久付与）。アプリ側は読み取り専用。</td>
+    </tr>
+  </table>
+
+  <h4>列レベルセキュリティ</h4>
+  <p><code>028_add_is_comp.sql</code> にて <code>authenticated</code> / <code>anon</code> ロールの <code>is_comp</code> への UPDATE 権限を剥奪する。他カラムへの UPDATE 権限は維持（REVOKE 全体 → <code>is_comp</code> を除く全列を GRANT）。</p>
+
+  <div class="callout warn">
+    <strong>アプリ側は is_comp を書き込まない</strong>: <code>syncPremiumStatusToSupabase()</code> の UPDATE 対象カラムから <code>is_comp</code> を意図的に除外していること。誤って含めると RLS により 403 エラーとなる。
+  </div>
 
   <h3>Ranking</h3>
   <pre><code>struct Ranking: Codable, Identifiable {
@@ -324,6 +368,7 @@ struct Quiz: Codable, Identifiable {
     <li><code>RankingStadium/Services/SupabaseService.swift</code></li>
     <li><code>RankingStadium/Services/BlockService.swift</code></li>
     <li><code>supabase/migrations/027_blocks.sql</code></li>
+    <li><code>supabase/migrations/028_add_is_comp.sql</code></li>
   </ul>
 
   <h2>変更履歴</h2>
@@ -333,6 +378,7 @@ struct Quiz: Codable, Identifiable {
     <tr><td>1.1</td><td>2026-05-30</td><td>TF 1.0(18) 反映: users.last_login_date を DATE 型・"yyyy-MM-dd" 文字列送信仕様として明文化（UTCずれによる前日保存バグ修正）</td></tr>
     <tr><td>1.2</td><td>2026-06-04</td><td>アカウント削除フロー（<code>delete_account</code> RPC, マイグレーション026）を追記。App Store ガイドライン 5.1.1(v) 対応。</td></tr>
     <tr><td>1.3</td><td>2026-06-05</td><td>blocks テーブル定義を追記（マイグレーション027）。App Store ガイドライン 1.2 / 5.1.1 対応。ER図に Block エンティティ追加。</td></tr>
+    <tr><td>1.4</td><td>2026-06-14</td><td>招待プレミアム枠（is_comp）追加。users テーブルへのカラム定義・列レベルRLS・AppUser Swift モデル（isComp / hasPremiumAccess）・マイグレーション028 を追記。</td></tr>
   </table>
 
   <script>
@@ -342,7 +388,7 @@ struct Quiz: Codable, Identifiable {
     });
   </script>
 
-  <footer class="site-footer">最終更新: 2026-06-05</footer>
+  <footer class="site-footer">最終更新: 2026-06-14</footer>
 </div>
 </body>
 </html>
