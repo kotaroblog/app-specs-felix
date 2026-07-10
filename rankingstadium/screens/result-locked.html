@@ -15,7 +15,7 @@
     <h1>結果ロック画面</h1>
     <p>期間終了後・未投票・閲覧不可ユーザー向けの遮断画面</p>
     <div class="section-meta">
-      <span class="tag done">v1.0</span>
+      <span class="tag done">v1.2</span>
       <span class="tag">画面ID: RS-VOTE-05</span>
     </div>
   </header>
@@ -31,6 +31,7 @@
     <tr><td>説明テキスト</td><td>Text</td><td>「投票期間が終了しました。閲覧にはポイントが必要です」</td></tr>
     <tr><td>閲覧解放ボタン（ポイント）</td><td>Button</td><td>「Npt消費して結果を見る」（PointAction.viewResult）</td></tr>
     <tr><td>閲覧解放ボタン（広告）</td><td>Button</td><td>「動画広告を視聴して結果を見る」。<code>RewardedAdManager.shared.show(onReward:)</code> による GADRewardedAd 視聴完了コールバック内で <code>unlocked_rankings</code> に INSERT。1日 N 回まで（<code>adUnlockRemainingCount</code>）</td></tr>
+    <tr><td>内訳トースト</td><td>Toast（上部）</td><td>広告視聴によるアンロック直後に約2.2秒間フェード表示。文言：「広告視聴 +3pt → 結果を解放 −1pt」（アイコン＋テキスト）。広告報酬が実際に付与された場合のみ表示。日次上限到達時・ポイント直接消費時は非表示</td></tr>
     <tr><td>戻るボタン</td><td>Toolbar</td><td>RankingDetailView または前画面へ</td></tr>
   </table>
 
@@ -40,7 +41,9 @@
     <tr><td>初期表示</td><td>ロック画面 + 解放ボタン</td></tr>
     <tr><td>解放処理中</td><td>ProgressView</td></tr>
     <tr><td>ポイント不足</td><td>「ポイントが足りません」</td></tr>
-    <tr><td>解放成功</td><td>ResultView へ遷移</td></tr>
+    <tr><td>解放成功（広告）</td><td>ResultView へ遷移 + 内訳トーストを約2.2秒間表示</td></tr>
+    <tr><td>解放成功（ポイント直接消費）</td><td>ResultView へ遷移（トーストなし）</td></tr>
+    <tr><td>広告日次上限到達</td><td>「今日の上限に達しました」エラー表示（トーストなし）</td></tr>
   </table>
 
   <h2>遷移</h2>
@@ -60,7 +63,9 @@ PointAction.viewConditional  // 3pt</code></pre>
     <li class="done">RankingAccessPolicy で閲覧不可と判定された場合のみ表示</li>
     <li class="done">解放後の状態は accessPolicy に反映され、再表示時にスキップ</li>
     <li class="done">広告視聴アンロック: <code>RewardedAdManager.shared.show(onReward:)</code> で GADRewardedAd を表示し、視聴完了コールバック内で <code>performUnlock(userId:rankingId:)</code> を呼ぶ。広告未表示時は「広告の準備中です」エラー表示</li>
-    <li>広告アンロックの 1 日上限管理（adUnlockRemainingCount）</li>
+    <li class="done">広告アンロックの 1 日上限管理（adUnlockRemainingCount）</li>
+    <li class="done">広告視聴アンロック直後に内訳トーストを上部フェード表示（約2.2秒）。+3pt 付与 → −1pt 消費の2段階増減を可視化。ワンタップの操作フロー（広告視聴→+3pt付与→−1pt消費→アンロックを一括実行）は変更なし</li>
+    <li class="done">トースト表示条件: 広告報酬が実際に付与された場合のみ。日次上限到達時・ポイント直接消費時は非表示</li>
   </ul>
 
   <h2>関連</h2>
@@ -75,9 +80,10 @@ PointAction.viewConditional  // 3pt</code></pre>
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
     <tr><td>1.1</td><td>2026-06-02</td><td>TF 1.0(21) 反映: 広告視聴アンロックを GADRewardedAd 連動の正規実装に変更。旧仕様の「広告視聴シミュレートで即時アンロック」（loophole）を削除し、<code>RewardedAdManager.shared.show(onReward:)</code> による視聴完了コールバックでのみ <code>unlocked_rankings</code> INSERT が走る構造に</td></tr>
+    <tr><td>1.2</td><td>2026-07-10</td><td>commit bc9defd 反映: 広告視聴アンロック直後に内訳トーストを上部フェード表示（約2.2秒）を追加。文言「広告視聴 +3pt → 結果を解放 −1pt」。表示条件は広告報酬付与時のみ（日次上限到達時・ポイント直接消費時は非表示）。ワンタップ操作フローは変更なし</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-06-02</footer>
+  <footer class="site-footer">最終更新: 2026-07-10</footer>
 </div>
 </body>
 </html>
