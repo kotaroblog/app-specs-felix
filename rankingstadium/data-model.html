@@ -193,8 +193,8 @@ struct Vote: Codable, Identifiable {
     let choiceId: UUID
     let points: Int             // 投票時の消費ポイント
     let voteNumber: Int         // 1=初投票, 2=revote1, 3=revote2
-    let ipHash: String?
-    let deviceHash: String?
+    let ipHash: String?        // 端末識別・不正検知用（詳細は非公開）
+    let deviceHash: String?    // 端末識別・不正検知用（詳細は非公開）
 }
 
 struct Quiz: Codable, Identifiable {
@@ -205,6 +205,26 @@ struct Quiz: Codable, Identifiable {
     let answerHint: String?
     let displayOrder: Int
 }</code></pre>
+
+  <h3>votes テーブル — 端末識別カラム</h3>
+
+  <table>
+    <tr><th>カラム</th><th>型</th><th>説明</th></tr>
+    <tr>
+      <td><code>ip_hash</code></td>
+      <td><code>TEXT</code></td>
+      <td>端末識別・不正検知用（詳細は非公開）。ゲストアカウントを使い捨てた重複投票を抑止するために記録する。</td>
+    </tr>
+    <tr>
+      <td><code>device_hash</code></td>
+      <td><code>TEXT</code></td>
+      <td>端末識別・不正検知用（詳細は非公開）。ゲストアカウントを使い捨てた重複投票を抑止するために記録する。</td>
+    </tr>
+  </table>
+
+  <div class="callout warn">
+    <strong>ip_hash / device_hash は投票の完全性を守るための内部情報</strong>: ユーザーに表示・公開されることはなく、不正検知の用途に限り参照される。生成方法・保存形式の詳細は非公開とする。
+  </div>
 
   <h3>その他のモデル</h3>
   <ul>
@@ -379,6 +399,7 @@ struct Quiz: Codable, Identifiable {
     <tr><td>1.2</td><td>2026-06-04</td><td>アカウント削除フロー（<code>delete_account</code> RPC, マイグレーション026）を追記。App Store ガイドライン 5.1.1(v) 対応。</td></tr>
     <tr><td>1.3</td><td>2026-06-05</td><td>blocks テーブル定義を追記（マイグレーション027）。App Store ガイドライン 1.2 / 5.1.1 対応。ER図に Block エンティティ追加。</td></tr>
     <tr><td>1.4</td><td>2026-06-14</td><td>招待プレミアム枠（is_comp）追加。users テーブルへのカラム定義・列レベルRLS・AppUser Swift モデル（isComp / hasPremiumAccess）・マイグレーション028 を追記。</td></tr>
+    <tr><td>1.5</td><td>2026-07-15</td><td>votes テーブルの端末識別カラム（ip_hash / device_hash）の用途をゲスト重複投票対策として明文化。</td></tr>
   </table>
 
   <script>
@@ -388,7 +409,7 @@ struct Quiz: Codable, Identifiable {
     });
   </script>
 
-  <footer class="site-footer">最終更新: 2026-06-14</footer>
+  <footer class="site-footer">最終更新: 2026-07-15</footer>
 </div>
 </body>
 </html>

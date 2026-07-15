@@ -74,6 +74,9 @@ sequenceDiagram
   <h2>ビジネスルール</h2>
   <ul>
     <li>投票は1ユーザー1ランキング1回が原則（Unique制約: rankingId+userId）</li>
+    <li>ユーザーID単位に加え、<strong>端末単位でも重複投票を防止する</strong>仕組みを備えている（ゲストアカウントを使い捨てて連続投票する手口への対策）</li>
+    <li>不正な投票パターンを検知するための付随的な記録を保持する</li>
+    <li>ゲストアカウントの新規作成には頻度の上限を設けており、短時間での大量作成を抑制する</li>
     <li>再投票は最大3回（voteNumber: 1, 2, 3）まで、ポイント消費で許可</li>
     <li>クイズ付きランキングは全問正解後のみ投票可能</li>
     <li>期間外の投票は受け付けない（accessPolicy で判定）</li>
@@ -111,6 +114,7 @@ sequenceDiagram
     <li class="done">VoteService.castVote() の4ステップ非アトミック実装</li>
     <li class="done">isUniqueViolation() で既投票検出（PostgreSQL 23505 SQLState）</li>
     <li class="done">RankingDetailViewModel.nextVoteNumber で再投票回数管理</li>
+    <li class="done">端末単位の重複投票防止（ゲストアカウント使い捨て対策）</li>
     <li>Supabase Edge Function 化（v1.1検討）でアトミック化</li>
   </ul>
 
@@ -118,6 +122,7 @@ sequenceDiagram
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-07-15</td><td>ゲストの重複投票対策を追加（端末単位の重複防止・不正検知記録・ゲストアカウント作成頻度制限）</td></tr>
   </table>
 
   <script>
@@ -127,7 +132,7 @@ sequenceDiagram
     });
   </script>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-07-15</footer>
 </div>
 </body>
 </html>
