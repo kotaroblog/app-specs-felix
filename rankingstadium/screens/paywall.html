@@ -15,7 +15,7 @@
     <h1>Paywall画面</h1>
     <p>プレミアムサブスクリプションの購入画面</p>
     <div class="section-meta">
-      <span class="tag done">v1.0</span>
+      <span class="tag done">v1.1</span>
       <span class="tag">画面ID: RS-PAY-01〜05</span>
     </div>
   </header>
@@ -28,11 +28,26 @@
   <table>
     <tr><th>サブView</th><th>役割</th></tr>
     <tr><td>PaywallHeaderView</td><td>キャッチコピー・アイキャッチ画像</td></tr>
-    <tr><td>PaywallBenefitsView</td><td>特典リスト（広告非表示・ポイント増量・無料作成枠拡大 等）</td></tr>
+    <tr><td>PaywallBenefitsView</td><td>特典リスト（下記「特典一覧」参照）</td></tr>
     <tr><td>PaywallPlanSelectionView</td><td>月額/年額のプラン選択（ボタンスタイル）</td></tr>
     <tr><td>PaywallPurchaseButton</td><td>購入実行ボタン（StoreKit起動）</td></tr>
     <tr><td>PaywallFooterView</td><td>利用規約・プライバシーポリシー・「購入を復元」リンク</td></tr>
   </table>
+
+  <h2>特典一覧（PaywallBenefitsView）</h2>
+  <table>
+    <tr><th>特典</th><th>状態</th></tr>
+    <tr><td>ランキング作成無制限</td><td>掲載</td></tr>
+    <tr><td>TOP3投票モード</td><td>掲載</td></tr>
+    <tr><td>長期間ランキング</td><td>掲載</td></tr>
+    <tr><td>選択肢30個まで</td><td>掲載</td></tr>
+    <tr><td>結果閲覧無料</td><td>掲載</td></tr>
+    <tr><td><s>広告非表示</s></td><td><strong>削除（2026-08-04）</strong></td></tr>
+  </table>
+  <div class="callout">
+    広告が配信されない状態で「広告非表示」を特典として掲げるのは実態と合わないため、特典一覧から削除した。
+    広告を再開する際に元へ戻せるよう、コード上にコメントを残している。詳細は <a href="../features/ad-control.html">広告制御</a> を参照。
+  </div>
 
   <h2>提供商品</h2>
   <table>
@@ -82,6 +97,7 @@
   <h2>関連</h2>
   <ul>
     <li><a href="../features/subscription.html">サブスク機能仕様書</a></li>
+    <li><a href="../features/ad-control.html">広告制御仕様書</a></li>
     <li><a href="settings.html">設定画面</a></li>
   </ul>
 
@@ -89,9 +105,10 @@
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-08-04</td><td>広告基盤の AppLovin MAX 移行を反映。特典一覧セクションを新設し、<strong>「広告非表示」を特典から削除</strong>（広告が配信されない状態で訴求できないため）。ランキング作成無制限・TOP3投票モード・長期間ランキング・選択肢30個まで・結果閲覧無料は維持。</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-08-04</footer>
 </div>
 </body>
 </html>

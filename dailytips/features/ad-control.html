@@ -13,16 +13,57 @@
 
   <header class="site-header">
     <h1>広告制御機能</h1>
-    <p>AdMob 4種広告（Banner / Interstitial / Rewarded / AppOpen）の表示制御</p>
+    <p>AppLovin MAX 4種広告（Banner / Interstitial / Rewarded / AppOpen）の表示制御</p>
     <div class="section-meta">
-      <span class="tag done">v1.1</span>
+      <span class="tag done">v2.0</span>
       <span class="tag">機能ID: DT-FEAT-AD</span>
     </div>
   </header>
 
+  <div class="callout">
+    <p style="margin-top:0"><strong>2026-08-04 広告基盤を AdMob から AppLovin MAX へ全面移行</strong></p>
+    <p>AdMob アカウントが「無効なトラフィック」により恒久的に無効化され、再審査請求も却下された。
+    新規アカウント作成も含めて AdSense / AdMob は今後一切利用できないため、AppLovin MAX へ移行した。</p>
+    <p style="margin-bottom:0">AppLovin の publisher アカウントは審査中のため、<strong>SDK Key と広告ユニットIDは未設定</strong>。
+    現時点で広告は一切配信されていない（後述の安全機構により、未設定の間は自動的に無効）。</p>
+  </div>
+
   <h2>概要</h2>
-  <p>本アプリは <strong>4種類のAdMob広告</strong> を統合し、画面・タイミング別に最適な広告を出す。
+  <p>本アプリは <strong>4種類の AppLovin MAX 広告</strong> を統合し、画面・タイミング別に最適な広告を出す。
   プレミアム会員は全広告非表示。動画報酬やカレンダー解放で能動的な広告視聴も可能。</p>
+
+  <h2>広告を出してよい環境の判定（再発防止の中枢）</h2>
+  <div class="callout">
+    <p style="margin-top:0">AdMob 停止の原因は、<strong>開発中・TestFlight 検証中に本番の広告IDでインプレッションが発生していたこと</strong>だった。
+    ネットワークを変えても同じ規約（自己クリック・他者への視聴依頼の禁止）が適用されるため、同じ事故を構造的に防ぐ。</p>
+    <p style="margin-bottom:0"><code>AdEnvironment.isAdDeliveryAvailable</code> = 「SDK Key が設定済み」かつ「App Store 配信版である」</p>
+  </div>
+  <table>
+    <tr><th>環境</th><th>広告のロード・表示</th></tr>
+    <tr><td>DEBUG ビルド</td><td>一切リクエストしない</td></tr>
+    <tr><td>シミュレーター</td><td>一切リクエストしない</td></tr>
+    <tr><td>TestFlight</td><td>一切リクエストしない</td></tr>
+    <tr><td>App Store 配信版（SDK Key 設定済み）</td><td>配信する</td></tr>
+  </table>
+  <ul>
+    <li>判定は <strong>App Store レシートの種別</strong>（<code>sandboxReceipt</code> かどうか）で行う。ビルド構成の設定ミスでは破れない</li>
+    <li>AppLovin にはテスト広告IDの概念がないため、<strong>開発中は広告を出さない</strong>方式を採用した</li>
+    <li>SDK 初期化自体も配信可能な環境でのみ実行する（起動コストと不要な通信を避ける）</li>
+    <li>ATT（トラッキング許可）ダイアログも広告配信時のみ表示する。広告がないのに許可を求める状態を作らない</li>
+  </ul>
+
+  <h2>広告配信が無効な期間の挙動</h2>
+  <table>
+    <tr><th>種類</th><th>挙動</th></tr>
+    <tr><td>Banner</td><td>枠ごと非表示（空白を残さない）</td></tr>
+    <tr><td>Interstitial / AppOpen</td><td>表示しない。広告リクエストも発生しない</td></tr>
+    <tr><td>Rewarded</td><td><strong>広告なしで報酬を即付与</strong>（1日の上限などの制御は維持）</td></tr>
+  </table>
+  <p>該当する導線は「過去の豆知識の日付解放（ホーム・カレンダー・検索の3箇所）」と「ボーナスポイントの受け取り」。
+  文言も広告に言及しない表現（「無料で解放する」「ボーナスを受け取る」）へ変更済み。</p>
+  <p>また、広告が配信されない状態で「広告を完全に非表示」をプレミアム特典として掲げるのは実態と合わないため、
+  プレミアム紹介の特典一覧から該当項目を削除した（過去の豆知識をすべて閲覧・毎月100ptボーナス・ジャンル解放がお得は維持）。
+  広告を再開する際に戻せるよう、コード上にコメントを残している。</p>
 
   <h2>広告の種類と表示タイミング</h2>
   <table>
@@ -33,20 +74,17 @@
     <tr><td>AppOpen</td><td>AppOpenAdManager</td><td>起動時・フォアグラウンド復帰時</td><td>無料のみ</td></tr>
   </table>
 
-  <h2>AdMob ID 構成</h2>
+  <h2>広告ユニットID の構成</h2>
+  <p><code>AdConfig</code> に4種類の広告ユニットIDを集約する。AppLovin ダッシュボードで発行した値を設定し、
+  <strong>未設定（空）の間は広告を一切ロードしない</strong>（差し替え漏れで意図しない挙動にならないための安全弁）。</p>
   <pre><code>enum AdConfig {
-    static let appID = "ca-app-pub-4104853755894501~6924812325"
-
-    #if DEBUG
-    // Google公式テストID
-    static let bannerID       = "ca-app-pub-3940256099942544/2934735716"
-    static let interstitialID = "ca-app-pub-3940256099942544/4411468910"
-    static let rewardedID     = "ca-app-pub-3940256099942544/1712485313"
-    static let appOpenID      = "ca-app-pub-3940256099942544/5575463023"
-    #else
-    // 本番ID（Info.plist管理）
-    #endif
+    // AppLovin ダッシュボードで発行して設定する
+    static let bannerID = ""
+    static let interstitialID = ""
+    static let rewardedID = ""
+    static let appOpenID = ""
 }</code></pre>
+  <p class="note">※ 実際のIDは本仕様書には記載しない（コード上で管理する）。</p>
 
   <h2>関連画面</h2>
   <ul>
@@ -91,13 +129,17 @@
     <li>プレミアム会員は <strong>すべて非表示</strong>（Rewarded のみ報酬目的で利用可）</li>
     <li>広告ロード失敗時は <strong>UXを止めない</strong>（Banner: 高さ0、Interstitial: スキップ）</li>
     <li>AppOpen は起動 UX を阻害しないため、ロード失敗時はサイレント</li>
-    <li>本番リリース前に <strong>本番AdMob ID</strong> へ切替必須</li>
+    <li><strong>AppOpen は表示間隔4時間・1日3回上限</strong>。フォアグラウンド復帰のたびに全画面広告が出ると
+      ユーザー体験を著しく損ない、パブリッシャー ポリシー違反にあたるため必ず絞る。
+      表示できない期間は広告リクエスト自体を行わない</li>
+    <li>Interstitial はクイズ回答3回に1回</li>
+    <li>広告ロード失敗時は指数バックオフ（上限64秒）で再試行する</li>
   </ul>
 
   <h2>外部連携</h2>
   <table>
     <tr><th>連携先</th><th>用途</th></tr>
-    <tr><td>Google AdMob SDK</td><td>4種広告のロード・表示</td></tr>
+    <tr><td>AppLovin MAX SDK（AppLovinSDK 13.6.3 / SPM）</td><td>4種広告のロード・表示。<code>OTHER_LDFLAGS</code> に <code>-ObjC</code> が必須</td></tr>
     <tr><td>App Tracking Transparency (ATT)</td><td>パーソナライズ広告のオプトイン</td></tr>
     <tr><td>Info.plist（NSUserTrackingUsageDescription）</td><td>ATT説明文</td></tr>
     <tr><td>SKAdNetwork</td><td>アトリビューション計測</td></tr>
@@ -129,9 +171,10 @@
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
     <tr><td>1.1</td><td>2026-05-17</td><td>v1.0.5: AppOpen広告の信頼性改善（SDK初期化待ち・ATT後再試行・4時間有効期限）、シート内リワード対応、DEBUGビルドでの起動広告スキップを追加</td></tr>
     <tr><td>1.2</td><td>2026-05-25</td><td>v1.0.7: AppOpen広告の <code>#if DEBUG return</code> バイパスを削除しテスト広告で動作確認可能に。SKAdNetworkItems 71件追加（Release/TestFlight での App Open Ad fill rate 改善）</td></tr>
+    <tr><td>2.0</td><td>2026-08-04</td><td><strong>広告基盤を AdMob から AppLovin MAX へ全面移行</strong>（AdMob アカウントが恒久的に無効化され再審査も却下されたため）。あわせて再発防止の中枢として <code>AdEnvironment.isAdDeliveryAvailable</code> を導入し、<strong>広告のロード・表示を App Store 配信版のみに限定</strong>（DEBUG・シミュレーター・TestFlight では一切リクエストしない）。SDK Key 未設定の間は自動的に無効。広告配信が無効な期間はバナーを枠ごと非表示にし、リワードの報酬は広告なしで即付与する。AppOpen に表示間隔4時間・1日3回の上限を追加。ATT ダイアログも広告配信時のみ表示。プレミアム特典から「広告を完全に非表示」を削除（再開時に戻せるようコードにコメントを残置）。仕様書から広告ユニットIDの実値を削除</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-25</footer>
+  <footer class="site-footer">最終更新: 2026-08-04</footer>
 </div>
 </body>
 </html>

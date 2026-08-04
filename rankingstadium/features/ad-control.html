@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RankingStadium - 広告制御</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix Team App Specs</a> / <a href="../">RankingStadium</a> / 広告制御</div>
+
+  <header class="site-header">
+    <h1>広告制御機能</h1>
+    <p>AppLovin MAX による広告配信と、配信環境を App Store 配信版のみに限定する安全機構</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">機能ID: RS-FEAT-AD</span>
+    </div>
+  </header>
+
+  <h2>概要</h2>
+  <p>
+    本アプリはバナー広告とインタースティシャル広告、リワード広告を用いて無料ユーザー向けにマネタイズする。
+    広告ネットワークは <strong>AppLovin MAX</strong>。プレミアム会員には広告を表示しない。
+  </p>
+  <div class="callout">
+    <strong>2026-07-30、AdMob アカウントが「無効なトラフィック」により恒久的に無効化された。</strong>
+    再審査請求も却下され、新規アカウントの作成を含めて AdSense / AdMob は今後一切利用できない。
+    このため広告基盤を <strong>AppLovin MAX へ全面移行</strong>した（2026-07-30 〜 2026-08-04）。
+  </div>
+
+  <h2>関連画面</h2>
+  <ul>
+    <li><a href="../screens/home.html">ホーム</a>（バナー・起動時インタースティシャル）</li>
+    <li><a href="../screens/result-locked.html">結果ロック画面</a>（結果アンロックの報酬導線）</li>
+    <li><a href="../screens/mypage.html">マイページ</a>（ボーナスポイント受け取り導線）</li>
+    <li><a href="../screens/paywall.html">Paywall</a>（プレミアム特典の訴求）</li>
+  </ul>
+
+  <h2>再発防止の設計（最重要）</h2>
+  <p>
+    AdMob 停止の原因は、開発中および TestFlight 検証中に本番の広告枠でインプレッションが発生していたことにある。
+    ネットワークを変えても自己インプレッションの禁止という規約は同じであるため、
+    <strong>広告のロード・表示を行うのは App Store 配信版のみ</strong>とする構造をアプリ側に組み込んでいる。
+  </p>
+
+  <table>
+    <tr><th>項目</th><th>内容</th></tr>
+    <tr><td>判定の中枢</td><td><code>AdEnvironment.isAdDeliveryAvailable</code> = 「SDK Key が設定済み」かつ「App Store 配信版である」</td></tr>
+    <tr><td>配信可能な環境</td><td>App Store 配信版のみ</td></tr>
+    <tr><td>配信しない環境</td><td>DEBUG ビルド / シミュレーター / TestFlight（広告を一切リクエストしない）</td></tr>
+    <tr><td>判定方法</td><td>App Store レシートの種別（<code>sandboxReceipt</code> かどうか）で判定する。ビルド構成の設定ミスでは破れない</td></tr>
+    <tr><td>SDK 初期化</td><td>配信可能な環境でのみ実行する（不要な通信と起動コストを避ける）</td></tr>
+    <tr><td>ATT ダイアログ</td><td>広告配信時のみ表示する（<a href="att.html">ATT 仕様書</a>）</td></tr>
+  </table>
+
+  <div class="callout">
+    AppLovin には AdMob のような「テスト広告ID」の概念がない。
+    そのため開発中は<strong>テスト広告を出すのではなく、広告そのものを出さない</strong>方式を採用した。
+    レイアウト確認は広告枠のプレースホルダで行う。
+  </div>
+
+  <h2>処理フロー</h2>
+  <div class="mermaid">
+sequenceDiagram
+  participant App as RankingStadiumApp
+  participant Env as AdEnvironment
+  participant SDK as AppLovin MAX SDK
+  participant V as View
+
+  App->>Env: isAdDeliveryAvailable
+  alt SDK Key 設定済み かつ App Store 配信版
+    Env-->>App: true
+    App->>SDK: initializeSDK()
+    V->>SDK: 広告ロード要求
+    SDK-->>V: 広告 or 失敗（指数バックオフで再試行）
+  else それ以外（DEBUG / シミュレーター / TestFlight / SDK Key 未設定）
+    Env-->>App: false
+    Note over App,SDK: SDK 初期化も広告リクエストも一切行わない
+    V-->>V: バナーは枠ごと非表示 / 報酬は広告なしで即付与
+  end
+  </div>
+
+  <h2>広告の種類と表示タイミング</h2>
+  <table>
+    <tr><th>種類</th><th>フォーマット</th><th>表示タイミング</th><th>対象</th></tr>
+    <tr><td>バナー</td><td><code>MAAdView</code>（アダプティブバナー）</td><td>MainTabView 共通配置（タブバー直上）</td><td>無料ユーザーのみ</td></tr>
+    <tr><td>インタースティシャル</td><td><code>MAInterstitialAd</code></td><td>起動時・フォアグラウンド復帰時・ログイン完了時</td><td>無料ユーザーのみ</td></tr>
+    <tr><td>リワード</td><td><code>MARewardedAd</code></td><td>結果アンロック・ボーナスポイント受け取り（ユーザーの能動操作）</td><td>全ユーザー（報酬目的）</td></tr>
+  </table>
+
+  <h2>表示頻度の制御（移行後も維持）</h2>
+  <ul>
+    <li>インタースティシャルは<strong>起動時・復帰時に最低10分間隔</strong>をあけて表示する</li>
+    <li><strong>ログイン完了時のみクールダウンを無視</strong>して表示する</li>
+    <li>プレミアム会員にはインタースティシャル・バナーを表示しない</li>
+    <li>リワードによる報酬は<strong>1日5回まで</strong>（結果アンロック・ボーナスポイントそれぞれ）</li>
+  </ul>
+
+  <h2>広告配信が無効な期間の挙動（ユーザーから見た仕様）</h2>
+  <div class="callout">
+    現在 AppLovin の publisher アカウントが審査中のため、<strong>SDK Key と広告ユニットIDは未設定（空）</strong>。
+    そのため現時点では広告は一切配信されていない。この状態でもアプリの機能は損なわれない設計とする。
+  </div>
+  <table>
+    <tr><th>広告</th><th>広告が配信されない場合の挙動</th></tr>
+    <tr><td>バナー</td><td><strong>枠ごと非表示</strong>（空白を残さない）</td></tr>
+    <tr><td>インタースティシャル</td><td>表示されない（呼び出し自体を行わない）</td></tr>
+    <tr><td>リワード</td><td><strong>報酬を広告なしで即付与</strong>する。1日の上限などの制御は維持する</td></tr>
+  </table>
+
+  <h3>該当する報酬導線</h3>
+  <table>
+    <tr><th>導線</th><th>報酬</th><th>上限</th><th>文言</th></tr>
+    <tr><td><a href="../screens/result-locked.html">結果ロック画面</a></td><td>結果アンロック ＋ 3pt</td><td>1日5回</td><td>「無料で結果を見る」</td></tr>
+    <tr><td><a href="../screens/mypage.html">マイページ</a></td><td>+3pt</td><td>1日5回</td><td>「ボーナスポイントを受け取る」</td></tr>
+  </table>
+  <p>いずれも「広告を見て〜」という広告に言及する文言から、広告に言及しない表現へ変更済み。</p>
+
+  <h2>課金訴求の変更</h2>
+  <p>
+    広告が配信されない状態で「広告非表示」を特典として掲げるのは実態と合わないため、
+    <a href="../screens/paywall.html">Paywall</a> の特典一覧から該当項目を削除した。
+  </p>
+  <table>
+    <tr><th>項目</th><th>状態</th></tr>
+    <tr><td>広告非表示</td><td><strong>削除</strong></td></tr>
+    <tr><td>ランキング作成無制限</td><td>維持</td></tr>
+    <tr><td>TOP3投票モード</td><td>維持</td></tr>
+    <tr><td>長期間ランキング</td><td>維持</td></tr>
+    <tr><td>選択肢30個まで</td><td>維持</td></tr>
+    <tr><td>結果閲覧無料</td><td>維持</td></tr>
+  </table>
+  <p>広告を再開する際に元へ戻せるよう、コード上にコメントを残している。</p>
+
+  <h2>ビジネスルール</h2>
+  <ul>
+    <li>広告のロード・表示は <strong>App Store 配信版のみ</strong>。それ以外の環境ではリクエストを発生させない</li>
+    <li>プレミアム会員にはバナー・インタースティシャルを表示しない</li>
+    <li>広告のロード・表示に失敗しても <strong>UX を止めない</strong>（バナーは非表示、全画面広告はサイレントでスキップ）</li>
+    <li>広告が配信されない期間もリワードの報酬は付与し、機能を成立させる（上限制御は維持）</li>
+    <li>広告に依存しないよう、報酬導線の文言は広告に言及しない</li>
+  </ul>
+
+  <h2>技術仕様</h2>
+  <table>
+    <tr><th>項目</th><th>内容</th></tr>
+    <tr><td>SDK</td><td><code>AppLovinSDK 13.6.3</code></td></tr>
+    <tr><td>導入方法</td><td>Swift Package Manager。メディエーションアダプタも SPM で追加できるため CocoaPods は導入しない</td></tr>
+    <tr><td>ビルド設定</td><td><code>OTHER_LDFLAGS</code> に <code>-ObjC</code> が必須</td></tr>
+    <tr><td>バナー</td><td><code>MAAdView</code>（アダプティブバナー）。高さは適応型サイズをそのまま使い固定値でクリップしない</td></tr>
+    <tr><td>全画面</td><td><code>MAInterstitialAd</code> / <code>MARewardedAd</code></td></tr>
+    <tr><td>再試行</td><td>ロード失敗時は指数バックオフ（上限64秒）で再試行</td></tr>
+  </table>
+
+  <h2>外部連携</h2>
+  <table>
+    <tr><th>連携先</th><th>用途</th><th>備考</th></tr>
+    <tr><td>AppLovin MAX SDK</td><td>バナー / インタースティシャル / リワードのロード・表示</td><td>SPM 経由。SDK Key はダッシュボードで発行</td></tr>
+    <tr><td>App Tracking Transparency (ATT)</td><td>トラッキング許可の取得</td><td>広告配信時のみダイアログを表示（<a href="att.html">ATT 仕様書</a>）</td></tr>
+    <tr><td>SKAdNetwork</td><td>アトリビューション計測</td><td>Info.plist に登録</td></tr>
+  </table>
+  <p>今回の広告基盤移行は Supabase（サーバー側）に影響しない。</p>
+
+  <h2>エラー処理</h2>
+  <table>
+    <tr><th>発生条件</th><th>対応</th></tr>
+    <tr><td>バナーのロード失敗</td><td>枠ごと非表示（空白を残さない）</td></tr>
+    <tr><td>インタースティシャルのロード失敗</td><td>サイレントでスキップ。指数バックオフで再ロード</td></tr>
+    <tr><td>リワードのロード失敗</td><td>広告なしで報酬を付与（上限制御は維持）</td></tr>
+    <tr><td>SDK Key 未設定</td><td>広告を一切ロードしない（安全側の既定）</td></tr>
+  </table>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done">AppLovinSDK 13.6.3 を SPM で導入。<code>OTHER_LDFLAGS</code> に <code>-ObjC</code> を追加</li>
+    <li class="done"><code>AdEnvironment.isAdDeliveryAvailable</code> ですべての広告処理を分岐（バナー・全画面で非対称にしない）</li>
+    <li class="done">App Store レシートの種別で本番配信版を判定（<code>#if DEBUG</code> 分岐のみに依存しない）</li>
+    <li class="done">SDK 初期化も配信可能な環境でのみ実行</li>
+    <li class="done">アダプティブバナーの高さをそのまま使い、固定値でクリップしない</li>
+    <li class="done">指数バックオフの再試行タスクを1本に束ね、多重実行を防止</li>
+    <li class="done">報酬コールバックの到達順に依存しない実装に変更（報酬の取りこぼしを防止）</li>
+    <li class="done">広告未配信時のリワード報酬即時付与と、日次上限制御の維持</li>
+    <li class="done">Paywall 特典から「広告非表示」を削除（再開時に戻せるようコメントを残す）</li>
+    <li>AppLovin publisher アカウントの審査完了後に SDK Key と広告ユニットIDを設定する</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="att.html">ATT（App Tracking Transparency）</a></li>
+    <li><a href="point-economy.html">ポイント経済</a></li>
+    <li><a href="subscription.html">サブスク課金</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-08-04</td><td>初版作成。AdMob が恒久的に利用不可となったことを受けた AppLovin MAX への全面移行、配信環境を App Store 配信版のみに限定する再発防止設計、広告未配信期間の挙動（バナー枠ごと非表示・リワード報酬の即時付与）、課金訴求からの「広告非表示」削除を記述。</td></tr>
+  </table>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default'
+    });
+  </script>
+
+  <footer class="site-footer">最終更新: 2026-08-04</footer>
+</div>
+</body>
+</html>
