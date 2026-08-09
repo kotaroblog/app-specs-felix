@@ -13,24 +13,51 @@
 
   <header class="site-header">
     <h1>ログイン画面</h1>
-    <p>Apple Sign In による認証エントリポイント</p>
+    <p>アプリの説明と認証エントリポイントを兼ねる、初回起動で必ず通る唯一の画面</p>
     <div class="section-meta">
-      <span class="tag done">v1.0</span>
+      <span class="tag done">v1.1</span>
       <span class="tag">画面ID: RS-AUTH-01</span>
     </div>
   </header>
 
   <h2>目的・役割</h2>
-  <p>未認証ユーザーがアプリ機能を利用するためのサインイン画面。Apple Sign In のみを認証手段として提供。</p>
+  <p>
+    未認証ユーザーの入口。Apple Sign In とゲスト利用の2つの導線を提供する。
+    <strong>この画面はアプリ内で唯一の「初回説明」の場</strong>でもあり、
+    ロゴとキャッチコピーだけでは何をするアプリか伝わらないため、サインインを求める前に3ステップの説明を置く。
+  </p>
 
   <h2>UI 構成</h2>
   <table>
     <tr><th>要素</th><th>種類</th><th>説明</th></tr>
-    <tr><td>アプリロゴ</td><td>Image</td><td>中央上部に配置</td></tr>
-    <tr><td>キャッチコピー</td><td>Text</td><td>「みんなの推しを、ランキングに」等</td></tr>
-    <tr><td>Apple Sign Inボタン</td><td>SignInWithAppleButton</td><td>標準スタイル、画面下部</td></tr>
-    <tr><td>利用規約・プライバシーリンク</td><td>Link</td><td>フッタにリンク表示</td></tr>
+    <tr><td>アプリロゴ</td><td>Image</td><td>トロフィーアイコン（ピンク→オレンジのグラデーション）＋アプリ名「ランスタ」</td></tr>
+    <tr><td>キャッチコピー</td><td>Text</td><td>「みんなで作るランキング」</td></tr>
+    <tr><td>3ステップ説明</td><td>ViewThatFits</td><td>「1 投票する → 2 結果を見る → 3 自分で作る」。<strong>v1.1 で追加</strong>。詳細は下記</td></tr>
+    <tr><td>Apple Sign In ボタン</td><td>Button</td><td>黒背景・角丸16・最小高さ54。処理中は ProgressView に差し替え</td></tr>
+    <tr><td>EULA 同意文＋規約リンク</td><td>Text / Link</td><td>「サインインすることで、以下に同意したものとみなされます」＋利用規約・プライバシーポリシー（App Store ガイドライン 1.2 UGC 対応）</td></tr>
+    <tr><td>ゲスト導線</td><td>Button</td><td>「登録せずにゲストで始める」。登録なしで投票を試せる（作成・フォロー等は登録後）</td></tr>
   </table>
+
+  <h2>3ステップ説明（v1.1 で追加）</h2>
+  <p>
+    従来はトロフィーアイコンと「みんなで作るランキング」だけで、
+    <strong>何をするアプリか分からないまま Apple Sign In を要求していた</strong>ため、
+    初回の離脱要因になっていた。番号バッジ＋ラベルの3ステップを、ロゴとサインインボタンの間に置く。
+  </p>
+  <table>
+    <tr><th>ステップ</th><th>ラベル</th><th>対応する体験</th></tr>
+    <tr><td>1</td><td>投票する</td><td>既存ランキングへの投票（ゲストでも可）</td></tr>
+    <tr><td>2</td><td>結果を見る</td><td>投票すると結果が解放される（ポイント経済の入口）</td></tr>
+    <tr><td>3</td><td>自分で作る</td><td>ランキングの作成（要登録・ポイント消費）</td></tr>
+  </table>
+  <ul>
+    <li><strong>横並びが入りきらない場合は縦積みにフォールバックする</strong>（<code>ViewThatFits(in: .horizontal)</code>）。
+        Dynamic Type を拡大しても文字が切れない</li>
+    <li>番号バッジの直径は <code>@ScaledMetric(relativeTo: .footnote)</code> で文字サイズに追従する
+        （固定値だと拡大時に数字が円からはみ出すため）</li>
+    <li>ステップ間の矢印は装飾のため <code>accessibilityHidden</code>。各ステップは
+        「ステップ1、投票する」の形で1要素として読み上げる</li>
+  </ul>
 
   <h2>状態</h2>
   <table>
@@ -46,6 +73,7 @@
     <tr><td>Apple Sign In成功（新規ユーザー）</td><td>SetupProfileView</td></tr>
     <tr><td>Apple Sign In成功（既存ユーザー）</td><td>MainTabView</td></tr>
     <tr><td>Apple Sign Inキャンセル</td><td>同画面（無操作）</td></tr>
+    <tr><td>「登録せずにゲストで始める」</td><td>MainTabView（ゲストとして利用開始。投票は可能、作成・フォロー等は登録後）</td></tr>
   </table>
 
   <h2>使用するデータモデル</h2>
@@ -71,9 +99,10 @@
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
+    <tr><td>1.1</td><td>2026-08-09</td><td>UI/UX レビュー指摘（初回起動がログイン壁のみで、アプリ説明がゼロ）に対応し、3ステップ説明「1 投票する → 2 結果を見る → 3 自分で作る」を追加。あわせて初版以降に実装済みだったゲスト導線・EULA 同意文を仕様書へ反映し、キャッチコピーの記載を実装（「みんなで作るランキング」）に是正</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-08-09</footer>
 </div>
 </body>
 </html>
