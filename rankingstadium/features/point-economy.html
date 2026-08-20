@@ -81,7 +81,7 @@
     <tr><th>連携先</th><th>用途</th></tr>
     <tr><td>Supabase point_transactions表</td><td>取引履歴</td></tr>
     <tr><td>Supabase users.points</td><td>残高管理</td></tr>
-    <tr><td>AdMob Rewarded広告</td><td>動画報酬の付与</td></tr>
+    <tr><td>Unity LevelPlay リワード広告</td><td>動画報酬の付与（2026-08-20 に AdMob → AppLovin MAX → LevelPlay へ移行。広告が配信されない期間は報酬を広告なしで即付与し、1日5回の上限のみ維持）</td></tr>
   </table>
 
   <h2>エラー処理</h2>
@@ -111,6 +111,7 @@
     <tr><td>1.1</td><td>2026-05-30</td><td>TF 1.0(18) 反映: ログインボーナス表示を上部トーストから中央ポップアップに変更／連続日数判定を DateComponents（年・月・日）ベースに変更（TZ依存バグ解消）／ボーナス量を明記（1日目=1pt, 2日目=2pt, 3日目以降=3pt）</td></tr>
     <tr><td>1.2</td><td>2026-06-02</td><td>TF 1.0(19)〜(22) 反映: 連続日数判定の DateComponents 比較を <code>==</code> から year/month/day 個別 Int 比較に変更（参照差で偽 false になるバグの根本対処）／広告報酬（ポイント獲得・結果アンロック）の付与経路を <code>RewardedAdManager.shared.show(onReward:)</code> による GADRewardedAd 視聴完了コールバックのみに統一（広告未視聴 loophole 解消）</td></tr>
     <tr><td>1.3</td><td>2026-07-10</td><td>commit bc9defd 反映: 獲得手段テーブルに「投票する（3回投票で1pt・1日最大5pt）」「結果をシェア（1回1pt・1日最大3回）」を追加／「広告報酬」を「動画広告 +3pt・1日最大5回」に具体化／「ポイントの貯め方」UIの参照元をマイページ残高横popoverにも拡張（関連画面・実装メモ更新）</td></tr>
+      <tr><td>1.4</td><td>2026-08-20</td><td>広告基盤を <strong>Unity LevelPlay</strong> へ移行（AdMob 恒久停止 → AppLovin MAX → LevelPlay）。外部連携の「AdMob Rewarded広告」を LevelPlay リワード広告（<code>LPMRewardedAd</code>）へ差し替え。ポイントの獲得手段・付与量・日次上限は変更なし。広告が配信されない期間は報酬を広告なしで即付与する挙動を明記。</td></tr>
   </table>
 
   <footer class="site-footer">最終更新: 2026-07-10</footer>

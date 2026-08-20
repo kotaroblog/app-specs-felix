@@ -111,10 +111,10 @@
     <tr>
       <td>DT-AD-03</td>
       <td>広告</td>
-      <td>AppOpen広告ロード失敗</td>
-      <td>サイレント</td>
+      <td><s>AppOpen広告ロード失敗</s>（2026-08-20 廃止・発生しない）</td>
       <td>—</td>
-      <td>info</td>
+      <td>—</td>
+      <td>—</td>
     </tr>
     <tr>
       <td>DT-SK-01</td>
@@ -181,7 +181,8 @@
       <li>Banner: ロード失敗→ View 非表示（高さ0）</li>
       <li>Interstitial: 未ロード→ そのまま次画面へ</li>
       <li>Rewarded: 必須なので onFailed で「もう一度お試しください」</li>
-      <li>AppOpen: 起動UXを阻害しないようロード失敗はサイレント</li>
+      <li><s>AppOpen: 起動UXを阻害しないようロード失敗はサイレント</s> → <strong>2026-08-20 にアプリ起動広告を廃止</strong>（LevelPlay に該当フォーマットがないため発生しない）</li>
+      <li>SDK 初期化失敗: 広告以外の機能は継続。原因調査のため Logger には記録する</li>
     </ul>
   </div>
 
@@ -189,9 +190,10 @@
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
+      <tr><td>1.1</td><td>2026-08-20</td><td>広告基盤の Unity LevelPlay 移行を反映。<strong>アプリ起動広告（App Open）の廃止</strong>に伴い DT-AD-03（AppOpen広告ロード失敗）を廃止扱いに変更。SDK 初期化失敗時の方針（広告以外は継続・Logger に記録）を追記。</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-08-20</footer>
 </div>
 </body>
 </html>

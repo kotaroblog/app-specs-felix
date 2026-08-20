@@ -21,7 +21,7 @@
     <li><span class="k">カテゴリ</span><span class="v">ソーシャル / エンタメ</span></li>
     <li><span class="k">対応OS</span><span class="v">iOS 18.0+ / Swift 6.0</span></li>
     <li><span class="k">言語</span><span class="v">日本語のみ（project.yml localizations: ja のみ。英語UIの実体なし）</span></li>
-    <li><span class="k">マネタイズ</span><span class="v">サブスクリプション（月額/年額）+ AppLovin MAX 広告（2026-08-04 に AdMob から移行。SDK Key 未設定のため現在は未配信）</span></li>
+    <li><span class="k">マネタイズ</span><span class="v">サブスクリプション（月額/年額）+ Unity LevelPlay 広告（AdMob 恒久停止 → AppLovin MAX → 2026-08-20 に LevelPlay へ移行。App Key・広告ユニットIDは設定済みだが ironSource Ads アカウント承認待ちのため現在は未配信）</span></li>
     <li><span class="k">ステータス</span><span class="v">リリース予定</span></li>
     <li><span class="k">リリース時期</span><span class="v">2026年5月末</span></li>
     <li><span class="k">バージョン</span><span class="v">1.0 (build 7)</span></li>
@@ -94,11 +94,17 @@
     <a class="card" href="features/notification.html"><div class="title">通知</div><div class="desc">アプリ内通知の取得・既読管理</div></a>
     <a class="card" href="features/follow.html"><div class="title">フォロー</div><div class="desc">ユーザー間のフォロー関係</div></a>
     <a class="card" href="features/moderation.html"><div class="title">モデレーション（ブロック・通報）</div><div class="desc">ブロック機能・通報機能。Guideline 1.2 / 5.1.1 対応</div><div class="meta"><span class="tag">RS-FEAT-MOD</span></div></a>
-    <a class="card" href="features/att.html"><div class="title">ATT（App Tracking Transparency）</div><div class="desc">iOS 14.5+ IDFA 許可ダイアログ制御・AppLovin MAX 連携</div><div class="meta"><span class="tag">RS-FEAT-ATT</span></div></a>
-    <a class="card" href="features/ad-control.html"><div class="title">広告制御</div><div class="desc">AppLovin MAX 配信・App Store 配信版のみに限定する安全機構</div><div class="meta"><span class="tag">RS-FEAT-AD</span></div></a>
+    <a class="card" href="features/att.html"><div class="title">ATT（App Tracking Transparency）</div><div class="desc">iOS 14.5+ IDFA 許可ダイアログ制御・Unity LevelPlay 連携</div><div class="meta"><span class="tag">RS-FEAT-ATT</span></div></a>
+    <a class="card" href="features/ad-control.html"><div class="title">広告制御</div><div class="desc">Unity LevelPlay 配信・App Store 配信版のみに限定する安全機構</div><div class="meta"><span class="tag">RS-FEAT-AD</span></div></a>
   </div>
 
-  <footer class="site-footer">最終更新: 2026-08-04</footer>
+    <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-08-20</td><td>変更履歴セクションを新設。<strong>広告基盤を Unity LevelPlay へ移行</strong>（AdMob 恒久停止 → AppLovin MAX の承認却下 → LevelPlay 9.6.0 + UnityAds アダプタ 5.10.0）。マネタイズ表記と <a href="features/ad-control.html">広告制御</a> / <a href="features/att.html">ATT</a> のカード説明を更新。App Key・広告ユニットID3種は設定済みだが、ironSource Ads アカウント承認待ちのため未配信。</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-08-20</footer>
 </div>
 </body>
 </html>

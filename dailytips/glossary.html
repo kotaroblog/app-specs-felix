@@ -69,10 +69,10 @@
   <h2>広告関連用語</h2>
   <table>
     <tr><th>UI 表記</th><th>コード</th><th>説明</th></tr>
-    <tr><td>バナー広告</td><td><code>BannerAdView</code> / <code>AdConfig.bannerID</code></td><td>HomeView下部に常時表示（無料のみ）</td></tr>
-    <tr><td>動画広告</td><td><code>RewardedAdManager</code></td><td>視聴で +3pt or カレンダー解放</td></tr>
-    <tr><td>全画面広告</td><td><code>InterstitialAdManager</code></td><td>ジャンルクイズ開始時</td></tr>
-    <tr><td>起動広告</td><td><code>AppOpenAdManager</code></td><td>アプリ起動時・フォアグラウンド復帰時</td></tr>
+    <tr><td>バナー広告</td><td><code>BannerAdView</code> / <code>LPMBannerAdView</code> / <code>AdConfig.bannerID</code></td><td>HomeView下部に常時表示（無料のみ）</td></tr>
+    <tr><td>動画広告</td><td><code>RewardedAdManager</code> / <code>LPMRewardedAd</code></td><td>視聴で +3pt or カレンダー解放</td></tr>
+    <tr><td>全画面広告</td><td><code>InterstitialAdManager</code> / <code>LPMInterstitialAd</code></td><td>ジャンルクイズ回答3回に1回</td></tr>
+    <tr><td><s>起動広告</s></td><td><code>AppOpenAdManager</code>（無効スタブ）</td><td><strong>2026-08-20 廃止</strong>。Unity LevelPlay にアプリ起動広告のフォーマットが存在しないため。API は残置</td></tr>
   </table>
 
   <h2>使い分けの注意</h2>
@@ -88,9 +88,10 @@
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
+      <tr><td>1.1</td><td>2026-08-20</td><td>広告基盤の Unity LevelPlay 移行を反映。広告用語のコード対応を LevelPlay のクラス（<code>LPMBannerAdView</code> / <code>LPMInterstitialAd</code> / <code>LPMRewardedAd</code>）へ更新。<strong>「起動広告」を廃止扱い</strong>に変更（LevelPlay に該当フォーマットなし）。</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-08-20</footer>
 </div>
 </body>
 </html>

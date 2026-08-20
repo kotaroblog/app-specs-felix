@@ -45,7 +45,7 @@ private static let logger = Logger(
     <tr><td><code>ShareService</code></td><td>SNS共有</td><td>ShareService</td></tr>
     <tr><td><code>RewardedAdManager</code></td><td>Rewarded広告</td><td>RewardedAdManager</td></tr>
     <tr><td><code>InterstitialAdManager</code></td><td>Interstitial広告</td><td>InterstitialAdManager</td></tr>
-    <tr><td><code>AppOpenAdManager</code></td><td>AppOpen広告</td><td>AppOpenAdManager</td></tr>
+    <tr><td><code>AppOpenAdManager</code></td><td><s>AppOpen広告</s>（2026-08-20 廃止・無効スタブのためログ出力なし）</td><td>AppOpenAdManager</td></tr>
     <tr><td><code>TipLoaderService</code></td><td>豆知識読込</td><td>TipLoaderService</td></tr>
     <tr><td><code>AppViewModel</code></td><td>アプリ全体状態</td><td>AppViewModel</td></tr>
     <tr><td><code>Widget</code></td><td>Widget拡張</td><td>SmallTipWidget, MediumCalendarWidget</td></tr>
@@ -91,9 +91,10 @@ logger.error("daily_tips.json decode失敗: \(error.localizedDescription)")</cod
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
+      <tr><td>1.1</td><td>2026-08-20</td><td>広告基盤の Unity LevelPlay 移行を反映。<strong>アプリ起動広告の廃止</strong>に伴い <code>AppOpenAdManager</code> のログ出力がなくなったことを明記（無効スタブは意図的にログを出さない）。</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-08-20</footer>
 </div>
 </body>
 </html>

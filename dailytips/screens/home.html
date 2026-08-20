@@ -79,7 +79,7 @@
   <h2>実装メモ</h2>
   <ul class="checklist">
     <li class="done">TabView は <code>PageTabViewStyle</code></li>
-    <li class="done">scenePhase == .active 監視で AppOpenAd 再表示</li>
+    <li><s>scenePhase == .active 監視で AppOpenAd 再表示</s> → <strong>2026-08-20 に停止</strong>（アプリ起動広告を廃止。呼び出しは残るが no-op）</li>
     <li class="done">ReviewService で 5回目・20回目起動を判定</li>
     <li class="done">ATT リクエストはアプリ起動時に DailyTipsApp で実施</li>
     <li class="done">今日獲得pt: ログイン・動画・クイズ・月次ボーナスを自動集計して表示</li>
@@ -101,9 +101,10 @@
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
     <tr><td>1.1</td><td>2026-05-17</td><td>v1.0.5: 検索アイコン追加、今日獲得ptカード、連続ログイン/正解バッジ、メモボタン遷移を追加</td></tr>
+      <tr><td>1.2</td><td>2026-08-20</td><td>広告基盤の Unity LevelPlay 移行を反映。<strong>アプリ起動広告（App Open）の廃止</strong>により、フォアグラウンド復帰時の起動広告再表示が行われなくなった点を実装メモに反映。バナー広告は LevelPlay（<code>LPMBannerAdView</code>）で継続。</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-17</footer>
+  <footer class="site-footer">最終更新: 2026-08-20</footer>
 </div>
 </body>
 </html>

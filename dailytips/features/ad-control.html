@@ -13,42 +13,71 @@
 
   <header class="site-header">
     <h1>広告制御機能</h1>
-    <p>AppLovin MAX 4種広告（Banner / Interstitial / Rewarded / AppOpen）の表示制御</p>
+    <p>Unity LevelPlay 3種広告（Banner / Interstitial / Rewarded）の表示制御 ／ アプリ起動広告は廃止</p>
     <div class="section-meta">
-      <span class="tag done">v2.0</span>
+      <span class="tag done">v3.0</span>
       <span class="tag">機能ID: DT-FEAT-AD</span>
     </div>
   </header>
 
   <div class="callout">
-    <p style="margin-top:0"><strong>2026-08-04 広告基盤を AdMob から AppLovin MAX へ全面移行</strong></p>
-    <p>AdMob アカウントが「無効なトラフィック」により恒久的に無効化され、再審査請求も却下された。
-    新規アカウント作成も含めて AdSense / AdMob は今後一切利用できないため、AppLovin MAX へ移行した。</p>
-    <p style="margin-bottom:0">AppLovin の publisher アカウントは審査中のため、<strong>SDK Key と広告ユニットIDは未設定</strong>。
-    現時点で広告は一切配信されていない（後述の安全機構により、未設定の間は自動的に無効）。</p>
+    <p style="margin-top:0"><strong>2026-08-20 広告基盤を AppLovin MAX から Unity LevelPlay へ移行</strong></p>
+    <p>AdMob アカウントが「無効なトラフィック」により恒久的に無効化（2026-07-30）され、再審査請求も却下された。
+    その後 AppLovin MAX へ移行したが、<strong>publisher アカウントの承認が下りなかった</strong>ため断念し、Unity LevelPlay へ再移行した。</p>
+    <p style="margin-bottom:0">App Key と広告ユニットID（Banner / Interstitial / Rewarded）は<strong>設定済み</strong>。
+    ただし <strong>ironSource Ads アカウントが承認待ち</strong>のため、現時点で広告はまだ配信されていない。</p>
   </div>
 
+  <h2>広告基盤の変遷</h2>
+  <table>
+    <tr><th>時期</th><th>基盤</th><th>結果</th></tr>
+    <tr><td>〜2026-07-30</td><td>Google AdMob</td><td>アカウントが恒久的に無効化。AdSense / AdMob は今後一切利用できない</td></tr>
+    <tr><td>2026-07-30 〜 2026-08-20</td><td>AppLovin MAX</td><td>移行完了したが publisher アカウントの承認が下りず断念</td></tr>
+    <tr><td>2026-08-20 〜</td><td><strong>Unity LevelPlay</strong></td><td>移行完了。<strong>アプリ起動広告（App Open）は廃止</strong>。ironSource Ads アカウント承認待ち</td></tr>
+  </table>
+  <p>Unity Ads は 2026-04-01 以降、直接統合だと配信性能が落ちるため、<strong>LevelPlay（メディエーション）経由の bidder</strong> として利用する。直接統合は使わない。</p>
+
   <h2>概要</h2>
-  <p>本アプリは <strong>4種類の AppLovin MAX 広告</strong> を統合し、画面・タイミング別に最適な広告を出す。
+  <p>本アプリは <strong>3種類の Unity LevelPlay 広告</strong>（Banner / Interstitial / Rewarded）を統合し、画面・タイミング別に最適な広告を出す。
   プレミアム会員は全広告非表示。動画報酬やカレンダー解放で能動的な広告視聴も可能。</p>
+
+  <h2>アプリ起動広告（App Open）の廃止</h2>
+  <div class="callout">
+    <p style="margin-top:0"><strong>LevelPlay にはアプリ起動広告（App Open）のフォーマットが存在しない。</strong>
+    対応フォーマットはバナー・インタースティシャル・リワードの3種のみで、SDK にも App Open 相当のクラスがない
+    （AdMob の <code>GADAppOpenAd</code>、AppLovin の <code>MAAppOpenAd</code> にあたるものが提供されていない）。</p>
+    <p style="margin-bottom:0">つまり起動広告は「移行できない」のではなく<strong>「移行先が無い」</strong>状態にある。</p>
+  </div>
+  <table>
+    <tr><th>項目</th><th>内容</th></tr>
+    <tr><td>方針</td><td><strong>停止で確定</strong>（2026-08-20）。起動時の広告収益はゼロとして扱う</td></tr>
+    <tr><td>コードの扱い</td><td><code>AppOpenAdManager</code> は <strong>API を残した無効スタブ</strong>。<code>loadAd()</code> / <code>showAdIfAvailable(isPremium:)</code> は意図的な no-op（ログも出さない）</td></tr>
+    <tr><td>スタブにした理由</td><td>呼び出し側（起動時・フォアグラウンド復帰時）を書き換えると将来の復活時に差分が広がるため</td></tr>
+    <tr><td>広告ユニットID</td><td><code>AdConfig.appOpenID</code> は空文字のまま未使用</td></tr>
+    <tr><td>復活の条件</td><td>App Open を持つ<strong>別ネットワーク（AdMob・AppLovin MAX 等）の併用</strong>が必要。いずれも現在使えないため比較対象が存在しない</td></tr>
+    <tr><td>収益の受け皿</td><td>起動広告のぶんはインタースティシャル（クイズ回答3回に1回）が受け持つ</td></tr>
+  </table>
+  <p>LevelPlay の承認が下りて実際に収益が立ってから、DailyTips だけ別ネットワークを併用するかを改めて判断する。</p>
 
   <h2>広告を出してよい環境の判定（再発防止の中枢）</h2>
   <div class="callout">
     <p style="margin-top:0">AdMob 停止の原因は、<strong>開発中・TestFlight 検証中に本番の広告IDでインプレッションが発生していたこと</strong>だった。
     ネットワークを変えても同じ規約（自己クリック・他者への視聴依頼の禁止）が適用されるため、同じ事故を構造的に防ぐ。</p>
-    <p style="margin-bottom:0"><code>AdEnvironment.isAdDeliveryAvailable</code> = 「SDK Key が設定済み」かつ「App Store 配信版である」</p>
+    <p style="margin-bottom:0"><code>AdEnvironment.isAdDeliveryAvailable = !appKey.isEmpty &amp;&amp; isProduction</code>
+    （App Key が設定済み かつ App Store 配信版）</p>
   </div>
   <table>
     <tr><th>環境</th><th>広告のロード・表示</th></tr>
     <tr><td>DEBUG ビルド</td><td>一切リクエストしない</td></tr>
     <tr><td>シミュレーター</td><td>一切リクエストしない</td></tr>
     <tr><td>TestFlight</td><td>一切リクエストしない</td></tr>
-    <tr><td>App Store 配信版（SDK Key 設定済み）</td><td>配信する</td></tr>
+    <tr><td>App Store 配信版（App Key 設定済み）</td><td>配信する</td></tr>
   </table>
   <ul>
     <li>判定は <strong>App Store レシートの種別</strong>（<code>sandboxReceipt</code> かどうか）で行う。ビルド構成の設定ミスでは破れない</li>
-    <li>AppLovin にはテスト広告IDの概念がないため、<strong>開発中は広告を出さない</strong>方式を採用した</li>
+    <li>LevelPlay にもテスト広告IDの概念がないため、<strong>開発中は広告を出さない</strong>方式を採用している</li>
     <li>SDK 初期化自体も配信可能な環境でのみ実行する（起動コストと不要な通信を避ける）</li>
+    <li><strong>SDK の初期化完了前は広告をロードしない</strong>。LevelPlay は初期化前の <code>loadAd()</code> が失敗するため、初期化完了（<code>AdReadiness</code>）を待ってからロードする</li>
     <li>ATT（トラッキング許可）ダイアログも広告配信時のみ表示する。広告がないのに許可を求める状態を作らない</li>
   </ul>
 
@@ -56,7 +85,7 @@
   <table>
     <tr><th>種類</th><th>挙動</th></tr>
     <tr><td>Banner</td><td>枠ごと非表示（空白を残さない）</td></tr>
-    <tr><td>Interstitial / AppOpen</td><td>表示しない。広告リクエストも発生しない</td></tr>
+    <tr><td>Interstitial</td><td>表示しない。広告リクエストも発生しない</td></tr>
     <tr><td>Rewarded</td><td><strong>広告なしで報酬を即付与</strong>（1日の上限などの制御は維持）</td></tr>
   </table>
   <p>該当する導線は「過去の豆知識の日付解放（ホーム・カレンダー・検索の3箇所）」と「ボーナスポイントの受け取り」。
@@ -67,24 +96,25 @@
 
   <h2>広告の種類と表示タイミング</h2>
   <table>
-    <tr><th>種類</th><th>Manager</th><th>表示タイミング</th><th>無料/プレミアム</th></tr>
-    <tr><td>Banner</td><td>—（BannerAdView）</td><td>HomeView 下部に常時</td><td>無料のみ</td></tr>
-    <tr><td>Interstitial</td><td>InterstitialAdManager</td><td>ジャンルクイズプレイ開始時</td><td>無料のみ</td></tr>
-    <tr><td>Rewarded</td><td>RewardedAdManager</td><td>動画ボーナス・カレンダー解放（能動）</td><td>常時利用可（報酬獲得）</td></tr>
-    <tr><td>AppOpen</td><td>AppOpenAdManager</td><td>起動時・フォアグラウンド復帰時</td><td>無料のみ</td></tr>
+    <tr><th>種類</th><th>クラス / Manager</th><th>表示タイミング</th><th>無料/プレミアム</th></tr>
+    <tr><td>Banner</td><td><code>LPMBannerAdView</code>（BannerAdView）</td><td>HomeView 下部に常時</td><td>無料のみ</td></tr>
+    <tr><td>Interstitial</td><td><code>LPMInterstitialAd</code>（InterstitialAdManager）</td><td>ジャンルクイズ回答3回に1回</td><td>無料のみ</td></tr>
+    <tr><td>Rewarded</td><td><code>LPMRewardedAd</code>（RewardedAdManager）</td><td>過去記事解放・ボーナス受け取り（能動）</td><td>常時利用可（報酬獲得）</td></tr>
+    <tr><td><s>AppOpen</s></td><td><s>AppOpenAdManager</s></td><td><strong>廃止</strong>（LevelPlay に該当フォーマットなし。無効スタブとして残置）</td><td>—</td></tr>
   </table>
 
   <h2>広告ユニットID の構成</h2>
-  <p><code>AdConfig</code> に4種類の広告ユニットIDを集約する。AppLovin ダッシュボードで発行した値を設定し、
+  <p><code>AdConfig</code> に広告ユニットIDを集約する。Unity ダッシュボード（LevelPlay）で発行した値を設定し、
   <strong>未設定（空）の間は広告を一切ロードしない</strong>（差し替え漏れで意図しない挙動にならないための安全弁）。</p>
   <pre><code>enum AdConfig {
-    // AppLovin ダッシュボードで発行して設定する
-    static let bannerID = ""
-    static let interstitialID = ""
-    static let rewardedID = ""
+    // Unity ダッシュボード（LevelPlay）で発行して設定する
+    static let bannerID = "..."
+    static let interstitialID = "..."
+    static let rewardedID = "..."
+    // アプリ起動広告は LevelPlay に該当フォーマットが存在しないため未使用
     static let appOpenID = ""
 }</code></pre>
-  <p class="note">※ 実際のIDは本仕様書には記載しない（コード上で管理する）。</p>
+  <p class="note">※ 実際のID・App Key は本仕様書には記載しない（コード上で管理する）。</p>
 
   <h2>関連画面</h2>
   <ul>
@@ -97,26 +127,27 @@
 
   <h3>RewardedAdManager（@MainActor : NSObject）</h3>
   <ul>
-    <li><code>show(onReward:onFailed:)</code> で表示</li>
+    <li><code>show(onReward:onFailed:)</code> で表示（LevelPlay の <code>showAd</code> は viewController が必須）</li>
     <li>視聴完了時 <code>onReward</code> コールバック実行</li>
     <li>失敗時 <code>onFailed</code> コールバックでエラー通知</li>
     <li>動画ボーナス: CoinService.recordVideoBonus()</li>
     <li>カレンダー解放: HistoryService.markAsAdViewed()</li>
+    <li>広告配信が無効な期間は広告を呼ばずに報酬を即付与する</li>
   </ul>
 
   <h3>InterstitialAdManager</h3>
   <ul>
-    <li>ジャンルクイズプレイ開始時に表示</li>
+    <li>ジャンルクイズの回答3回に1回表示</li>
     <li>未ロード時はサイレントで次画面へ</li>
+    <li><code>LPMInterstitialAd</code> には <code>isLoading</code> / <code>isShowing</code> が無いため、状態は Manager 側で保持する</li>
   </ul>
 
-  <h3>AppOpenAdManager</h3>
+  <h3>AppOpenAdManager（無効スタブ）</h3>
   <ul>
-    <li><code>loadAd()</code> で事前ロード（SDK初期化完了後に実行）</li>
-    <li><code>show(isPremium:)</code> でプレミアム判定込みで表示</li>
-    <li>scenePhase 変化監視でフォアグラウンド復帰時に自動再ロード</li>
-    <li>ATT許可後にロード再試行</li>
-    <li>広告の有効期限を4時間で管理（期限切れは再ロード）</li>
+    <li><strong>2026-08-20 に無効化</strong>。LevelPlay に App Open フォーマットが存在しないため</li>
+    <li><code>loadAd()</code> / <code>showAdIfAvailable(isPremium:)</code> は API を維持したまま no-op</li>
+    <li>呼び出し側（起動時・フォアグラウンド復帰時）のコードは変更していない</li>
+    <li>旧仕様（4時間の有効期限管理・表示間隔4時間・1日3回上限・ATT 許可後の再試行）は<strong>すべて停止中</strong></li>
   </ul>
 
   <h3>シート内からのリワード広告</h3>
@@ -126,21 +157,21 @@
 
   <h2>ビジネスルール</h2>
   <ul>
+    <li>広告のロード・表示は <strong>App Store 配信版のみ</strong>。DEBUG・シミュレーター・TestFlight では一切リクエストしない</li>
+    <li>SDK の初期化完了前は広告をロードしない</li>
     <li>プレミアム会員は <strong>すべて非表示</strong>（Rewarded のみ報酬目的で利用可）</li>
-    <li>広告ロード失敗時は <strong>UXを止めない</strong>（Banner: 高さ0、Interstitial: スキップ）</li>
-    <li>AppOpen は起動 UX を阻害しないため、ロード失敗時はサイレント</li>
-    <li><strong>AppOpen は表示間隔4時間・1日3回上限</strong>。フォアグラウンド復帰のたびに全画面広告が出ると
-      ユーザー体験を著しく損ない、パブリッシャー ポリシー違反にあたるため必ず絞る。
-      表示できない期間は広告リクエスト自体を行わない</li>
+    <li>広告ロード失敗時は <strong>UXを止めない</strong>（Banner: 枠ごと非表示、Interstitial: サイレントでスキップ）</li>
     <li>Interstitial はクイズ回答3回に1回</li>
+    <li><strong>アプリ起動広告は表示しない</strong>（フォーマット自体が存在しないため）</li>
     <li>広告ロード失敗時は指数バックオフ（上限64秒）で再試行する</li>
   </ul>
 
   <h2>外部連携</h2>
   <table>
     <tr><th>連携先</th><th>用途</th></tr>
-    <tr><td>AppLovin MAX SDK（AppLovinSDK 13.6.3 / SPM）</td><td>4種広告のロード・表示。<code>OTHER_LDFLAGS</code> に <code>-ObjC</code> が必須</td></tr>
-    <tr><td>App Tracking Transparency (ATT)</td><td>パーソナライズ広告のオプトイン</td></tr>
+    <tr><td>Unity LevelPlay SDK（LevelPlay 9.6.0 / SPM <code>LevelPlay-Swift-Package</code> · product <code>UnityMediationSDK</code>）</td><td>3種広告のロード・表示。<code>OTHER_LDFLAGS</code> に <code>-ObjC</code> が必須</td></tr>
+    <tr><td>LevelPlayUnityAdsAdapter 5.10.0（product <code>UnityAdsAdapter</code>）</td><td>Unity Ads を LevelPlay 経由の bidder として利用。SDK とは別バージョン体系のため 9.x 指定では依存解決に失敗する</td></tr>
+    <tr><td>App Tracking Transparency (ATT)</td><td>パーソナライズ広告のオプトイン（広告配信時のみダイアログ表示）</td></tr>
     <tr><td>Info.plist（NSUserTrackingUsageDescription）</td><td>ATT説明文</td></tr>
     <tr><td>SKAdNetwork</td><td>アトリビューション計測</td></tr>
   </table>
@@ -148,21 +179,26 @@
   <h2>エラー処理</h2>
   <table>
     <tr><th>広告種類</th><th>失敗時の挙動</th></tr>
-    <tr><td>Banner</td><td>高さ0で非表示</td></tr>
-    <tr><td>Interstitial</td><td>サイレントでスキップ</td></tr>
+    <tr><td>Banner</td><td>枠ごと非表示（高さ0）</td></tr>
+    <tr><td>Interstitial</td><td>サイレントでスキップ。指数バックオフで再ロード</td></tr>
     <tr><td>Rewarded</td><td>onFailed コールバックで「再試行してください」</td></tr>
-    <tr><td>AppOpen</td><td>サイレントでスキップ</td></tr>
+    <tr><td>SDK 初期化失敗</td><td>広告以外の機能は動き続ける。原因調査のため Logger に記録する</td></tr>
+    <tr><td>App Key 未設定</td><td>広告を一切ロードしない（安全側の既定）</td></tr>
   </table>
 
   <h2>実装メモ</h2>
   <ul class="checklist">
     <li class="done">各Manager は <code>@MainActor : NSObject</code></li>
-    <li class="done">DEBUG/Release で AdConfig がID切替（DEBUGはGoogle公式テストID使用）</li>
-    <li class="done">scenePhase == .active で AppOpen 再表示判定・自動再ロード</li>
-    <li class="done">AppOpen 広告: SDK初期化完了待ち → ATT許可後に再試行 → 4時間有効期限管理</li>
-    <li class="done">DEBUGビルドでもテスト広告ID（AdConfig 経由）でアプリ起動広告を表示し動作確認可能（v1.0.7で改修）</li>
+    <li class="done">LevelPlay 9.6.0 + UnityAds アダプタ 5.10.0 を SPM で導入（プロダクト名はパッケージ名と一致しない）</li>
+    <li class="done"><code>AdEnvironment.isAdDeliveryAvailable</code> で全広告処理を分岐</li>
+    <li class="done">初期化完了を <code>@Observable</code> な <code>AdReadiness</code> で SwiftUI に伝播し、バナー表示条件を再評価させる</li>
+    <li class="done">全画面広告のロードは SDK 初期化完了後にのみ行う</li>
+    <li class="done">バナーは破棄時に <code>destroy()</code> を呼ぶ（LevelPlay はバナーの明示破棄が必要）</li>
     <li class="done">topMostViewController() でシート内から Rewarded 広告表示可能</li>
-    <li class="done">SKAdNetworkItems 71件を Info.plist に登録（AdMob 公式推奨リスト）</li>
+    <li class="done"><code>AppOpenAdManager</code> を API 維持のまま無効スタブ化（呼び出し側は無改修）</li>
+    <li class="done">App Key・広告ユニットID3種を設定済み</li>
+    <li>ironSource Ads アカウントの承認完了を待つ（承認されるまで配信は始まらない）</li>
+    <li>起動広告を復活させるかは、LevelPlay の収益実績を見てから判断する</li>
   </ul>
 
   <h2>変更履歴</h2>
@@ -172,9 +208,10 @@
     <tr><td>1.1</td><td>2026-05-17</td><td>v1.0.5: AppOpen広告の信頼性改善（SDK初期化待ち・ATT後再試行・4時間有効期限）、シート内リワード対応、DEBUGビルドでの起動広告スキップを追加</td></tr>
     <tr><td>1.2</td><td>2026-05-25</td><td>v1.0.7: AppOpen広告の <code>#if DEBUG return</code> バイパスを削除しテスト広告で動作確認可能に。SKAdNetworkItems 71件追加（Release/TestFlight での App Open Ad fill rate 改善）</td></tr>
     <tr><td>2.0</td><td>2026-08-04</td><td><strong>広告基盤を AdMob から AppLovin MAX へ全面移行</strong>（AdMob アカウントが恒久的に無効化され再審査も却下されたため）。あわせて再発防止の中枢として <code>AdEnvironment.isAdDeliveryAvailable</code> を導入し、<strong>広告のロード・表示を App Store 配信版のみに限定</strong>（DEBUG・シミュレーター・TestFlight では一切リクエストしない）。SDK Key 未設定の間は自動的に無効。広告配信が無効な期間はバナーを枠ごと非表示にし、リワードの報酬は広告なしで即付与する。AppOpen に表示間隔4時間・1日3回の上限を追加。ATT ダイアログも広告配信時のみ表示。プレミアム特典から「広告を完全に非表示」を削除（再開時に戻せるようコードにコメントを残置）。仕様書から広告ユニットIDの実値を削除</td></tr>
+    <tr><td>3.0</td><td>2026-08-20</td><td><strong>広告基盤を AppLovin MAX から Unity LevelPlay へ移行</strong>（AppLovin の publisher アカウント承認が下りなかったため）。SDK を LevelPlay 9.6.0 + LevelPlayUnityAdsAdapter 5.10.0（SPM）へ差し替え、広告クラスを <code>LPMBannerAdView</code> / <code>LPMInterstitialAd</code> / <code>LPMRewardedAd</code> に更新。<strong>アプリ起動広告（App Open）を廃止</strong>—— LevelPlay に該当フォーマットが存在しないため、<code>AppOpenAdManager</code> は API を残した無効スタブとし、復活には App Open を持つ別ネットワークの併用が必要である旨を明記。判定式を <code>isAdDeliveryAvailable = !appKey.isEmpty &amp;&amp; isProduction</code> と明記し、<strong>SDK 初期化完了前は広告をロードしない</strong>制約を追加。App Key と広告ユニットID3種は設定済みだが、ironSource Ads アカウントが承認待ちのため未配信であることを反映。</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-08-04</footer>
+  <footer class="site-footer">最終更新: 2026-08-20</footer>
 </div>
 </body>
 </html>

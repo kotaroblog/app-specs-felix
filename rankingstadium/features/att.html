@@ -24,13 +24,15 @@
   <h2>概要</h2>
   <p>
     Apple の App Tracking Transparency（ATT）フレームワークに基づき、広告ネットワークによる IDFA（広告識別子）利用前にユーザーの許可を求める。
-    許可状況に応じて AppLovin MAX がパーソナライズ広告と非パーソナライズ広告を切り替える。
+    許可状況に応じて Unity LevelPlay がパーソナライズ広告と非パーソナライズ広告を切り替える。
   </p>
   <div class="callout">
-    <strong>2026-08-04 更新:</strong> 広告基盤を AdMob から <strong>AppLovin MAX</strong> へ全面移行した（AdMob が恒久的に利用不可になったため）。
-    あわせて、<strong>ATT ダイアログを表示するのは広告配信時のみ</strong>に限定した。
-    <code>AdEnvironment.isAdDeliveryAvailable</code> が <code>false</code> の環境（DEBUG / シミュレーター / TestFlight / SDK Key 未設定）では、
-    広告をリクエストしないためトラッキング許可も求めない。詳細は <a href="ad-control.html">広告制御</a> を参照。
+    <strong>2026-08-20 更新:</strong> 広告基盤を AppLovin MAX から <strong>Unity LevelPlay</strong> へ移行した
+    （AdMob 恒久停止後に移った AppLovin の publisher アカウント承認が下りなかったため）。
+    <strong>ATT ダイアログを表示するのは広告配信時のみ</strong>という方針は変えていない。
+    <code>AdEnvironment.isAdDeliveryAvailable</code>（<code>= !appKey.isEmpty &amp;&amp; isProduction</code>）が <code>false</code> の環境
+    （DEBUG / シミュレーター / TestFlight / App Key 未設定）では、広告をリクエストしないためトラッキング許可も求めない。
+    詳細は <a href="ad-control.html">広告制御</a> を参照。
   </div>
 
   <h2>関連画面</h2>
@@ -60,13 +62,13 @@ sequenceDiagram
   participant App as ContentView
   participant Env as AdEnvironment
   participant ATT as ATTrackingManager
-  participant MAX as AppLovin MAX
+  participant LP as Unity LevelPlay
 
   App->>App: authenticated 遷移 (ホーム表示)
   App->>Env: isAdDeliveryAvailable
-  alt 広告配信が無効（DEBUG / シミュレーター / TestFlight / SDK Key 未設定）
+  alt 広告配信が無効（DEBUG / シミュレーター / TestFlight / App Key 未設定）
     Env-->>App: false
-    Note over App,MAX: ATT プロンプトを表示しない
+    Note over App,LP: ATT プロンプトを表示しない
   else 広告配信が有効（App Store 配信版）
     Env-->>App: true
     App->>App: scenePhase == .active を確認
@@ -74,9 +76,9 @@ sequenceDiagram
     ATT-->>App: status (.authorized / .denied / .restricted / .notDetermined)
 
     alt status == .authorized
-      App->>MAX: IDFA 利用 (パーソナライズ広告)
+      App->>LP: IDFA 利用 (パーソナライズ広告)
     else status != .authorized
-      App->>MAX: IDFA 非利用 (非パーソナライズ広告)
+      App->>LP: IDFA 非利用 (非パーソナライズ広告)
     end
   end
 
@@ -91,7 +93,7 @@ sequenceDiagram
     あなたの興味・関心に合った広告を表示するため、広告識別子（IDFA）の利用許可をお願いしています。許可しない場合も、アプリの全機能をご利用いただけます。
   </blockquote>
 
-  <h2>AppLovin MAX との連携</h2>
+  <h2>Unity LevelPlay との連携</h2>
   <table>
     <tr><th>ATT ステータス</th><th>広告配信の動作</th></tr>
     <tr><td><code>.authorized</code></td><td>IDFA を利用したパーソナライズ広告を配信</td></tr>
@@ -99,13 +101,13 @@ sequenceDiagram
     <tr><td><code>.notDetermined</code></td><td>非パーソナライズ広告（プロンプト未回答の間）</td></tr>
   </table>
   <div class="callout">
-    AppLovin MAX SDK は ATT の許可状況を OS から検出して IDFA 利用 / 非パーソナライズを切り替える。
+    LevelPlay SDK と Unity Ads アダプタは ATT の許可状況を OS から検出して IDFA 利用 / 非パーソナライズを切り替える。
     アプリ側でフラグを手動設定する必要はない。
   </div>
 
   <h2>ビジネスルール</h2>
   <ul>
-    <li><strong>ATT プロンプトは広告配信が有効な環境でのみ表示する</strong>（App Store 配信版かつ SDK Key 設定済み）</li>
+    <li><strong>ATT プロンプトは広告配信が有効な環境でのみ表示する</strong>（App Store 配信版かつ App Key 設定済み）</li>
     <li>ATT プロンプトはアプリ起動中に1度のみ表示（iOS OS 制御）</li>
     <li>許可・拒否にかかわらず、アプリの全機能を利用可能とする</li>
     <li>設定アプリから後から変更可能であることを設定画面で案内する</li>
@@ -116,7 +118,7 @@ sequenceDiagram
   <table>
     <tr><th>連携先</th><th>用途</th><th>備考</th></tr>
     <tr><td>AppTrackingTransparency フレームワーク</td><td>ATT ダイアログの制御</td><td>iOS 14.5+ 必須</td></tr>
-    <tr><td>AppLovin MAX SDK (13.6.3)</td><td>ATT 許可状況に応じた広告配信切替</td><td>自動切替（手動設定不要）。2026-08-04 に GoogleMobileAds から移行</td></tr>
+    <tr><td>Unity LevelPlay SDK (9.6.0) + LevelPlayUnityAdsAdapter (5.10.0)</td><td>ATT 許可状況に応じた広告配信切替</td><td>自動切替（手動設定不要）。2026-08-04 に GoogleMobileAds → AppLovin MAX、2026-08-20 に LevelPlay へ移行</td></tr>
   </table>
 
   <h2>エラー処理</h2>
@@ -132,7 +134,7 @@ sequenceDiagram
     <li class="done">scenePhase 監視で復帰時の再試行を実装</li>
     <li class="done">NSUserTrackingUsageDescription を具体的な文言で Info.plist に設定</li>
     <li class="done">ATT 要求を <code>AdEnvironment.isAdDeliveryAvailable</code> でガードし、広告配信時のみ表示</li>
-    <li class="done">AppLovin MAX SDK の ATT 自動切替を利用（アプリ側の手動フラグ設定は不要）</li>
+    <li class="done">LevelPlay SDK の ATT 自動切替を利用（アプリ側の手動フラグ設定は不要）</li>
   </ul>
 
   <h2>関連ファイル</h2>
@@ -146,6 +148,7 @@ sequenceDiagram
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-06-05</td><td>初版作成。ATT プロンプト制御・GoogleMobileAds v12 連携の仕様を記述。</td></tr>
     <tr><td>1.1</td><td>2026-08-04</td><td>広告基盤の AdMob → AppLovin MAX 全面移行を反映。連携先を AppLovin MAX SDK に差し替え、ATT プロンプトの表示条件に「広告配信が有効な環境のみ（<code>AdEnvironment.isAdDeliveryAvailable</code>）」を追加。処理フローに配信可否の分岐を追加。</td></tr>
+    <tr><td>1.2</td><td>2026-08-20</td><td>広告基盤の <strong>AppLovin MAX → Unity LevelPlay 移行</strong>を反映。連携先を LevelPlay 9.6.0 + LevelPlayUnityAdsAdapter 5.10.0 に差し替え。判定条件の表記を SDK Key から <strong>App Key</strong>（<code>isAdDeliveryAvailable = !appKey.isEmpty &amp;&amp; isProduction</code>）へ更新。ATT ダイアログを広告配信時のみ表示する方針は変更なし。</td></tr>
   </table>
 
   <script>
@@ -155,7 +158,7 @@ sequenceDiagram
     });
   </script>
 
-  <footer class="site-footer">最終更新: 2026-08-04</footer>
+  <footer class="site-footer">最終更新: 2026-08-20</footer>
 </div>
 </body>
 </html>

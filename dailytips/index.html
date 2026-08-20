@@ -21,7 +21,7 @@
     <li><span class="k">カテゴリ</span><span class="v">教育 / リファレンス</span></li>
     <li><span class="k">対応OS</span><span class="v">iOS 18.0+ / Swift 6.0</span></li>
     <li><span class="k">言語</span><span class="v">日本語のみ</span></li>
-    <li><span class="k">マネタイズ</span><span class="v">サブスクリプション（月額/年額）+ AdMob 4種広告（Banner/Interstitial/Rewarded/AppOpen）</span></li>
+    <li><span class="k">マネタイズ</span><span class="v">サブスクリプション（月額/年額）+ Unity LevelPlay 3種広告（Banner / Interstitial / Rewarded）。<strong>アプリ起動広告（AppOpen）は 2026-08-20 に廃止</strong>。App Key・広告ユニットIDは設定済みだが ironSource Ads アカウント承認待ちのため現在は未配信</span></li>
     <li><span class="k">ステータス</span><span class="v">リリース済</span></li>
     <li><span class="k">リリース時期</span><span class="v">2026年4月</span></li>
     <li><span class="k">バージョン</span><span class="v">1.0.7 (build 19)</span></li>
@@ -36,6 +36,17 @@
     Widget表示、コイン経済（ログインボーナス・動画報酬）を組み合わせて継続利用を促す設計。
     v1.0.5 では学習メモ・検索・復習通知・無料体験枠などの新機能を追加し、教育アプリとしての価値を強化。
   </p>
+
+  <h2>広告基盤の変更（2026-08-20）</h2>
+  <div class="callout">
+    <p style="margin-top:0"><strong>広告基盤を Unity LevelPlay へ移行した。</strong>
+    AdMob（2026-07-30 アカウント恒久停止）→ AppLovin MAX（publisher アカウントの承認が下りず断念）→ <strong>Unity LevelPlay</strong>（2026-08-20 移行完了）。</p>
+    <p><strong>アプリ起動広告（App Open）は廃止</strong>。LevelPlay に該当フォーマットが存在しないため、<code>AppOpenAdManager</code> は
+    API を残した無効スタブとしている。復活には App Open を持つ別ネットワークの併用が必要。</p>
+    <p style="margin-bottom:0">広告の配信は App Store 配信版のみ（<code>AdEnvironment.isAdDeliveryAvailable = !appKey.isEmpty &amp;&amp; isProduction</code>）。
+    現在は ironSource Ads アカウントが承認待ちのため未配信。詳細は <a href="features/ad-control.html">広告制御</a> を参照。</p>
+  </div>
+  <p class="note">※ 以下の「v1.0.7 / v1.0.5 主な変更点」は当時のリリース内容の記録であり、記載中の AdMob・アプリ起動広告に関する項目は現行仕様ではない。</p>
 
   <h2>v1.0.7 主な変更点（2026-05-25）</h2>
   <ul>
@@ -118,7 +129,7 @@
   <div class="card-grid">
     <a class="card" href="features/coin-economy.html"><div class="title">コイン経済</div><div class="desc">獲得・消費・ストリーク</div></a>
     <a class="card" href="features/widget-sync.html"><div class="title">Widget同期</div><div class="desc">本体↔Widget の AppGroup 同期</div></a>
-    <a class="card" href="features/ad-control.html"><div class="title">広告制御</div><div class="desc">AppLovin MAX 4種広告・App Store 配信版のみに限定する安全機構</div></a>
+    <a class="card" href="features/ad-control.html"><div class="title">広告制御</div><div class="desc">Unity LevelPlay 3種広告・起動広告の廃止・App Store 配信版のみに限定する安全機構</div></a>
     <a class="card" href="features/review-prompt.html"><div class="title">レビュー誘導</div><div class="desc">5回目・20回目起動でin-app review</div></a>
     <a class="card" href="features/notification.html"><div class="title">通知</div><div class="desc">毎日のローカル通知</div></a>
     <a class="card" href="features/favorite.html"><div class="title">お気に入り</div><div class="desc">tipID配列でブックマーク</div></a>
@@ -127,7 +138,13 @@
     <a class="card" href="features/search.html"><div class="title">検索</div><div class="desc">過去の豆知識をキーワード・カテゴリで検索</div></a>
   </div>
 
-  <footer class="site-footer">最終更新: 2026-05-17</footer>
+    <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-08-20</td><td>変更履歴セクションを新設。<strong>広告基盤を Unity LevelPlay へ移行</strong>（AdMob 恒久停止 → AppLovin MAX の承認却下 → LevelPlay 9.6.0 + UnityAds アダプタ 5.10.0）し、<strong>アプリ起動広告（App Open）を廃止</strong>（LevelPlay に該当フォーマットが存在しないため）。マネタイズ表記・広告制御カード・広告基盤の変更セクションを更新。App Key・広告ユニットID3種は設定済みだが、ironSource Ads アカウント承認待ちのため未配信。</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-08-20</footer>
 </div>
 </body>
 </html>
