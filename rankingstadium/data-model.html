@@ -289,7 +289,7 @@ struct Quiz: Codable, Identifiable {
 
   <div class="callout">
     クライアントが書き換えられる値をサーバが信用していた箇所を洗い出し、<strong>集計と検証をサーバ側へ寄せた</strong>。
-    マイグレーション: <code>supabase/migrations/049_*.sql</code>（2026-08-23 本番適用済み）
+    マイグレーション: <code>supabase/migrations/049_harden_vote_and_ranking_writes.sql</code>（2026-08-23 本番適用済み）
   </div>
 
   <h3>1. 投票集計をトリガーへ移行</h3>
@@ -452,7 +452,7 @@ struct Quiz: Codable, Identifiable {
     <li><code>RankingStadium/Services/BlockService.swift</code></li>
     <li><code>supabase/migrations/027_blocks.sql</code></li>
     <li><code>supabase/migrations/028_add_is_comp.sql</code></li>
-    <li><code>supabase/migrations/049_*.sql</code>（投票集計トリガー / 集計 RPC の no-op 化 / rankings 列レベル GRANT・WITH CHECK / refund_ranking の返金額復元）</li>
+    <li><code>supabase/migrations/049_harden_vote_and_ranking_writes.sql</code>（投票集計トリガー / 集計 RPC の no-op 化 / rankings 列レベル GRANT・WITH CHECK / refund_ranking の返金額復元）</li>
   </ul>
 
   <h2>変更履歴</h2>
