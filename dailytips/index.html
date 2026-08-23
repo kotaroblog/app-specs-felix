@@ -37,14 +37,23 @@
     v1.0.5 では学習メモ・検索・復習通知・無料体験枠などの新機能を追加し、教育アプリとしての価値を強化。
   </p>
 
-  <h2>広告基盤の変更（2026-08-20）</h2>
+  <h2>広告基盤の変更（2026-08-20 / 2026-08-23）</h2>
   <div class="callout">
     <p style="margin-top:0"><strong>広告基盤を Unity LevelPlay へ移行した。</strong>
     AdMob（2026-07-30 アカウント恒久停止）→ AppLovin MAX（publisher アカウントの承認が下りず断念）→ <strong>Unity LevelPlay</strong>（2026-08-20 移行完了）。</p>
     <p><strong>アプリ起動広告（App Open）は廃止</strong>。LevelPlay に該当フォーマットが存在しないため、<code>AppOpenAdManager</code> は
     API を残した無効スタブとしている。復活には App Open を持つ別ネットワークの併用が必要。</p>
-    <p style="margin-bottom:0">広告の配信は App Store 配信版のみ（<code>AdEnvironment.isAdDeliveryAvailable = !appKey.isEmpty &amp;&amp; isProduction</code>）。
+    <p>広告の配信は App Store 配信版のみ（<code>AdEnvironment.isAdDeliveryAvailable = !appKey.isEmpty &amp;&amp; isProduction</code>）。
     現在は ironSource Ads アカウントが承認待ちのため未配信。詳細は <a href="features/ad-control.html">広告制御</a> を参照。</p>
+    <p style="margin-bottom:0">LevelPlay への移行は 2026-08-20 に7アプリ、2026-08-23 に ITPassportMaster を実施し、<strong>全8アプリで統一</strong>されている。</p>
+  </div>
+  <div class="callout danger">
+    <strong>2026-08-23 の要対応事項</strong>
+    <ul>
+      <li><strong>ATT ダイアログの表示条件を <code>shouldRequestTracking</code>（<code>= !appKey.isEmpty</code>）へ分離する</strong>設計に変更した。現状のガード <code>isAdDeliveryAvailable</code> は <code>isProduction</code> を含むため、sandbox で走る App Store 審査ではダイアログが原理的に表示されない。同じ理由で 2026-08-22 に姉妹アプリ CHROMATIC 1.4.0(7) が Guideline 2.1 - Information Needed でリジェクトされた。<strong>DailyTips のコードは未適用</strong></li>
+      <li><code>PrivacyInfo.xcprivacy</code> は <strong><code>NSPrivacyTracking: false</code> ＋ <code>NSPrivacyTrackingDomains</code> キーごと削除</strong>が正解（ITMS-91064 対策）。誤って戻さないこと</li>
+    </ul>
+    <p style="margin-bottom:0">いずれも <a href="features/ad-control.html">広告制御</a> に詳細を記載。</p>
   </div>
   <p class="note">※ 以下の「v1.0.7 / v1.0.5 主な変更点」は当時のリリース内容の記録であり、記載中の AdMob・アプリ起動広告に関する項目は現行仕様ではない。</p>
 
@@ -129,7 +138,7 @@
   <div class="card-grid">
     <a class="card" href="features/coin-economy.html"><div class="title">コイン経済</div><div class="desc">獲得・消費・ストリーク</div></a>
     <a class="card" href="features/widget-sync.html"><div class="title">Widget同期</div><div class="desc">本体↔Widget の AppGroup 同期</div></a>
-    <a class="card" href="features/ad-control.html"><div class="title">広告制御</div><div class="desc">Unity LevelPlay 3種広告・起動広告の廃止・App Store 配信版のみに限定する安全機構</div></a>
+    <a class="card" href="features/ad-control.html"><div class="title">広告制御</div><div class="desc">Unity LevelPlay 3種広告・起動広告の廃止・配信環境の限定・ATT 表示条件・プライバシーマニフェスト方針</div></a>
     <a class="card" href="features/review-prompt.html"><div class="title">レビュー誘導</div><div class="desc">5回目・20回目起動でin-app review</div></a>
     <a class="card" href="features/notification.html"><div class="title">通知</div><div class="desc">毎日のローカル通知</div></a>
     <a class="card" href="features/favorite.html"><div class="title">お気に入り</div><div class="desc">tipID配列でブックマーク</div></a>
@@ -142,9 +151,10 @@
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-08-20</td><td>変更履歴セクションを新設。<strong>広告基盤を Unity LevelPlay へ移行</strong>（AdMob 恒久停止 → AppLovin MAX の承認却下 → LevelPlay 9.6.0 + UnityAds アダプタ 5.10.0）し、<strong>アプリ起動広告（App Open）を廃止</strong>（LevelPlay に該当フォーマットが存在しないため）。マネタイズ表記・広告制御カード・広告基盤の変更セクションを更新。App Key・広告ユニットID3種は設定済みだが、ironSource Ads アカウント承認待ちのため未配信。</td></tr>
+    <tr><td>1.1</td><td>2026-08-23</td><td><strong>ATT ダイアログの表示条件の設計変更</strong>を反映（<code>shouldRequestTracking = !appKey.isEmpty</code> で広告の配信可否と分離し、審査ビルドでも表示する）。<code>isAdDeliveryAvailable</code> のままでは sandbox で走る App Store 審査でダイアログが出ず、2026-08-22 に姉妹アプリ CHROMATIC 1.4.0(7) が Guideline 2.1 でリジェクトされた。<strong>DailyTips のコードは未適用</strong>である旨を要対応事項として明記。あわせて<strong>プライバシーマニフェストの方針</strong>（<code>NSPrivacyTracking: false</code> ＋ <code>NSPrivacyTrackingDomains</code> キーごと削除／ITMS-91064）を追記。<strong>アプリ起動広告は LevelPlay 移行に伴う廃止</strong>である旨を <a href="features/ad-control.html">広告制御</a> で明示。LevelPlay 移行が 2026-08-23 の ITPassportMaster をもって全8アプリで統一された点を追記。</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-08-20</footer>
+  <footer class="site-footer">最終更新: 2026-08-23</footer>
 </div>
 </body>
 </html>

@@ -21,13 +21,21 @@
     <li><span class="k">カテゴリ</span><span class="v">ソーシャル / エンタメ</span></li>
     <li><span class="k">対応OS</span><span class="v">iOS 18.0+ / Swift 6.0</span></li>
     <li><span class="k">言語</span><span class="v">日本語のみ（project.yml localizations: ja のみ。英語UIの実体なし）</span></li>
-    <li><span class="k">マネタイズ</span><span class="v">サブスクリプション（月額/年額）+ Unity LevelPlay 広告（AdMob 恒久停止 → AppLovin MAX → 2026-08-20 に LevelPlay へ移行。App Key・広告ユニットIDは設定済みだが ironSource Ads アカウント承認待ちのため現在は未配信）</span></li>
+    <li><span class="k">マネタイズ</span><span class="v">サブスクリプション（月額/年額）+ Unity LevelPlay 広告（AdMob 恒久停止 → AppLovin MAX の承認却下 → 2026-08-20 に LevelPlay へ移行。2026-08-23 時点で全8アプリが LevelPlay に統一。App Key・広告ユニットIDは設定済みだが ironSource Ads アカウント承認待ちのため現在は未配信）</span></li>
     <li><span class="k">ステータス</span><span class="v">リリース予定</span></li>
     <li><span class="k">リリース時期</span><span class="v">2026年5月末</span></li>
     <li><span class="k">バージョン</span><span class="v">1.0 (build 7)</span></li>
     <li><span class="k">DBバックエンド</span><span class="v">Supabase（PostgreSQL + Auth + RLS）</span></li>
     <li><span class="k">認証</span><span class="v">Apple Sign In</span></li>
   </ul>
+
+  <div class="callout danger">
+    <strong>2026-08-23 の要対応事項（1.0.2 審査中）</strong>
+    <ul>
+      <li><strong>ATT ダイアログが審査ビルドで表示されない</strong>。表示ガードが <code>AdEnvironment.isAdDeliveryAvailable</code>（<code>isProduction</code> を含む）のままで、sandbox で走る審査では原理的に出ない。同じ理由で 2026-08-22 に姉妹アプリ CHROMATIC 1.4.0(7) が Guideline 2.1 - Information Needed でリジェクトされている。<strong>本アプリは未修正</strong>のため、同様にリジェクトされる可能性がある（<a href="features/att.html">ATT</a>）</li>
+      <li>サーバ側は <strong>マイグレーション 049 を 2026-08-23 に本番適用済み</strong>（投票集計のトリガー移行・集計 RPC の no-op 化・<code>rankings</code> の列レベル GRANT ＋ RLS <code>WITH CHECK</code>・<code>refund_ranking</code> の返金額復元）。<a href="data-model.html">データモデル</a> を参照</li>
+    </ul>
+  </div>
 
   <h2>アプリの目的</h2>
   <p>
@@ -94,17 +102,18 @@
     <a class="card" href="features/notification.html"><div class="title">通知</div><div class="desc">アプリ内通知の取得・既読管理</div></a>
     <a class="card" href="features/follow.html"><div class="title">フォロー</div><div class="desc">ユーザー間のフォロー関係</div></a>
     <a class="card" href="features/moderation.html"><div class="title">モデレーション（ブロック・通報）</div><div class="desc">ブロック機能・通報機能。Guideline 1.2 / 5.1.1 対応</div><div class="meta"><span class="tag">RS-FEAT-MOD</span></div></a>
-    <a class="card" href="features/att.html"><div class="title">ATT（App Tracking Transparency）</div><div class="desc">iOS 14.5+ IDFA 許可ダイアログ制御・Unity LevelPlay 連携</div><div class="meta"><span class="tag">RS-FEAT-ATT</span></div></a>
-    <a class="card" href="features/ad-control.html"><div class="title">広告制御</div><div class="desc">Unity LevelPlay 配信・App Store 配信版のみに限定する安全機構</div><div class="meta"><span class="tag">RS-FEAT-AD</span></div></a>
+    <a class="card" href="features/att.html"><div class="title">ATT（App Tracking Transparency）</div><div class="desc">iOS 14.5+ IDFA 許可ダイアログ制御・表示条件（審査ビルド対応）・プライバシーマニフェスト方針</div><div class="meta"><span class="tag">RS-FEAT-ATT</span></div></a>
+    <a class="card" href="features/ad-control.html"><div class="title">広告制御</div><div class="desc">Unity LevelPlay 配信・App Store 配信版のみに限定する安全機構・ATT 表示条件の分離</div><div class="meta"><span class="tag">RS-FEAT-AD</span></div></a>
   </div>
 
     <h2>変更履歴</h2>
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-08-20</td><td>変更履歴セクションを新設。<strong>広告基盤を Unity LevelPlay へ移行</strong>（AdMob 恒久停止 → AppLovin MAX の承認却下 → LevelPlay 9.6.0 + UnityAds アダプタ 5.10.0）。マネタイズ表記と <a href="features/ad-control.html">広告制御</a> / <a href="features/att.html">ATT</a> のカード説明を更新。App Key・広告ユニットID3種は設定済みだが、ironSource Ads アカウント承認待ちのため未配信。</td></tr>
+    <tr><td>1.1</td><td>2026-08-23</td><td><strong>ATT ダイアログの表示条件の設計変更</strong>を反映（<code>shouldRequestTracking = !appKey.isEmpty</code> で配信可否と分離し、審査ビルドでも表示する）。<code>isAdDeliveryAvailable</code> のままでは sandbox で走る審査でダイアログが出ず、2026-08-22 に CHROMATIC 1.4.0(7) が Guideline 2.1 でリジェクトされた。<strong>本アプリは未修正で 1.0.2 が審査中</strong>である旨を要対応事項として明記。あわせて<strong>マイグレーション 049（2026-08-23 本番適用）</strong>のサーバ側セキュリティ強化を <a href="data-model.html">データモデル</a> / <a href="features/voting.html">投票機能</a> / <a href="features/point-economy.html">ポイント経済</a> / <a href="features/ranking-creation.html">ランキング作成</a> / <a href="features/subscription.html">サブスク課金</a> に反映。LevelPlay 移行が 2026-08-23 の ITPassportMaster をもって全8アプリで統一された点を追記。</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-08-20</footer>
+  <footer class="site-footer">最終更新: 2026-08-23</footer>
 </div>
 </body>
 </html>

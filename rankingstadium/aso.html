@@ -177,6 +177,9 @@ felixapps2026@outlook.jp
   <h2>本番リリース前のチェック</h2>
   <ul class="checklist">
     <li>Unity LevelPlay の App Key・広告ユニットIDを設定（2026-08-20 設定済み。ironSource Ads アカウント承認後に配信開始）</li>
+    <li><strong>ATT ダイアログが審査ビルド（sandbox）で表示されることを確認</strong>する。<code>AdEnvironment.shouldRequestTracking</code>（<code>= !appKey.isEmpty</code>）でガードすること。<code>isAdDeliveryAvailable</code> でガードすると審査担当者の手元で出ず、<strong>Guideline 2.1 - Information Needed</strong> でリジェクトされる（2026-08-22 に CHROMATIC 1.4.0(7) が被弾）<span class="tag warn">未対応</span></li>
+    <li><code>PrivacyInfo.xcprivacy</code> が <strong><code>NSPrivacyTracking: false</code> ＋ <code>NSPrivacyTrackingDomains</code> キーごと削除</strong>になっていることを確認（ITMS-91064 対策）</li>
+    <li><code>altool --validate-app</code> を通してからアップロードする（ITMS 系エラーの事前検出）</li>
     <li>StoreKit 商品（月額・年額）の本番価格設定</li>
     <li>RankingService.createRanking() / VoteService.castVote() のEdge Function化検討</li>
     <li>キャプションテキスト・スクショ画像の最終版確定</li>
@@ -195,9 +198,10 @@ felixapps2026@outlook.jp
     <tr><td>1.5</td><td>2026-05-31</td><td>「Inc.」表記は法人実体がない状況で使うと誤認表示リスクあるため再訂正。著作権を「2026 Felix Apps」（屋号ベース）に確定。support.htmlフッターと整合。DailyTips等の既存リリース済みアプリも次回アップデート時に同表記へ統一推奨</td></tr>
     <tr><td>1.6</td><td>2026-05-31</td><td>年額プラン価格を3,800円→4,800円に変更（割引率34%→17%）。説明文の表記と特商法ページ（tokushoho.html）を連動更新</td></tr>
       <tr><td>1.7</td><td>2026-08-20</td><td>リリース前チェックの「本番AdMob Ad Unit IDに切り替え」を、広告基盤の Unity LevelPlay 移行（2026-08-20）に合わせて App Key・広告ユニットIDの設定項目へ更新。設定は完了済みで、ironSource Ads アカウント承認後に配信が始まる。</td></tr>
+    <tr><td>1.8</td><td>2026-08-23</td><td>本番リリース前チェックに提出時の必須確認を追加。(1) <strong>ATT ダイアログが審査ビルド（sandbox）で表示されること</strong>—— ガードは <code>AdEnvironment.shouldRequestTracking</code> を使う。<code>isAdDeliveryAvailable</code> は <code>isProduction</code> を含むため審査で出ず、2026-08-22 に CHROMATIC 1.4.0(7) が Guideline 2.1 でリジェクトされた（本アプリは<strong>未対応</strong>で 1.0.2 審査中）。(2) <code>PrivacyInfo.xcprivacy</code> が <code>NSPrivacyTracking: false</code> ＋ <code>NSPrivacyTrackingDomains</code> 削除であること（ITMS-91064 対策）。(3) <code>altool --validate-app</code> を通してからアップロードすること。</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-31</footer>
+  <footer class="site-footer">最終更新: 2026-08-23</footer>
 </div>
 </body>
 </html>

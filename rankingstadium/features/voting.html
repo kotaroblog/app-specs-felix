@@ -16,7 +16,7 @@
     <h1>投票機能</h1>
     <p>シングル / TOP3 / クイズゲート / 再投票の投票システム</p>
     <div class="section-meta">
-      <span class="tag done">v1.0</span>
+      <span class="tag done">v1.2</span>
       <span class="tag">機能ID: RS-FEAT-VOTE</span>
     </div>
   </header>
@@ -24,6 +24,13 @@
   <h2>概要</h2>
   <p>ランキングへの投票機能。シングル投票（1選択肢）と TOP3投票（3選択肢の順位付き）の2モード。
   クイズゲート機能で「分かってる人だけ投票できる」品質保証。再投票は最大3回までポイント消費で許可。</p>
+
+  <div class="callout warn">
+    <strong>2026-08-23（マイグレーション 049・本番適用済み）:</strong>
+    投票数の集計を<strong>サーバ側トリガーへ移行</strong>した。
+    <code>votes</code> テーブルへの INSERT を唯一の集計契機とし、クライアントは集計 RPC を呼ばない。
+    詳細は <a href="../data-model.html">データモデル</a> を参照。
+  </div>
 
   <h2>関連画面</h2>
   <ul>
@@ -54,14 +61,27 @@ sequenceDiagram
     DB-->>VS: 23505エラー
     VS-->>VM: VoteError.alreadyVoted
   else 成功
-    DB-->>VS: ok
-    VS->>DB: choices.voteCount RPC
-    VS->>DB: rankings.voteCount RPC
+    DB-->>DB: 文レベルトリガーが choices.vote_count /<br/>rankings.vote_count を更新
     DB-->>VS: ok
   end
   VS-->>VM: 完了
   VM->>V: hasVotedOptimistically=true
   V->>U: ResultView へ遷移
+  </div>
+
+  <h2>投票数の集計（2026-08-23 サーバ側へ移行）</h2>
+  <table>
+    <tr><th>項目</th><th>内容</th></tr>
+    <tr><td>集計の契機</td><td><code>votes</code> テーブルへの <strong>INSERT のみ</strong>（唯一の集計トリガー）</td></tr>
+    <tr><td>更新対象</td><td><code>choices.vote_count</code> / <code>rankings.vote_count</code></td></tr>
+    <tr><td>トリガー種別</td><td><strong>文レベルトリガー</strong>（<code>REFERENCING NEW TABLE</code>）</td></tr>
+    <tr><td>文レベルにした理由</td><td><strong>TOP3 モードの3行を1票として数える</strong>ため。行レベルだと1票が3票に膨らむ</td></tr>
+    <tr><td>クライアントの責務</td><td><code>votes</code> の INSERT のみ。集計 RPC は呼ばない</td></tr>
+    <tr><td>列レベル権限</td><td><code>rankings.vote_count</code> / <code>vote_tier</code> はクライアントから UPDATE できない</td></tr>
+  </table>
+  <div class="callout">
+    旧 RPC <code>increment_choice_vote</code> / <code>increment_ranking_vote</code> は<strong>削除せず no-op 化</strong>している。
+    App Store に残る旧バージョンのアプリが呼び続けるためで、これによりアプリの再リリースなしに移行できた。
   </div>
 
   <h2>投票モード</h2>
@@ -81,6 +101,7 @@ sequenceDiagram
     <li>クイズ付きランキングは全問正解後のみ投票可能</li>
     <li>期間外の投票は受け付けない（accessPolicy で判定）</li>
     <li>投票直後は <code>hasVotedOptimistically</code> で UI 即時更新（楽観UI）</li>
+    <li><strong>投票数の集計はサーバ側トリガーが行う</strong>。クライアントは <code>votes</code> の INSERT のみを責務とする</li>
     <li>削除済みランキング（status: deleted）への投票は不可</li>
   </ul>
 
@@ -96,7 +117,7 @@ sequenceDiagram
   <table>
     <tr><th>連携先</th><th>用途</th></tr>
     <tr><td>Supabase votes表</td><td>投票記録</td></tr>
-    <tr><td>Supabase RPC</td><td>choices.voteCount / rankings.voteCount の更新</td></tr>
+    <tr><td>Supabase トリガー（votes INSERT）</td><td><code>choices.vote_count</code> / <code>rankings.vote_count</code> の更新（文レベル。旧 RPC は no-op 化）</td></tr>
     <tr><td>PointService</td><td>再投票時のポイント消費</td></tr>
   </table>
 
@@ -106,7 +127,7 @@ sequenceDiagram
     <tr><td>ポイント不足</td><td>「ポイントが足りません」アラート</td></tr>
     <tr><td>既に投票済み（Unique違反）</td><td>「すでに投票済みです」 + ResultView へ</td></tr>
     <tr><td>期間外</td><td>「投票期間外です」</td></tr>
-    <tr><td>非アトミック途中失敗</td><td>cancelRefund で補償処理</td></tr>
+    <tr><td>非アトミック途中失敗</td><td>cancelRefund で補償処理。<strong>票数の集計ずれはトリガー移行により発生しない</strong></td></tr>
   </table>
 
   <h2>実装メモ</h2>
@@ -115,6 +136,7 @@ sequenceDiagram
     <li class="done">isUniqueViolation() で既投票検出（PostgreSQL 23505 SQLState）</li>
     <li class="done">RankingDetailViewModel.nextVoteNumber で再投票回数管理</li>
     <li class="done">端末単位の重複投票防止（ゲストアカウント使い捨て対策）</li>
+    <li class="done">投票集計を文レベルトリガーへ移行（マイグレーション 049）。旧集計 RPC は no-op 化して旧クライアント互換を維持</li>
     <li>Supabase Edge Function 化（v1.1検討）でアトミック化</li>
   </ul>
 
@@ -123,6 +145,7 @@ sequenceDiagram
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
     <tr><td>1.1</td><td>2026-07-15</td><td>ゲストの重複投票対策を追加（端末単位の重複防止・不正検知記録・ゲストアカウント作成頻度制限）</td></tr>
+    <tr><td>1.2</td><td>2026-08-23</td><td><strong>投票数の集計をサーバ側トリガーへ移行</strong>（マイグレーション 049・本番適用済み）。<code>votes</code> テーブルへの INSERT を唯一の集計契機とし、<strong>文レベルトリガー</strong>（<code>REFERENCING NEW TABLE</code>）で <code>choices.vote_count</code> / <code>rankings.vote_count</code> を更新する。TOP3 モードの3行を1票として数えるため文レベルにしている。クライアントから呼んでいた集計 RPC（<code>increment_choice_vote</code> / <code>increment_ranking_vote</code>）は、App Store に残る旧バージョンが呼び続けるため<strong>削除せず no-op 化</strong>し、アプリの再リリースなしで移行した。処理フロー・外部連携・エラー処理を更新。ヘッダのバージョン表記が v1.0 のまま更新されていなかった不整合も修正。</td></tr>
   </table>
 
   <script>
@@ -132,7 +155,7 @@ sequenceDiagram
     });
   </script>
 
-  <footer class="site-footer">最終更新: 2026-07-15</footer>
+  <footer class="site-footer">最終更新: 2026-08-23</footer>
 </div>
 </body>
 </html>

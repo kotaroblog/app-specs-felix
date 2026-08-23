@@ -15,7 +15,7 @@
     <h1>広告制御機能</h1>
     <p>Unity LevelPlay 3種広告（Banner / Interstitial / Rewarded）の表示制御 ／ アプリ起動広告は廃止</p>
     <div class="section-meta">
-      <span class="tag done">v3.0</span>
+      <span class="tag done">v3.1</span>
       <span class="tag">機能ID: DT-FEAT-AD</span>
     </div>
   </header>
@@ -35,6 +35,7 @@
     <tr><td>2026-07-30 〜 2026-08-20</td><td>AppLovin MAX</td><td>移行完了したが publisher アカウントの承認が下りず断念</td></tr>
     <tr><td>2026-08-20 〜</td><td><strong>Unity LevelPlay</strong></td><td>移行完了。<strong>アプリ起動広告（App Open）は廃止</strong>。ironSource Ads アカウント承認待ち</td></tr>
   </table>
+  <p>LevelPlay への移行は 2026-08-20 に7アプリ、2026-08-23 に ITPassportMaster を実施し、<strong>全8アプリで統一</strong>されている。</p>
   <p>Unity Ads は 2026-04-01 以降、直接統合だと配信性能が落ちるため、<strong>LevelPlay（メディエーション）経由の bidder</strong> として利用する。直接統合は使わない。</p>
 
   <h2>概要</h2>
@@ -42,6 +43,11 @@
   プレミアム会員は全広告非表示。動画報酬やカレンダー解放で能動的な広告視聴も可能。</p>
 
   <h2>アプリ起動広告（App Open）の廃止</h2>
+  <div class="callout danger">
+    <strong>アプリ起動広告は、Unity LevelPlay 移行に伴い廃止した（停止で確定）。</strong>
+    LevelPlay にこのフォーマットが存在しないためであり、収益判断による一時停止ではない。
+    <code>AppOpenAdManager</code> は API を残した<strong>無効スタブ</strong>として残置している。
+  </div>
   <div class="callout">
     <p style="margin-top:0"><strong>LevelPlay にはアプリ起動広告（App Open）のフォーマットが存在しない。</strong>
     対応フォーマットはバナー・インタースティシャル・リワードの3種のみで、SDK にも App Open 相当のクラスがない
@@ -50,7 +56,7 @@
   </div>
   <table>
     <tr><th>項目</th><th>内容</th></tr>
-    <tr><td>方針</td><td><strong>停止で確定</strong>（2026-08-20）。起動時の広告収益はゼロとして扱う</td></tr>
+    <tr><td>方針</td><td><strong>LevelPlay 移行に伴い廃止。停止で確定</strong>（2026-08-20）。起動時の広告収益はゼロとして扱う</td></tr>
     <tr><td>コードの扱い</td><td><code>AppOpenAdManager</code> は <strong>API を残した無効スタブ</strong>。<code>loadAd()</code> / <code>showAdIfAvailable(isPremium:)</code> は意図的な no-op（ログも出さない）</td></tr>
     <tr><td>スタブにした理由</td><td>呼び出し側（起動時・フォアグラウンド復帰時）を書き換えると将来の復活時に差分が広がるため</td></tr>
     <tr><td>広告ユニットID</td><td><code>AdConfig.appOpenID</code> は空文字のまま未使用</td></tr>
@@ -78,7 +84,45 @@
     <li>LevelPlay にもテスト広告IDの概念がないため、<strong>開発中は広告を出さない</strong>方式を採用している</li>
     <li>SDK 初期化自体も配信可能な環境でのみ実行する（起動コストと不要な通信を避ける）</li>
     <li><strong>SDK の初期化完了前は広告をロードしない</strong>。LevelPlay は初期化前の <code>loadAd()</code> が失敗するため、初期化完了（<code>AdReadiness</code>）を待ってからロードする</li>
-    <li>ATT（トラッキング許可）ダイアログも広告配信時のみ表示する。広告がないのに許可を求める状態を作らない</li>
+    <li>ATT（トラッキング許可）ダイアログの表示条件は<strong>広告配信の可否とは別に判定する</strong>（下記「ATT ダイアログの表示条件」）</li>
+  </ul>
+
+  <h2>ATT ダイアログの表示条件（2026-08-23 設計変更）</h2>
+  <div class="callout danger">
+    <strong>問題:</strong> ATT ダイアログの表示を <code>AdEnvironment.isAdDeliveryAvailable</code> でガードしていた。
+    この値は <code>isProduction</code>（レシートが <code>sandboxReceipt</code> でないこと）を含む。
+    <strong>App Store の審査は TestFlight と同じ sandbox 環境で実行される</strong>ため、
+    審査担当者の手元では ATT ダイアログが原理的に表示されない。<br>
+    <strong>実害:</strong> 2026-08-22、姉妹アプリ CHROMATIC 1.4.0(7) が iPadOS 26.6 の審査で
+    <strong>Guideline 2.1 - Information Needed</strong> でリジェクトされた。
+  </div>
+  <p><strong>対策:</strong> 配信可否と ATT 表示可否を分離した。</p>
+  <pre><code>/// 広告の「配信」は App Store 版のみ（isAdDeliveryAvailable）に限定するが、
+/// ATT ダイアログの「表示」は審査ビルドでも行わなければならない。
+static var shouldRequestTracking: Bool { !appKey.isEmpty }</code></pre>
+  <table>
+    <tr><th>判定</th><th>条件</th><th>用途</th></tr>
+    <tr><td><code>isAdDeliveryAvailable</code></td><td><code>!appKey.isEmpty &amp;&amp; isProduction</code></td><td>SDK 初期化・広告のロード / 表示（App Store 配信版のみ）</td></tr>
+    <tr><td><strong><code>shouldRequestTracking</code></strong></td><td><code>!appKey.isEmpty</code></td><td><strong>ATT ダイアログの表示</strong>（審査・TestFlight を含む）</td></tr>
+  </table>
+  <p>App Key 未設定＝広告を一切出さない版では表示しないため、
+  「広告がないのに許可を求める」<strong>Guideline 5.1.2</strong> の懸念も同時に満たす。</p>
+  <div class="callout warn">
+    <strong>本アプリは未適用（2026-08-23 時点）。</strong>
+    同日 <code>shouldRequestTracking</code> を実装したのは StudyStopwatch / RoutineReel / WorkoutDiary と、
+    先行修正済みの CHROMATIC であり、<strong>DailyTips のコードにはまだ適用していない</strong>。
+    次回ビルドで <code>DailyTipsApp</code> の ATT 要求ガードを差し替えること。
+  </div>
+
+  <h2>プライバシーマニフェスト（PrivacyInfo.xcprivacy）</h2>
+  <div class="callout warn">
+    <strong><code>NSPrivacyTracking: false</code> ＋ <code>NSPrivacyTrackingDomains</code> キーごと削除</strong>が正解。誤って戻さないこと。
+  </div>
+  <ul>
+    <li><code>NSPrivacyTracking: true</code> かつ <code>NSPrivacyTrackingDomains</code> が空だと <strong>ITMS-91064</strong> でリジェクトされる（2026-08-20 に3本同時被弾。うち2本が本アプリと RankingStadium）</li>
+    <li><code>NSPrivacyTrackingDomains</code> は申告ではなく<strong>実行時のブロックリスト</strong>。載せたドメインは ATT 非許可時に OS が通信ごと遮断する</li>
+    <li><strong>Unity Ads は広告配信とトラッキングで同じドメインを使う</strong>ため、載せると ATT を拒否したユーザーに広告が1本も出なくなる</li>
+    <li>トラッキングの申告は App Store Connect の <strong>App Privacy</strong> 側で行う</li>
   </ul>
 
   <h2>広告配信が無効な期間の挙動</h2>
@@ -162,7 +206,8 @@
     <li>プレミアム会員は <strong>すべて非表示</strong>（Rewarded のみ報酬目的で利用可）</li>
     <li>広告ロード失敗時は <strong>UXを止めない</strong>（Banner: 枠ごと非表示、Interstitial: サイレントでスキップ）</li>
     <li>Interstitial はクイズ回答3回に1回</li>
-    <li><strong>アプリ起動広告は表示しない</strong>（フォーマット自体が存在しないため）</li>
+    <li><strong>アプリ起動広告は表示しない</strong>（LevelPlay 移行に伴い廃止。フォーマット自体が存在しないため）</li>
+    <li>ATT ダイアログは <strong>App Key が設定されていれば表示する</strong>（審査・TestFlight を含む）。広告の配信条件とは分離する</li>
     <li>広告ロード失敗時は指数バックオフ（上限64秒）で再試行する</li>
   </ul>
 
@@ -171,7 +216,8 @@
     <tr><th>連携先</th><th>用途</th></tr>
     <tr><td>Unity LevelPlay SDK（LevelPlay 9.6.0 / SPM <code>LevelPlay-Swift-Package</code> · product <code>UnityMediationSDK</code>）</td><td>3種広告のロード・表示。<code>OTHER_LDFLAGS</code> に <code>-ObjC</code> が必須</td></tr>
     <tr><td>LevelPlayUnityAdsAdapter 5.10.0（product <code>UnityAdsAdapter</code>）</td><td>Unity Ads を LevelPlay 経由の bidder として利用。SDK とは別バージョン体系のため 9.x 指定では依存解決に失敗する</td></tr>
-    <tr><td>App Tracking Transparency (ATT)</td><td>パーソナライズ広告のオプトイン（広告配信時のみダイアログ表示）</td></tr>
+    <tr><td>App Tracking Transparency (ATT)</td><td>パーソナライズ広告のオプトイン。App Key 設定時にダイアログを表示（審査・TestFlight を含む）</td></tr>
+    <tr><td><code>PrivacyInfo.xcprivacy</code></td><td>プライバシーマニフェスト。<code>NSPrivacyTracking: false</code> ／ <code>NSPrivacyTrackingDomains</code> はキーごと削除</td></tr>
     <tr><td>Info.plist（NSUserTrackingUsageDescription）</td><td>ATT説明文</td></tr>
     <tr><td>SKAdNetwork</td><td>アトリビューション計測</td></tr>
   </table>
@@ -197,6 +243,8 @@
     <li class="done">topMostViewController() でシート内から Rewarded 広告表示可能</li>
     <li class="done"><code>AppOpenAdManager</code> を API 維持のまま無効スタブ化（呼び出し側は無改修）</li>
     <li class="done">App Key・広告ユニットID3種を設定済み</li>
+    <li class="done"><code>PrivacyInfo.xcprivacy</code> を <code>NSPrivacyTracking: false</code> ＋ <code>NSPrivacyTrackingDomains</code> 削除に修正（ITMS-91064 対策）</li>
+    <li><strong>未対応:</strong> ATT 要求のガードを <code>AdEnvironment.shouldRequestTracking</code> に差し替える（審査ビルドでダイアログを表示させるため）</li>
     <li>ironSource Ads アカウントの承認完了を待つ（承認されるまで配信は始まらない）</li>
     <li>起動広告を復活させるかは、LevelPlay の収益実績を見てから判断する</li>
   </ul>
@@ -209,9 +257,10 @@
     <tr><td>1.2</td><td>2026-05-25</td><td>v1.0.7: AppOpen広告の <code>#if DEBUG return</code> バイパスを削除しテスト広告で動作確認可能に。SKAdNetworkItems 71件追加（Release/TestFlight での App Open Ad fill rate 改善）</td></tr>
     <tr><td>2.0</td><td>2026-08-04</td><td><strong>広告基盤を AdMob から AppLovin MAX へ全面移行</strong>（AdMob アカウントが恒久的に無効化され再審査も却下されたため）。あわせて再発防止の中枢として <code>AdEnvironment.isAdDeliveryAvailable</code> を導入し、<strong>広告のロード・表示を App Store 配信版のみに限定</strong>（DEBUG・シミュレーター・TestFlight では一切リクエストしない）。SDK Key 未設定の間は自動的に無効。広告配信が無効な期間はバナーを枠ごと非表示にし、リワードの報酬は広告なしで即付与する。AppOpen に表示間隔4時間・1日3回の上限を追加。ATT ダイアログも広告配信時のみ表示。プレミアム特典から「広告を完全に非表示」を削除（再開時に戻せるようコードにコメントを残置）。仕様書から広告ユニットIDの実値を削除</td></tr>
     <tr><td>3.0</td><td>2026-08-20</td><td><strong>広告基盤を AppLovin MAX から Unity LevelPlay へ移行</strong>（AppLovin の publisher アカウント承認が下りなかったため）。SDK を LevelPlay 9.6.0 + LevelPlayUnityAdsAdapter 5.10.0（SPM）へ差し替え、広告クラスを <code>LPMBannerAdView</code> / <code>LPMInterstitialAd</code> / <code>LPMRewardedAd</code> に更新。<strong>アプリ起動広告（App Open）を廃止</strong>—— LevelPlay に該当フォーマットが存在しないため、<code>AppOpenAdManager</code> は API を残した無効スタブとし、復活には App Open を持つ別ネットワークの併用が必要である旨を明記。判定式を <code>isAdDeliveryAvailable = !appKey.isEmpty &amp;&amp; isProduction</code> と明記し、<strong>SDK 初期化完了前は広告をロードしない</strong>制約を追加。App Key と広告ユニットID3種は設定済みだが、ironSource Ads アカウントが承認待ちのため未配信であることを反映。</td></tr>
+    <tr><td>3.1</td><td>2026-08-23</td><td><strong>ATT ダイアログの表示条件を配信可否から分離</strong>する設計変更を追記（<code>shouldRequestTracking = !appKey.isEmpty</code>）。<code>isAdDeliveryAvailable</code> は <code>isProduction</code>（レシートが <code>sandboxReceipt</code> でない）を含むため、sandbox で走る App Store 審査ではダイアログが原理的に表示されず、2026-08-22 に姉妹アプリ CHROMATIC 1.4.0(7) が Guideline 2.1 - Information Needed でリジェクトされた。App Key 未設定時は表示しないため Guideline 5.1.2 も満たす。<strong>DailyTips のコードには未適用</strong>。あわせて<strong>プライバシーマニフェストの方針</strong>（<code>NSPrivacyTracking: false</code> ＋ <code>NSPrivacyTrackingDomains</code> キーごと削除。ITMS-91064／同キーは実行時ブロックリストで Unity Ads は配信とトラッキングに同一ドメインを使うため載せない／トラッキング申告は ASC の App Privacy で行う）を新設。<strong>アプリ起動広告は「LevelPlay 移行に伴う廃止」</strong>である旨を冒頭で明示。LevelPlay 移行が 2026-08-23 の ITPassportMaster をもって全8アプリで統一された点を追記。</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-08-20</footer>
+  <footer class="site-footer">最終更新: 2026-08-23</footer>
 </div>
 </body>
 </html>

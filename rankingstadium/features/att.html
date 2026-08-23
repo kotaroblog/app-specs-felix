@@ -16,7 +16,7 @@
     <h1>ATT（App Tracking Transparency）</h1>
     <p>iOS 14.5+ 必須のトラッキング許可ダイアログ制御仕様</p>
     <div class="section-meta">
-      <span class="tag done">v1.1</span>
+      <span class="tag done">v1.3</span>
       <span class="tag">機能ID: RS-FEAT-ATT</span>
     </div>
   </header>
@@ -27,12 +27,67 @@
     許可状況に応じて Unity LevelPlay がパーソナライズ広告と非パーソナライズ広告を切り替える。
   </p>
   <div class="callout">
-    <strong>2026-08-20 更新:</strong> 広告基盤を AppLovin MAX から <strong>Unity LevelPlay</strong> へ移行した
+    <strong>2026-08-20:</strong> 広告基盤を AppLovin MAX から <strong>Unity LevelPlay</strong> へ移行した
     （AdMob 恒久停止後に移った AppLovin の publisher アカウント承認が下りなかったため）。
-    <strong>ATT ダイアログを表示するのは広告配信時のみ</strong>という方針は変えていない。
-    <code>AdEnvironment.isAdDeliveryAvailable</code>（<code>= !appKey.isEmpty &amp;&amp; isProduction</code>）が <code>false</code> の環境
-    （DEBUG / シミュレーター / TestFlight / App Key 未設定）では、広告をリクエストしないためトラッキング許可も求めない。
+    2026-08-23 の ITPassportMaster 移行をもって<strong>全8アプリが LevelPlay で統一</strong>されている。
     詳細は <a href="ad-control.html">広告制御</a> を参照。
+  </div>
+  <div class="callout warn">
+    <strong>2026-08-23 設計変更:</strong> ATT ダイアログの表示条件を
+    <code>AdEnvironment.isAdDeliveryAvailable</code> から <code>AdEnvironment.shouldRequestTracking</code> へ分離した。
+    <strong>広告の「配信」は App Store 版のみに限定したままで、ATT ダイアログの「表示」は審査ビルドでも行う</strong>。
+    理由は下記「ATT ダイアログの表示条件」を参照。
+  </div>
+
+  <h2>ATT ダイアログの表示条件（2026-08-23 設計変更）</h2>
+
+  <div class="callout danger">
+    <strong>問題:</strong> ATT ダイアログの表示を <code>AdEnvironment.isAdDeliveryAvailable</code> でガードしていた。
+    この値は <code>isProduction</code>（レシートが <code>sandboxReceipt</code> でないこと）を条件に含む。
+    <strong>App Store の審査は TestFlight と同じ sandbox 環境で実行される</strong>ため、
+    審査担当者の手元では ATT ダイアログが原理的に表示されない状態になっていた。
+  </div>
+
+  <div class="callout warn">
+    <strong>実害:</strong> 2026-08-22、姉妹アプリ <strong>CHROMATIC 1.4.0(7)</strong> が iPadOS 26.6 での審査において
+    <strong>Guideline 2.1 - Information Needed</strong> でリジェクトされた。
+  </div>
+
+  <h3>対策：配信可否と ATT 表示可否の分離</h3>
+  <p>広告を「配信してよいか」と、ATT ダイアログを「表示してよいか」は別の条件であると整理し、判定を2本立てにした。</p>
+  <pre><code>/// 広告の「配信」は App Store 版のみ（isAdDeliveryAvailable）に限定するが、
+/// ATT ダイアログの「表示」は審査ビルドでも行わなければならない。
+static var shouldRequestTracking: Bool { !appKey.isEmpty }</code></pre>
+
+  <table>
+    <tr><th>判定</th><th>条件</th><th>用途</th></tr>
+    <tr><td><code>isAdDeliveryAvailable</code></td><td><code>!appKey.isEmpty &amp;&amp; isProduction</code></td><td>広告の SDK 初期化・ロード・表示（App Store 配信版のみ）</td></tr>
+    <tr><td><strong><code>shouldRequestTracking</code></strong></td><td><code>!appKey.isEmpty</code></td><td><strong>ATT ダイアログの表示</strong>（TestFlight・審査ビルドを含む）</td></tr>
+  </table>
+
+  <table>
+    <tr><th>環境</th><th>ATT ダイアログ</th><th>広告の配信</th></tr>
+    <tr><td>App Store 配信版</td><td>表示する</td><td>配信する</td></tr>
+    <tr><td>審査（sandbox）／ TestFlight</td><td><strong>表示する</strong></td><td>配信しない</td></tr>
+    <tr><td>DEBUG / シミュレーター</td><td>表示する（App Key 設定済みの場合）</td><td>配信しない</td></tr>
+    <tr><td>App Key 未設定</td><td><strong>表示しない</strong></td><td>配信しない</td></tr>
+  </table>
+
+  <div class="callout">
+    App Key 未設定＝広告を一切出さない版では ATT ダイアログを表示しない。
+    これにより「広告がないのにトラッキング許可を求める」ことを禁じる
+    <strong>Guideline 5.1.2</strong> の懸念も同時に満たす。
+  </div>
+
+  <div class="callout danger">
+    <strong>本アプリへの適用状況: 未適用（2026-08-23 時点）</strong><br>
+    本セクションは<strong>「あるべき設計」</strong>として記載している。
+    2026-08-23 に <code>shouldRequestTracking</code> を実装したのは
+    StudyStopwatch / RoutineReel / WorkoutDiary と、先行して修正済みの CHROMATIC であり、
+    <strong>RankingStadium のコードにはまだ適用していない</strong>。<br>
+    RankingStadium は現在 <strong>1.0.2 が審査中</strong>であり、CHROMATIC と同じ理由でリジェクトされる可能性がある。
+    次回ビルドで <code>AdEnvironment.shouldRequestTracking</code> を導入し、
+    <code>ContentView</code> の ATT 要求ガードを差し替えること。
   </div>
 
   <h2>関連画面</h2>
@@ -45,11 +100,13 @@
   <div class="callout">
     <code>ContentView</code> の <code>authenticated</code> 遷移（ホーム表示後）で
     <code>ATTrackingManager.requestTrackingAuthorization</code> を1回要求する。
-    ただし要求するのは<strong>広告配信が有効な環境のみ</strong>。
+    ただし要求するのは <strong><code>AdEnvironment.shouldRequestTracking</code>（App Key 設定済み）の場合のみ</strong>。
+    <span class="tag warn">未適用</span> RankingStadium のコードは現在も <code>isAdDeliveryAvailable</code> でガードしている。
   </div>
   <table>
     <tr><th>条件</th><th>動作</th></tr>
-    <tr><td><code>AdEnvironment.isAdDeliveryAvailable</code> が <code>false</code></td><td>プロンプトを表示しない（広告をリクエストしないため）</td></tr>
+    <tr><td><code>AdEnvironment.shouldRequestTracking</code> が <code>false</code>（App Key 未設定）</td><td>プロンプトを表示しない（広告を一切出さないため）</td></tr>
+    <tr><td>sandbox 環境（審査 / TestFlight）</td><td><strong>プロンプトを表示する</strong>（審査担当者が確認できるようにするため）</td></tr>
     <tr><td>アプリが <code>active</code> のとき</td><td>プロンプトを表示する</td></tr>
     <tr><td>アプリが <code>inactive</code> のとき</td><td>プロンプトを表示しない（OSが無視するため）</td></tr>
     <tr><td><code>scenePhase</code> が <code>.active</code> に復帰したとき</td><td>未許諾（<code>.notDetermined</code>）であれば再試行して取り逃しを防ぐ</td></tr>
@@ -65,11 +122,11 @@ sequenceDiagram
   participant LP as Unity LevelPlay
 
   App->>App: authenticated 遷移 (ホーム表示)
-  App->>Env: isAdDeliveryAvailable
-  alt 広告配信が無効（DEBUG / シミュレーター / TestFlight / App Key 未設定）
+  App->>Env: shouldRequestTracking
+  alt App Key 未設定（広告を一切出さない版）
     Env-->>App: false
     Note over App,LP: ATT プロンプトを表示しない
-  else 広告配信が有効（App Store 配信版）
+  else App Key 設定済み（App Store 配信版 / 審査 / TestFlight）
     Env-->>App: true
     App->>App: scenePhase == .active を確認
     App->>ATT: requestTrackingAuthorization()
@@ -80,6 +137,7 @@ sequenceDiagram
     else status != .authorized
       App->>LP: IDFA 非利用 (非パーソナライズ広告)
     end
+    Note over App,LP: 広告の配信自体は isAdDeliveryAvailable が true<br/>（App Store 配信版）の場合に限る
   end
 
   Note over App: scenePhase 復帰時に .notDetermined なら再試行
@@ -105,9 +163,39 @@ sequenceDiagram
     アプリ側でフラグを手動設定する必要はない。
   </div>
 
+  <h2>プライバシーマニフェスト（PrivacyInfo.xcprivacy）の方針</h2>
+
+  <div class="callout warn">
+    <strong>正解は <code>NSPrivacyTracking: false</code> ＋ <code>NSPrivacyTrackingDomains</code> キーごと削除。</strong>
+    誤って <code>NSPrivacyTracking</code> を <code>true</code> に戻したり、<code>NSPrivacyTrackingDomains</code> を復活させたりしないこと。
+  </div>
+
+  <table>
+    <tr><th>キー</th><th>設定</th><th>理由</th></tr>
+    <tr>
+      <td><code>NSPrivacyTracking</code></td>
+      <td><code>false</code></td>
+      <td><code>true</code> かつ <code>NSPrivacyTrackingDomains</code> が空だと <strong>ITMS-91064</strong> でリジェクトされる。2026-08-20 に3本同時被弾し、うち2本が DailyTips と RankingStadium だった</td>
+    </tr>
+    <tr>
+      <td><code>NSPrivacyTrackingDomains</code></td>
+      <td><strong>キーごと削除</strong></td>
+      <td>これは申告項目ではなく<strong>実行時のブロックリスト</strong>。載せたドメインは ATT 非許可時に OS が通信ごと遮断する</td>
+    </tr>
+  </table>
+
+  <div class="callout danger">
+    Unity Ads は<strong>広告配信とトラッキングで同じドメインを使う</strong>。
+    そのため <code>NSPrivacyTrackingDomains</code> に載せると、ATT を拒否したユーザーには広告が1本も出なくなる。
+  </div>
+
+  <p><strong>トラッキングの申告は App Store Connect の App Privacy 側で行う。</strong>プライバシーマニフェストで申告するものではない。</p>
+
   <h2>ビジネスルール</h2>
   <ul>
-    <li><strong>ATT プロンプトは広告配信が有効な環境でのみ表示する</strong>（App Store 配信版かつ App Key 設定済み）</li>
+    <li><strong>ATT プロンプトは App Key が設定されている場合に表示する</strong>（<code>shouldRequestTracking</code>）。審査・TestFlight でも表示する</li>
+    <li><strong>広告の配信は App Store 配信版のみ</strong>（<code>isAdDeliveryAvailable</code>）。ATT の表示条件とは分離する</li>
+    <li>App Key 未設定＝広告を一切出さない版では ATT プロンプトを表示しない（Guideline 5.1.2）</li>
     <li>ATT プロンプトはアプリ起動中に1度のみ表示（iOS OS 制御）</li>
     <li>許可・拒否にかかわらず、アプリの全機能を利用可能とする</li>
     <li>設定アプリから後から変更可能であることを設定画面で案内する</li>
@@ -118,7 +206,8 @@ sequenceDiagram
   <table>
     <tr><th>連携先</th><th>用途</th><th>備考</th></tr>
     <tr><td>AppTrackingTransparency フレームワーク</td><td>ATT ダイアログの制御</td><td>iOS 14.5+ 必須</td></tr>
-    <tr><td>Unity LevelPlay SDK (9.6.0) + LevelPlayUnityAdsAdapter (5.10.0)</td><td>ATT 許可状況に応じた広告配信切替</td><td>自動切替（手動設定不要）。2026-08-04 に GoogleMobileAds → AppLovin MAX、2026-08-20 に LevelPlay へ移行</td></tr>
+    <tr><td><code>PrivacyInfo.xcprivacy</code></td><td>プライバシーマニフェスト</td><td><code>NSPrivacyTracking: false</code> ／ <code>NSPrivacyTrackingDomains</code> はキーごと削除（上記方針を参照）</td></tr>
+    <tr><td>Unity LevelPlay SDK (9.6.0) + LevelPlayUnityAdsAdapter (5.10.0)</td><td>ATT 許可状況に応じた広告配信切替</td><td>自動切替（手動設定不要）。2026-08-04 に GoogleMobileAds → AppLovin MAX、2026-08-20 に LevelPlay へ移行。2026-08-23 時点で全8アプリが LevelPlay に統一</td></tr>
   </table>
 
   <h2>エラー処理</h2>
@@ -133,7 +222,8 @@ sequenceDiagram
     <li class="done">ContentView の authenticated 分岐後に ATT 要求処理を実装</li>
     <li class="done">scenePhase 監視で復帰時の再試行を実装</li>
     <li class="done">NSUserTrackingUsageDescription を具体的な文言で Info.plist に設定</li>
-    <li class="done">ATT 要求を <code>AdEnvironment.isAdDeliveryAvailable</code> でガードし、広告配信時のみ表示</li>
+    <li class="done"><code>PrivacyInfo.xcprivacy</code> を <code>NSPrivacyTracking: false</code> ＋ <code>NSPrivacyTrackingDomains</code> 削除に修正（ITMS-91064 対策）</li>
+    <li><strong>未対応:</strong> ATT 要求のガードを <code>AdEnvironment.shouldRequestTracking</code> に差し替える（現状は <code>isAdDeliveryAvailable</code> のままで、審査ビルドでダイアログが出ない）</li>
     <li class="done">LevelPlay SDK の ATT 自動切替を利用（アプリ側の手動フラグ設定は不要）</li>
   </ul>
 
@@ -141,6 +231,8 @@ sequenceDiagram
   <ul>
     <li><code>RankingStadium/App/ContentView.swift</code>（ATT 要求処理）</li>
     <li><code>RankingStadium/Resources/Info.plist</code>（NSUserTrackingUsageDescription）</li>
+    <li><code>RankingStadium/Services/AdEnvironment.swift</code>（<code>isAdDeliveryAvailable</code> / <code>shouldRequestTracking</code>）</li>
+    <li><code>RankingStadium/Resources/PrivacyInfo.xcprivacy</code>（プライバシーマニフェスト）</li>
   </ul>
 
   <h2>変更履歴</h2>
@@ -149,6 +241,7 @@ sequenceDiagram
     <tr><td>1.0</td><td>2026-06-05</td><td>初版作成。ATT プロンプト制御・GoogleMobileAds v12 連携の仕様を記述。</td></tr>
     <tr><td>1.1</td><td>2026-08-04</td><td>広告基盤の AdMob → AppLovin MAX 全面移行を反映。連携先を AppLovin MAX SDK に差し替え、ATT プロンプトの表示条件に「広告配信が有効な環境のみ（<code>AdEnvironment.isAdDeliveryAvailable</code>）」を追加。処理フローに配信可否の分岐を追加。</td></tr>
     <tr><td>1.2</td><td>2026-08-20</td><td>広告基盤の <strong>AppLovin MAX → Unity LevelPlay 移行</strong>を反映。連携先を LevelPlay 9.6.0 + LevelPlayUnityAdsAdapter 5.10.0 に差し替え。判定条件の表記を SDK Key から <strong>App Key</strong>（<code>isAdDeliveryAvailable = !appKey.isEmpty &amp;&amp; isProduction</code>）へ更新。ATT ダイアログを広告配信時のみ表示する方針は変更なし。</td></tr>
+    <tr><td>1.3</td><td>2026-08-23</td><td><strong>ATT ダイアログの表示条件を設計変更</strong>。表示ガードを <code>AdEnvironment.isAdDeliveryAvailable</code> から <code>shouldRequestTracking</code>（<code>= !appKey.isEmpty</code>）へ分離し、<strong>広告の「配信」は App Store 版のみ・ATT の「表示」は審査ビルドでも行う</strong>方針を明記。<code>isAdDeliveryAvailable</code> は <code>isProduction</code>（レシートが <code>sandboxReceipt</code> でない）を含むため、sandbox で走る App Store 審査では ATT ダイアログが原理的に出ず、2026-08-22 に姉妹アプリ CHROMATIC 1.4.0(7) が Guideline 2.1 - Information Needed でリジェクトされた経緯を記録。App Key 未設定時は表示しないため Guideline 5.1.2 も満たす。あわせて<strong>プライバシーマニフェストの方針</strong>（<code>NSPrivacyTracking: false</code> ＋ <code>NSPrivacyTrackingDomains</code> キーごと削除／ITMS-91064／同キーは実行時ブロックリストであり Unity Ads は配信とトラッキングで同一ドメインを使うため載せない）を新設。<strong>本アプリのコードは未適用</strong>である旨を明記（1.0.2 が審査中）。ヘッダのバージョン表記が v1.1 のまま更新されていなかった不整合も修正。</td></tr>
   </table>
 
   <script>
@@ -158,7 +251,7 @@ sequenceDiagram
     });
   </script>
 
-  <footer class="site-footer">最終更新: 2026-08-20</footer>
+  <footer class="site-footer">最終更新: 2026-08-23</footer>
 </div>
 </body>
 </html>

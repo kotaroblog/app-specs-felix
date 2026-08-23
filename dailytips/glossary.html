@@ -72,7 +72,18 @@
     <tr><td>バナー広告</td><td><code>BannerAdView</code> / <code>LPMBannerAdView</code> / <code>AdConfig.bannerID</code></td><td>HomeView下部に常時表示（無料のみ）</td></tr>
     <tr><td>動画広告</td><td><code>RewardedAdManager</code> / <code>LPMRewardedAd</code></td><td>視聴で +3pt or カレンダー解放</td></tr>
     <tr><td>全画面広告</td><td><code>InterstitialAdManager</code> / <code>LPMInterstitialAd</code></td><td>ジャンルクイズ回答3回に1回</td></tr>
-    <tr><td><s>起動広告</s></td><td><code>AppOpenAdManager</code>（無効スタブ）</td><td><strong>2026-08-20 廃止</strong>。Unity LevelPlay にアプリ起動広告のフォーマットが存在しないため。API は残置</td></tr>
+    <tr><td><s>起動広告</s></td><td><code>AppOpenAdManager</code>（無効スタブ）</td><td><strong>2026-08-20 に LevelPlay 移行へ伴い廃止</strong>。Unity LevelPlay にアプリ起動広告のフォーマットが存在しないため。API は残置</td></tr>
+  </table>
+
+  <h2>広告配信 / トラッキング関連の用語</h2>
+  <table>
+    <tr><th>用語</th><th>コード / キー</th><th>説明</th></tr>
+    <tr><td>広告の配信可否</td><td><code>AdEnvironment.isAdDeliveryAvailable</code></td><td><code>= !appKey.isEmpty &amp;&amp; isProduction</code>。<strong>広告のロード・表示</strong>を App Store 配信版のみに限定する判定</td></tr>
+    <tr><td>ATT の表示可否</td><td><code>AdEnvironment.shouldRequestTracking</code></td><td><code>= !appKey.isEmpty</code>。<strong>ATT ダイアログの表示</strong>の判定。審査・TestFlight でも表示する。配信可否とは<strong>別条件</strong>（2026-08-23 設計変更・DailyTips は未適用）</td></tr>
+    <tr><td>プライバシーマニフェスト</td><td><code>PrivacyInfo.xcprivacy</code></td><td><code>NSPrivacyTracking: false</code> ＋ <code>NSPrivacyTrackingDomains</code> は<strong>キーごと削除</strong>が正解</td></tr>
+    <tr><td>ITMS-91064</td><td>—</td><td>アップロード時のリジェクト。<code>NSPrivacyTracking: true</code> かつ <code>NSPrivacyTrackingDomains</code> が空だと発生する（2026-08-20 に3本同時被弾）</td></tr>
+    <tr><td>Guideline 2.1</td><td>—</td><td>Information Needed。ATT ダイアログが審査担当者の手元で表示されないと指摘される</td></tr>
+    <tr><td>Guideline 5.1.2</td><td>—</td><td>広告がないのにトラッキング許可を求めることの禁止。App Key 未設定時は ATT を出さないことで満たす</td></tr>
   </table>
 
   <h2>使い分けの注意</h2>
@@ -89,9 +100,10 @@
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
       <tr><td>1.1</td><td>2026-08-20</td><td>広告基盤の Unity LevelPlay 移行を反映。広告用語のコード対応を LevelPlay のクラス（<code>LPMBannerAdView</code> / <code>LPMInterstitialAd</code> / <code>LPMRewardedAd</code>）へ更新。<strong>「起動広告」を廃止扱い</strong>に変更（LevelPlay に該当フォーマットなし）。</td></tr>
+      <tr><td>1.2</td><td>2026-08-23</td><td>「広告配信 / トラッキング関連の用語」セクションを新設。<code>isAdDeliveryAvailable</code>（広告の<strong>配信</strong>可否）と <code>shouldRequestTracking</code>（ATT ダイアログの<strong>表示</strong>可否）の使い分け、<code>PrivacyInfo.xcprivacy</code> の方針（<code>NSPrivacyTracking: false</code> ＋ <code>NSPrivacyTrackingDomains</code> キーごと削除）、ITMS-91064 / Guideline 2.1 / Guideline 5.1.2 の用語を追加。「起動広告」の廃止理由が <strong>LevelPlay 移行に伴うもの</strong>である点も明記した。</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-08-20</footer>
+  <footer class="site-footer">最終更新: 2026-08-23</footer>
 </div>
 </body>
 </html>

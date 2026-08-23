@@ -32,6 +32,18 @@ flowchart TD
   Home -.-> Review{起動5回目/20回目?}
   Review -- yes --> RequestReview[in-app review表示]
   </div>
+  <div class="callout warn">
+    <strong>ATT 要求の条件（2026-08-23 設計変更・DailyTips は未適用）</strong><br>
+    上図は<strong>現行コードの挙動</strong>（<code>AdEnvironment.isAdDeliveryAvailable</code> でガード＝広告配信時のみ ATT を要求）を示している。
+    ただしこの値は <code>isProduction</code>（レシートが <code>sandboxReceipt</code> でないこと）を含むため、
+    <strong>sandbox で実行される App Store 審査では ATT ダイアログが原理的に表示されない</strong>。
+    2026-08-22 に姉妹アプリ CHROMATIC 1.4.0(7) がこの理由で
+    <strong>Guideline 2.1 - Information Needed</strong> のリジェクトを受けた。<br>
+    あるべき設計は、広告の「配信」可否（<code>isAdDeliveryAvailable</code>）と
+    ATT ダイアログの「表示」可否（<code>shouldRequestTracking = !appKey.isEmpty</code>）を分離し、
+    <strong>審査ビルドでも ATT を要求する</strong>こと。
+    DailyTips のコードには<strong>まだ適用していない</strong>（詳細は <a href="features/ad-control.html">広告制御</a>）。
+  </div>
 
   <h2>今日ページ経路</h2>
   <div class="mermaid">
@@ -135,6 +147,7 @@ flowchart TD
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
       <tr><td>1.1</td><td>2026-08-20</td><td>広告基盤の Unity LevelPlay 移行を反映。起動フローの「AppOpenAd ロード」を「LevelPlay SDK 初期化（App Store 配信版のみ）」へ差し替え（<strong>アプリ起動広告は廃止</strong>）。ATT 要求は広告配信時のみである旨を明記。</td></tr>
+      <tr><td>1.2</td><td>2026-08-23</td><td>ATT 要求の条件を<strong>広告配信の可否から分離</strong>する設計変更を注記（<code>shouldRequestTracking = !appKey.isEmpty</code>。審査・TestFlight でも表示する）。図は現行コードの挙動（<code>isAdDeliveryAvailable</code> でガード＝広告配信時のみ）を示したままとし、<strong>DailyTips には未適用</strong>である旨を図の下に明記した。LevelPlay SDK 初期化を App Store 配信版のみに限定する点は変更なし。</td></tr>
   </table>
 
   <script>
@@ -145,7 +158,7 @@ flowchart TD
     });
   </script>
 
-  <footer class="site-footer">最終更新: 2026-08-20</footer>
+  <footer class="site-footer">最終更新: 2026-08-23</footer>
 </div>
 </body>
 </html>

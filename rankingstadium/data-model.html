@@ -174,6 +174,14 @@ erDiagram
     var pointsConsumed: Int
 }</code></pre>
 
+  <div class="callout warn">
+    <strong><code>vote_count</code> / <code>vote_tier</code> / <code>creator_id</code> はクライアントから UPDATE できない</strong>
+    （マイグレーション 049 の列レベル GRANT）。<code>vote_count</code> は <code>votes</code> の INSERT トリガーがサーバ側で更新する。
+    また <code>points_consumed</code> はクライアントが書ける列であるため、<strong>返金額の根拠には使わない</strong>
+    （<code>refund_ranking</code> は <code>point_transactions</code> から復元する）。詳細は下記
+    「サーバ側セキュリティ強化（マイグレーション 049）」を参照。
+  </div>
+
   <h3>Choice / Vote / Quiz</h3>
   <pre><code>struct Choice: Codable, Identifiable {
     let id: UUID
@@ -230,7 +238,7 @@ struct Quiz: Codable, Identifiable {
   <ul>
     <li><code>ChoiceRequest</code> — 選択肢追加申請（status: pending/approved/rejected, aiSuggestion含む）</li>
     <li><code>AppNotification</code> — ユーザー通知（type, message, isRead）</li>
-    <li><code>PointTransaction</code> — ポイント取引履歴（action, amount）</li>
+    <li><code>PointTransaction</code> — ポイント取引履歴（action, amount）。<strong>返金額を復元するための正</strong>としても使う（マイグレーション 049）</li>
     <li><code>Report</code> — 通報（reason: discrimination/violence/sexual/spam等, isResolved）</li>
     <li><code>Feedback</code> — ユーザー意見（message, metadata）</li>
     <li><code>Follow</code> — フォロー関係（followerId, followedId）</li>
@@ -265,7 +273,8 @@ struct Quiz: Codable, Identifiable {
 
   <h2>整合性に関する注意</h2>
   <div class="callout warn">
-    <strong>非アトミック操作</strong>: <code>RankingService.createRanking()</code> と <code>VoteService.castVote()</code> は複数の Supabase RPC/INSERT をシーケンシャル実行する。途中失敗時の整合性を保証するため、本番運用では Edge Function 化を検討すること。
+    <strong>非アトミック操作</strong>: <code>RankingService.createRanking()</code> と <code>VoteService.castVote()</code> は複数の Supabase RPC/INSERT をシーケンシャル実行する。途中失敗時の整合性を保証するため、本番運用では Edge Function 化を検討すること。<br>
+    ただし<strong>投票数の集計はマイグレーション 049 でサーバ側トリガーへ移した</strong>ため、「votes は INSERT できたが集計 RPC が失敗して票数がずれる」形の不整合は解消済み。
   </div>
 
   <div class="callout warn">
@@ -274,6 +283,60 @@ struct Quiz: Codable, Identifiable {
 
   <div class="callout warn">
     <strong>users.last_login_date は DATE 型・クライアントから "yyyy-MM-dd" 文字列で送信</strong>: <code>users.last_login_date</code> は Supabase の DATE 型カラム。Swift Date 型のまま送ると Supabase が ISO8601 タイムスタンプを UTC で日付化するため、JST 端末では JST 5/30 00:00 が UTC 5/29 15:00 → "2026-05-29" として保存される（前日扱い）。これを防ぐため、クライアントは <code>LoginBonusUpdate.lastLoginDate</code> を <strong>ローカルTZ基準の "yyyy-MM-dd" 文字列</strong>（<code>pointDateOnlyFormatter</code> で生成）で送信する。
+  </div>
+
+  <h2>サーバ側セキュリティ強化（マイグレーション 049 / 2026-08-23 本番適用）</h2>
+
+  <div class="callout">
+    クライアントが書き換えられる値をサーバが信用していた箇所を洗い出し、<strong>集計と検証をサーバ側へ寄せた</strong>。
+    マイグレーション: <code>supabase/migrations/049_*.sql</code>（2026-08-23 本番適用済み）
+  </div>
+
+  <h3>1. 投票集計をトリガーへ移行</h3>
+  <table>
+    <tr><th>項目</th><th>内容</th></tr>
+    <tr><td>集計のトリガー</td><td><code>votes</code> テーブルへの <strong>INSERT を唯一の集計契機</strong>とする</td></tr>
+    <tr><td>更新対象</td><td><code>choices.vote_count</code> と <code>rankings.vote_count</code></td></tr>
+    <tr><td>トリガー種別</td><td><strong>文レベルトリガー</strong>（<code>REFERENCING NEW TABLE</code>）</td></tr>
+    <tr><td>文レベルにした理由</td><td><strong>TOP3 モードは3行の INSERT で1票</strong>として数える必要があるため。行レベルトリガーだと1票が3票に膨らむ</td></tr>
+  </table>
+  <p>これにより、クライアントが集計 RPC を呼ぶかどうかに関係なく、投票行の実体と <code>vote_count</code> が一致する。</p>
+
+  <h3>2. 集計 RPC の no-op 化</h3>
+  <table>
+    <tr><th>関数</th><th>変更後</th></tr>
+    <tr><td><code>increment_choice_vote</code></td><td><strong>no-op</strong>（中身を空にした）</td></tr>
+    <tr><td><code>increment_ranking_vote</code></td><td><strong>no-op</strong></td></tr>
+    <tr><td><code>increment_choice_points</code></td><td><strong>no-op</strong></td></tr>
+  </table>
+  <div class="callout warn">
+    <strong>関数を削除せず中身だけ空にしたのは、App Store に残る旧バージョンのアプリがこれらを呼び続けるため。</strong>
+    削除すると旧クライアントが実行時エラーになる。no-op 化することで<strong>アプリの再リリースなしに移行できた</strong>。
+    新しいクライアントからは呼ばない。
+  </div>
+
+  <h3>3. rankings の UPDATE を列レベル GRANT で制限</h3>
+  <table>
+    <tr><th>項目</th><th>内容</th></tr>
+    <tr><td>UPDATE 権限を剥奪した列</td><td><code>vote_count</code> / <code>vote_tier</code> / <code>creator_id</code> ほか、クライアントが書き換えてはならない列</td></tr>
+    <tr><td>RLS ポリシー</td><td><strong><code>WITH CHECK</code> を追加</strong></td></tr>
+    <tr><td>修正前の問題</td><td>ポリシーが <code>USING</code> のみだったため、更新<strong>後</strong>の行が検証されず、<code>creator_id</code> を他人の UUID に書き換えられた</td></tr>
+  </table>
+  <p><code>is_comp</code>（マイグレーション028）と同じ列レベル権限の考え方を <code>rankings</code> にも適用したもの。</p>
+
+  <h3>4. refund_ranking の返金額をサーバ側で復元</h3>
+  <table>
+    <tr><th>項目</th><th>変更前</th><th>変更後</th></tr>
+    <tr><td>返金額の根拠</td><td><code>rankings.points_consumed</code>（<strong>クライアントが書ける列</strong>）を信頼していた</td><td><strong><code>point_transactions</code> の履歴から復元</strong>する</td></tr>
+    <tr><td>二重返金</td><td>ガードなし</td><td><strong>二重返金ガードを追加</strong></td></tr>
+  </table>
+
+  <div class="callout danger">
+    <strong>次バージョン送りの課題（未対応・2026-08-23 時点）</strong>
+    <ul>
+      <li><code>users.is_premium</code> を<strong>クライアントが直接 UPDATE できる</strong>。RPC 化とクライアント側の修正が必要なため見送り（<a href="features/subscription.html">サブスク課金</a>）</li>
+      <li><code>consume_ranking_creation</code> が<strong>課金額の入力をクライアント申告値のまま信頼している</strong>（<a href="features/ranking-creation.html">ランキング作成</a>）</li>
+    </ul>
   </div>
 
   <h2>blocks テーブル</h2>
@@ -389,6 +452,7 @@ struct Quiz: Codable, Identifiable {
     <li><code>RankingStadium/Services/BlockService.swift</code></li>
     <li><code>supabase/migrations/027_blocks.sql</code></li>
     <li><code>supabase/migrations/028_add_is_comp.sql</code></li>
+    <li><code>supabase/migrations/049_*.sql</code>（投票集計トリガー / 集計 RPC の no-op 化 / rankings 列レベル GRANT・WITH CHECK / refund_ranking の返金額復元）</li>
   </ul>
 
   <h2>変更履歴</h2>
@@ -400,6 +464,7 @@ struct Quiz: Codable, Identifiable {
     <tr><td>1.3</td><td>2026-06-05</td><td>blocks テーブル定義を追記（マイグレーション027）。App Store ガイドライン 1.2 / 5.1.1 対応。ER図に Block エンティティ追加。</td></tr>
     <tr><td>1.4</td><td>2026-06-14</td><td>招待プレミアム枠（is_comp）追加。users テーブルへのカラム定義・列レベルRLS・AppUser Swift モデル（isComp / hasPremiumAccess）・マイグレーション028 を追記。</td></tr>
     <tr><td>1.5</td><td>2026-07-15</td><td>votes テーブルの端末識別カラム（ip_hash / device_hash）の用途をゲスト重複投票対策として明文化。</td></tr>
+    <tr><td>1.6</td><td>2026-08-23</td><td><strong>サーバ側セキュリティ強化（マイグレーション 049・本番適用済み）を反映</strong>。(1) 投票集計を <code>votes</code> への INSERT を契機とする<strong>文レベルトリガー</strong>（<code>REFERENCING NEW TABLE</code>）へ移行し <code>choices.vote_count</code> / <code>rankings.vote_count</code> を更新（TOP3 モードの3行を1票として数えるため文レベル）。(2) <code>increment_choice_vote</code> / <code>increment_ranking_vote</code> / <code>increment_choice_points</code> を<strong>no-op 化</strong>（App Store に残る旧バージョンが呼び続けるため削除せず中身を空にし、アプリの再リリースなしで移行）。(3) <code>rankings</code> の UPDATE を<strong>列レベル GRANT</strong>で制限し <code>vote_count</code> / <code>vote_tier</code> / <code>creator_id</code> 等を剥奪、RLS ポリシーに <code>WITH CHECK</code> を追加（従来は <code>USING</code> のみで <code>creator_id</code> を他人の UUID に書き換え可能だった）。(4) <code>refund_ranking</code> の返金額を、クライアントが書ける <code>rankings.points_consumed</code> ではなく <strong><code>point_transactions</code> から復元</strong>するよう変更し二重返金ガードを追加。あわせて<strong>未対応</strong>の課題（<code>users.is_premium</code> のクライアント直接 UPDATE、<code>consume_ranking_creation</code> の課金額クライアント申告依存）を明記。</td></tr>
   </table>
 
   <script>
@@ -409,7 +474,7 @@ struct Quiz: Codable, Identifiable {
     });
   </script>
 
-  <footer class="site-footer">最終更新: 2026-07-15</footer>
+  <footer class="site-footer">最終更新: 2026-08-23</footer>
 </div>
 </body>
 </html>

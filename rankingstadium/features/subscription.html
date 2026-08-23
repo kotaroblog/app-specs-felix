@@ -16,7 +16,7 @@
     <h1>サブスクリプション課金機能</h1>
     <p>StoreKit 2 による月額・年額プレミアム課金</p>
     <div class="section-meta">
-      <span class="tag done">v1.0</span>
+      <span class="tag done">v1.1</span>
       <span class="tag">機能ID: RS-FEAT-SUB</span>
     </div>
   </header>
@@ -69,7 +69,7 @@ sequenceDiagram
 
   <h2>プレミアム特典</h2>
   <ul>
-    <li>広告非表示（実装予定）</li>
+    <li><s>広告非表示</s> — <strong>2026-08-04 に Paywall の特典一覧から削除</strong>（広告が配信されない状態で訴求できないため。<a href="ad-control.html">広告制御</a>）</li>
     <li>無料作成枠の拡大</li>
     <li>月次ポイントボーナス（実装予定）</li>
     <li>限定機能（v1.1以降）</li>
@@ -89,8 +89,15 @@ sequenceDiagram
     <tr><th>連携先</th><th>用途</th></tr>
     <tr><td>StoreKit 2</td><td>Product 取得・purchase / restore / Transaction.updates</td></tr>
     <tr><td>App Store Connect</td><td>商品設定・価格・サブスク期間</td></tr>
-    <tr><td>users.isPremium</td><td>サブスク状態のキャッシュ（Supabase）</td></tr>
+    <tr><td>users.isPremium</td><td>サブスク状態のキャッシュ（Supabase <code>users.is_premium</code>）</td></tr>
   </table>
+  <div class="callout danger">
+    <strong>未対応（次バージョン送り・2026-08-23 時点）:</strong>
+    <code>users.is_premium</code> は<strong>クライアントが直接 UPDATE できる</strong>状態にある。
+    マイグレーション 049 では <code>rankings</code> の列レベル GRANT までを適用したが、
+    <code>is_premium</code> の保護には <strong>RPC 化とクライアント側の修正</strong>が必要なため見送った。
+    <code>is_comp</code>（招待プレミアム枠）は既に UPDATE 権限を剥奪済み（<a href="../data-model.html">データモデル</a>）。
+  </div>
 
   <h2>エラー処理</h2>
   <table>
@@ -109,12 +116,14 @@ sequenceDiagram
     <li class="done">products は loadProducts() で月額→年額の順にソート</li>
     <li class="done">Logger.StoreKit カテゴリ</li>
     <li>StoreKit Configuration ファイルでローカルテスト</li>
+    <li><strong>未対応:</strong> <code>users.is_premium</code> の更新を RPC 経由に限定し、クライアントの直接 UPDATE を禁止する</li>
   </ul>
 
   <h2>変更履歴</h2>
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-08-23</td><td><strong>未対応のセキュリティ課題</strong>として、<code>users.is_premium</code> をクライアントが直接 UPDATE できる点を明記（保護には RPC 化とクライアント修正が必要なため、マイグレーション 049 では見送り。<code>is_comp</code> は剥奪済み）。プレミアム特典の「広告非表示（実装予定）」を、広告基盤の移行に伴い <strong>2026-08-04 に Paywall の特典一覧から削除済み</strong>である現状に合わせて訂正。</td></tr>
   </table>
 
   <script>
@@ -124,7 +133,7 @@ sequenceDiagram
     });
   </script>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-08-23</footer>
 </div>
 </body>
 </html>

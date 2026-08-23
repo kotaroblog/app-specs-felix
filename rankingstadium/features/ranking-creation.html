@@ -16,7 +16,7 @@
     <h1>ランキング作成機能</h1>
     <p>5ステップウィザード + 下書き保存 + 公開フロー</p>
     <div class="section-meta">
-      <span class="tag done">v1.0</span>
+      <span class="tag done">v1.1</span>
       <span class="tag">機能ID: RS-FEAT-CREATE</span>
     </div>
   </header>
@@ -67,7 +67,8 @@ sequenceDiagram
     <li>期間は7日 or 14日、拡張可</li>
     <li>クイズ付与で +15pt の追加コスト、3問必須</li>
     <li>下書きは最大M件まで保存可（superuser除く）</li>
-    <li>24時間以内の下書き削除なら cancelRefund でポイント返却</li>
+    <li>24時間以内の下書き削除なら cancelRefund でポイント返却。<strong>返金額はサーバ（<code>refund_ranking</code>）が <code>point_transactions</code> から復元する</strong>（マイグレーション 049。二重返金ガードあり）</li>
+    <li><code>rankings.creator_id</code> / <code>vote_count</code> / <code>vote_tier</code> は<strong>クライアントから UPDATE できない</strong>（列レベル GRANT ＋ RLS の <code>WITH CHECK</code>）</li>
     <li>予約投稿は startsAt を未来日時に設定</li>
   </ul>
 
@@ -79,7 +80,14 @@ sequenceDiagram
     <tr><td>Supabase quizzes表</td><td>クイズ（hasQuiz=trueのみ）</td></tr>
     <tr><td>PointService</td><td>消費・無料枠の判定</td></tr>
     <tr><td>Supabase Storage</td><td>選択肢画像（imageUrl）</td></tr>
+    <tr><td>Supabase RPC <code>consume_ranking_creation</code></td><td>作成コストの消費</td></tr>
+    <tr><td>Supabase RPC <code>refund_ranking</code></td><td>下書き削除時の返金（返金額は <code>point_transactions</code> から復元）</td></tr>
   </table>
+  <div class="callout danger">
+    <strong>未対応（次バージョン送り・2026-08-23 時点）:</strong>
+    <code>consume_ranking_creation</code> は<strong>課金額の入力をクライアント申告値のまま信頼している</strong>。
+    サーバ側で価格表と突き合わせる修正が必要。
+  </div>
 
   <h2>エラー処理</h2>
   <table>
@@ -95,6 +103,8 @@ sequenceDiagram
     <li class="done">CreateRankingView は自前 NavigationStack を持たない</li>
     <li class="done">下書き復元は status==.draft の rankings から取得</li>
     <li class="done">非アトミック処理（4ステップ）</li>
+    <li class="done">返金額のサーバ側復元・二重返金ガード（マイグレーション 049）</li>
+    <li><strong>未対応:</strong> <code>consume_ranking_creation</code> の課金額をサーバ側で検証する</li>
     <li>Edge Function 化（v1.1）</li>
     <li>画像のSupabase Storage連携の安定化</li>
   </ul>
@@ -103,6 +113,7 @@ sequenceDiagram
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-08-23</td><td>サーバ側セキュリティ強化（マイグレーション 049・本番適用済み）を反映。下書き削除時の<strong>返金額をサーバが <code>point_transactions</code> から復元</strong>する仕様（従来はクライアントが書ける <code>rankings.points_consumed</code> を信頼）と<strong>二重返金ガード</strong>を追記。<code>rankings</code> の <code>creator_id</code> / <code>vote_count</code> / <code>vote_tier</code> がクライアントから UPDATE 不可になった点（列レベル GRANT ＋ RLS の <code>WITH CHECK</code>）を明記。<strong>未対応</strong>として <code>consume_ranking_creation</code> が課金額をクライアント申告値のまま信頼している点を記載。</td></tr>
   </table>
 
   <script>
@@ -112,7 +123,7 @@ sequenceDiagram
     });
   </script>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-08-23</footer>
 </div>
 </body>
 </html>
