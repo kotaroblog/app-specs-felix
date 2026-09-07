@@ -13,7 +13,7 @@
 
   <header class="site-header">
     <h1>ジャンルクイズ機能</h1>
-    <p>13ジャンル別の問題集とコイン経済の連携</p>
+    <p>14ジャンル別の問題集とコイン経済の連携</p>
     <div class="section-meta">
       <span class="tag done">v1.1</span>
       <span class="tag">機能ID: DT-FEAT-GENRE</span>
@@ -21,7 +21,7 @@
   </header>
 
   <h2>概要</h2>
-  <p>13ジャンルから興味のあるものをコインで解放し、4つのプレイモード（ランダム/順番/続きから/お試し）で問題を解いていく機能。
+  <p>14ジャンルから興味のあるものをコインで解放し、4つのプレイモード（ランダム/順番/続きから/お試し）で問題を解いていく機能。
   進捗・履歴は AppGroup に保存。v1.1 で無料体験枠（雑学完全無料 + 全ジャンル5問お試し）を追加。</p>
 
   <h2>関連画面</h2>
@@ -32,8 +32,8 @@
     <li><a href="../screens/genre-progress.html">進捗ダッシュボード</a></li>
   </ul>
 
-  <h2>13ジャンル（1,300問）</h2>
-  <p>表示順は <strong>雑学・トリビア（無料）</strong> を先頭に配置。残り12ジャンルは有料（100pt）。</p>
+  <h2>14ジャンル（1,400問）</h2>
+  <p>表示順は <strong>雑学・トリビア（無料）</strong> を先頭に配置。残り13ジャンルは有料（100pt）。</p>
   <ol>
     <li><strong>雑学・トリビア（無料 / cost: 0）</strong></li>
     <li>歴史</li>
@@ -48,13 +48,14 @@
     <li>テクノロジー・IT</li>
     <li>医学・健康</li>
     <li>心理学（v1.1で追加）</li>
+    <li>経済・お金（v1.3で追加）</li>
   </ol>
 
   <h2>無料体験枠（v1.1）</h2>
   <table>
     <tr><th>枠</th><th>対象</th><th>挙動</th></tr>
     <tr><td>完全無料ジャンル</td><td>雑学・トリビア（cost=0）</td><td>全100問プレイ可能・進捗記録あり</td></tr>
-    <tr><td>お試し5問</td><td>他12ジャンル（未解放時）</td><td><code>GenrePlayMode.freeTrial</code> で最初の5問のみ出題。<strong>進捗記録なし</strong>。終了時に「残り95問を解放しよう」誘導カード表示。<strong>v1.0.7: 1ジャンル1回限りに制限</strong>（完走後は「お試し済み」バッジで再挑戦不可）</td></tr>
+    <tr><td>お試し5問</td><td>他13ジャンル（未解放時）</td><td><code>GenrePlayMode.freeTrial</code> で最初の5問のみ出題。<strong>進捗記録なし</strong>。終了時に「残り95問を解放しよう」誘導カード表示。<strong>v1.0.7: 1ジャンル1回限りに制限</strong>（完走後は「お試し済み」バッジで再挑戦不可）</td></tr>
   </table>
   <pre><code>// Models
 enum GenrePlayMode: Equatable {
@@ -155,9 +156,10 @@ final class GenreProgressService {  // @unchecked Sendable
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
     <tr><td>1.1</td><td>2026-05-17</td><td>v1.0.5: 心理学100問追加で全13ジャンル1300問に。無料体験枠を追加（雑学完全無料・他12ジャンルは5問お試し）。表示順を変更し雑学を最上位に。GenrePlayMode に .freeTrial を追加</td></tr>
     <tr><td>1.2</td><td>2026-05-25</td><td>v1.0.7: お試し5問を1ジャンル1回限りに制限（<code>isFreeTrialUsed</code> フラグ・<code>markFreeTrialUsed</code> 追加）。6問目以降が解ける race condition を <code>GenrePlaySession</code> 導入で修正（<code>@State playTarget+playMode</code> の2変数連続更新を1変数集約）</td></tr>
+    <tr><td>1.3</td><td>2026-09-07</td><td>v1.0.10: 新ジャンル<strong>「経済・お金」100問</strong>を追加し、<strong>全14ジャンル1,400問</strong>に。<code>GenreDefinition.all</code> の末尾に <code>economy</code>（表示名「経済・お金」／SF Symbol <code>yensign.circle.fill</code>／cost 100pt）を追加したため、ジャンル一覧の表示順は14番目。問題データは <code>genre_quiz_economy.json</code>。無料枠（雑学・トリビア先頭・完全無料）とお試し5問の仕様は変更なし（お試し対象が他12ジャンル → 他13ジャンルに増加）</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-25</footer>
+  <footer class="site-footer">最終更新: 2026-09-07</footer>
 </div>
 </body>
 </html>
