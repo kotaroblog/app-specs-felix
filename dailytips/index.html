@@ -55,7 +55,7 @@
     </ul>
     <p style="margin-bottom:0">いずれも <a href="features/ad-control.html">広告制御</a> に詳細を記載。</p>
   </div>
-  <h2>v1.0.10 主な変更点</h2>
+  <h2>v1.0.11 主な変更点</h2>
   <ul>
     <li>新ジャンル「経済・お金」100問追加（全14ジャンル1400問に）</li>
   </ul>
@@ -157,7 +157,7 @@
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-08-20</td><td>変更履歴セクションを新設。<strong>広告基盤を Unity LevelPlay へ移行</strong>（AdMob 恒久停止 → AppLovin MAX の承認却下 → LevelPlay 9.6.0 + UnityAds アダプタ 5.10.0）し、<strong>アプリ起動広告（App Open）を廃止</strong>（LevelPlay に該当フォーマットが存在しないため）。マネタイズ表記・広告制御カード・広告基盤の変更セクションを更新。App Key・広告ユニットID3種は設定済みだが、ironSource Ads アカウント承認待ちのため未配信。</td></tr>
     <tr><td>1.1</td><td>2026-08-23</td><td><strong>ATT ダイアログの表示条件の設計変更</strong>を反映（<code>shouldRequestTracking = !appKey.isEmpty</code> で広告の配信可否と分離し、審査ビルドでも表示する）。<code>isAdDeliveryAvailable</code> のままでは sandbox で走る App Store 審査でダイアログが出ず、2026-08-22 に姉妹アプリ CHROMATIC 1.4.0(7) が Guideline 2.1 でリジェクトされた。<strong>DailyTips のコードは未適用</strong>である旨を要対応事項として明記。あわせて<strong>プライバシーマニフェストの方針</strong>（<code>NSPrivacyTracking: false</code> ＋ <code>NSPrivacyTrackingDomains</code> キーごと削除／ITMS-91064）を追記。<strong>アプリ起動広告は LevelPlay 移行に伴う廃止</strong>である旨を <a href="features/ad-control.html">広告制御</a> で明示。LevelPlay 移行が 2026-08-23 の ITPassportMaster をもって全8アプリで統一された点を追記。</td></tr>
-    <tr><td>1.2</td><td>2026-09-07</td><td>v1.0.10: 新ジャンル<strong>「経済・お金」100問</strong>追加を反映（<strong>全14ジャンル1,400問</strong>）。「v1.0.10 主な変更点」セクションを追加し、ジャンルクイズショップ／ジャンルクイズのカード説明を 13ジャンル → 14ジャンル に更新。</td></tr>
+    <tr><td>1.2</td><td>2026-09-07</td><td>v1.0.11: 新ジャンル<strong>「経済・お金」100問</strong>追加を反映（<strong>全14ジャンル1,400問</strong>）。「v1.0.11 主な変更点」セクションを追加し、ジャンルクイズショップ／ジャンルクイズのカード説明を 13ジャンル → 14ジャンル に更新。</td></tr>
   </table>
 
   <footer class="site-footer">最終更新: 2026-09-07</footer>
