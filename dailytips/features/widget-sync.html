@@ -61,6 +61,7 @@ let store = UserDefaults(suiteName: WidgetAppGroup.suiteName) ?? .standard</code
     <tr><th>イベント</th><th>処理</th></tr>
     <tr><td>本体アプリ起動時</td><td>AppViewModel が syncWidgetData() を呼出</td></tr>
     <tr><td>豆知識切り替え時（日付変更）</td><td>HistoryService.markAsLogin() 経由で再同期</td></tr>
+    <tr><td>テーマ変更時（1.0.13）</td><td>テーマショップで適用 → syncWidgetData() → タイムライン更新</td></tr>
     <tr><td>WidgetCenter.shared.reloadAllTimelines()</td><td>Widget の即時更新トリガー</td></tr>
     <tr><td>Widget 自身の Timeline</td><td>1時間ごと + 翌日0時に自動再取得</td></tr>
   </table>
@@ -70,7 +71,7 @@ let store = UserDefaults(suiteName: WidgetAppGroup.suiteName) ?? .standard</code
   <h3>WidgetTipData（Small用）</h3>
   <pre><code>struct WidgetTipData: Codable, Sendable {
     let title: String
-    let category: String
+    let category: String   // 1.0.13 から日本語の表示名（文化・科学・雑学・歴史）
     let dateKey: String
     let updatedAt: Date
 }</code></pre>
@@ -81,6 +82,15 @@ let store = UserDefaults(suiteName: WidgetAppGroup.suiteName) ?? .standard</code
     let loginStreak: Int
     let updatedAt: Date
 }</code></pre>
+
+  <h3>選択中のテーマ（1.0.13・DT-012）</h3>
+  <p>本体のテーマ管理が App Group の共有領域に書く選択中のテーマ ID（<code>selected_theme_id</code>）をウィジェットが読み、
+  本体と同じテーマの定義（<code>AppThemeItem</code>。project.yml でウィジェットのターゲットにも含める）から色を引く。色の定義は1か所。</p>
+  <ul>
+    <li>キー名は本体側と同じ文字列を使う（変えるときは両方を直す）</li>
+    <li>テーマ ID が無ければデフォルトテーマ</li>
+    <li>ウィジェットの文字は白。明るいテーマでは黒い膜を重ね、膜を重ねた後の一番明るい色でも白との<strong>コントラスト比 4.5:1 以上</strong>にする（全テーマを単体テスト <code>WidgetContrastTests</code> で確認）</li>
+  </ul>
 
   <h2>ビジネスルール</h2>
   <ul>
@@ -109,6 +119,7 @@ let store = UserDefaults(suiteName: WidgetAppGroup.suiteName) ?? .standard</code
     <li class="done">project.yml で App Group capability 設定済み（本体・Widget両方）</li>
     <li class="done">TimelineProvider で <code>policy: .after(startOfTomorrow)</code></li>
     <li class="done">HistoryService.syncWidgetData() で AppGroup 書込</li>
+    <li class="done">1.0.13: ウィジェット2種の紫固定のグラデーションをやめ、<code>WidgetTheme</code> で選択中のテーマの色を使う</li>
     <li>Widget の Smart Stack 対応（v1.x）</li>
   </ul>
 
@@ -116,6 +127,7 @@ let store = UserDefaults(suiteName: WidgetAppGroup.suiteName) ?? .standard</code
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-10-21</td><td>アプリ 1.0.13（未公開・2026-10-21）: ウィジェットがアプリのテーマ色で描かれる仕組み（共有領域のテーマ ID・テーマ定義の共有・明るいテーマの黒い膜とコントラスト比）、テーマ変更時の同期、カテゴリの日本語化を追加（DT-012・DT-013）</td></tr>
   </table>
 
   <script>
@@ -125,7 +137,7 @@ let store = UserDefaults(suiteName: WidgetAppGroup.suiteName) ?? .standard</code
     });
   </script>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-10-21</footer>
 </div>
 </body>
 </html>

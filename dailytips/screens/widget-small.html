@@ -27,7 +27,8 @@
   <h2>UI 構成</h2>
   <table>
     <tr><th>要素</th><th>種類</th><th>説明</th></tr>
-    <tr><td>カテゴリバッジ</td><td>Capsule</td><td>tip.category</td></tr>
+    <tr><td>背景</td><td>LinearGradient</td><td>1.0.13: <strong>アプリで選んだテーマの色</strong>（以前は紫固定のグラデーション）。明るいテーマでは白い文字が読めるよう黒い膜を重ねる（DT-012）</td></tr>
+    <tr><td>カテゴリバッジ</td><td>Capsule</td><td>カテゴリの日本語の表示名（文化・科学・雑学・歴史）。1.0.13 から英語の内部名を出さない（DT-013）</td></tr>
     <tr><td>タイトル</td><td>Text</td><td>tip.title（短縮表示）</td></tr>
     <tr><td>クイズ問題文</td><td>Text</td><td>クイズあり日のみ表示。問題文を短縮して表示</td></tr>
     <tr><td>CTA テキスト</td><td>Text</td><td>「タップして答えを見る」（クイズあり日のみ）</td></tr>
@@ -55,6 +56,7 @@
     <tr><th>条件</th><th>動作</th></tr>
     <tr><td>翌日0時</td><td><code>policy: .after(startOfTomorrow)</code> で自動再取得</td></tr>
     <tr><td>本体起動時</td><td>AppViewModel.syncWidgetData() で AppGroup 更新</td></tr>
+    <tr><td>テーマ変更時（1.0.13）</td><td>テーマショップで適用したら syncWidgetData() → タイムライン更新で新しい色に</td></tr>
     <tr><td>1時間ごと</td><td>TimelineProvider が timeline エントリ生成</td></tr>
   </table>
 
@@ -63,6 +65,8 @@
     <li class="done">TipWidgetProvider が TimelineProvider プロトコル実装</li>
     <li class="done">AppGroup suiteName: <code>group.com.happyboy1002.DailyTips</code></li>
     <li class="done">AppGroup nil の場合は空表示（リカバリは本体起動時）</li>
+    <li class="done">1.0.13: 背景は <code>WidgetTheme.background</code>（共有領域の選択中テーマ ID から本体と同じテーマ定義を引く。未設定ならデフォルトテーマ）</li>
+    <li class="done">1.0.13: 共有データの category には日本語の表示名を書く（ウィジェットは表示だけのため）</li>
   </ul>
 
   <h2>関連</h2>
@@ -76,9 +80,10 @@
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
     <tr><td>1.1</td><td>2026-05-17</td><td>v1.0.5: クイズあり日のクイズ問題文表示とCTAを追加</td></tr>
+    <tr><td>1.1</td><td>2026-10-21</td><td>アプリ 1.0.13（未公開・2026-10-21）: 背景をアプリで選んだテーマの色に（明るいテーマは黒い膜を重ねて白い文字を読めるように）、カテゴリを日本語表示に（DT-012・DT-013）</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-17</footer>
+  <footer class="site-footer">最終更新: 2026-10-21</footer>
 </div>
 </body>
 </html>
