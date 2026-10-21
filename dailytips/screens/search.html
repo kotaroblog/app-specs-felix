@@ -35,19 +35,19 @@
 
   <h2>UI構成</h2>
   <ol>
-    <li><strong>検索フィールド</strong>: 🔍 アイコン + TextField + クリアボタン（×）</li>
+    <li><strong>検索フィールド</strong>: 🔍 アイコン + TextField（「タイトル・本文・カテゴリで検索」）+ クリアボタン（×）。1.0.13 から<strong>本文と日本語のカテゴリ名</strong>も検索対象</li>
     <li><strong>フィルター行</strong>（横スクロール）:
       <ul>
         <li>お気に入りのみ（heart.fill アイコン付きトグル）</li>
         <li>既読 / 未読 / すべて（排他選択）</li>
         <li>区切り線</li>
-        <li>全カテゴリ / 各カテゴリ別（タップで絞り込み）</li>
+        <li>全カテゴリ / 各カテゴリ別（タップで絞り込み）。1.0.13 からチップは日本語（文化・科学・雑学・歴史）で、日本語名の順に並べる</li>
       </ul>
     </li>
     <li><strong>結果リスト</strong>:
       <ul>
         <li>「N件」表示</li>
-        <li>カテゴリバッジ + 日付（例:「2025年度 1月1日」）+ タイトル</li>
+        <li>カテゴリバッジ（日本語）+ 日付（例:「2025年度 1月1日」）+ タイトル</li>
         <li>タップで詳細シート（SearchResultDetailSheet）表示</li>
       </ul>
     </li>
@@ -57,7 +57,8 @@
   <table>
     <tr><th>条件</th><th>表示</th></tr>
     <tr><td>プレミアム会員 or 当日 or ログイン済み or 広告視聴済み</td><td>通常の TipCardView</td></tr>
-    <tr><td>ロック対象</td><td>🔒 ロック表示 + 「広告を見て解放する」ボタン + プレミアム誘導文</td></tr>
+    <tr><td>ロック対象</td><td>🔒 ロック表示 + 「動画を見て解放する」ボタン + 「広告の動画が流れます。プレミアムプランなら全日付をいつでも閲覧できます。」</td></tr>
+    <tr><td>動画を再生できなかった（1.0.13）</td><td>アラート「動画を再生できませんでした」（通信状況を確かめて時間をおいて再試行を案内）</td></tr>
   </table>
   <p>ロック解放ボタンタップで <code>RewardedAdManager.show</code> → 視聴完了で <code>HistoryService.markAsAdViewed</code> → 通常表示に切り替わる。</p>
 
@@ -78,9 +79,10 @@
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-17</td><td>初版作成（v1.0.5 新規画面）</td></tr>
+    <tr><td>1.1</td><td>2026-10-21</td><td>アプリ 1.0.13（未公開・2026-10-21）: 検索対象に本文と日本語のカテゴリ名を追加、カテゴリのチップ・バッジを日本語に、ロック日のボタンを「動画を見て解放する」に、動画の再生失敗時のアラートを追加（DT-013・DT-010）</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-17</footer>
+  <footer class="site-footer">最終更新: 2026-10-21</footer>
 </div>
 </body>
 </html>
