@@ -19,6 +19,7 @@
 
   <div class="callout">
     HomeViewの内側に「今日ページ」と「カレンダーページ」をTabViewで切り替える二層構造。各種ショップ・設定はsheetで起動する。
+    1.0.13（未公開）から、ホーム上部の6つの入口（テーマ・クイズ・検索・カレンダー／今日・設定・プレミアム）から各画面を開く。
   </div>
 
   <h2>起動〜メインフロー</h2>
@@ -26,7 +27,7 @@
 flowchart TD
   Launch([起動]) --> App[DailyTipsApp]
   App -- ATT要求（広告配信時のみ） --> Init[LevelPlay SDK 初期化<br/>App Store 配信版のみ]
-  Init --> Home[HomeView<br/>TabView]
+  Init --> Home[HomeView<br/>上部の入口 + TabView]
   Home --> Today[今日ページ]
   Home --> Calendar[カレンダーページ]
   Home -.-> Review{起動5回目/20回目?}
@@ -51,13 +52,19 @@ flowchart LR
   Today[今日ページ] --> TipCard[TipCardView<br/>豆知識カード]
   TipCard -- ♥ --> Fav[(お気に入り更新)]
   TipCard -- 共有 --> Share[ShareCardView<br/>SNS共有]
-  TipCard -- クイズ --> Quiz[QuizView]
-  Today -. settings .-> Settings[SettingsView]
-  Today -. テーマ .-> ThemeShop[ThemeShopView]
-  Today -. ジャンル .-> GenreShop[GenreQuizShopView]
-  Today -. プレミアム .-> Premium[PremiumView]
+  TipCard -- 今日のクイズ --> Quiz[QuizView]
+  Quiz -- 結果の下の「もっと解く」 --> Next{関連ジャンル}
+  Next -- 解放済み --> GPlay[GenreQuizPlayView<br/>続きから]
+  Next -- お試し未使用 --> GTrial[GenreQuizPlayView<br/>お試し5問]
+  Next -- お試し済み --> GenreShop
+  Today -. 入口「設定」 .-> Settings[SettingsView]
+  Today -. 入口「テーマ」 .-> ThemeShop[ThemeShopView]
+  Today -. 入口「クイズ」 .-> GenreShop[GenreQuizShopView]
+  Today -. ポイントの使い道 .-> GenreShop
+  Today -. 入口「検索」 .-> Search[SearchView]
+  Today -. 入口「プレミアム」 .-> Premium[PremiumView]
   Today -. お気に入り .-> Favorites[FavoritesView]
-  Today -. 動画ボーナス .-> RewardAd[Rewarded広告<br/>+3pt]
+  Today -. 動画を見て +3pt .-> RewardAd[Rewarded広告<br/>+3pt]
   </div>
 
   <h2>カレンダーページ経路</h2>
@@ -68,6 +75,7 @@ flowchart TD
   Day -- ロック --> Alert{広告視聴で解放?}
   Alert -- yes --> Reward[Rewarded広告]
   Reward -- 報酬 --> Mark[markAsAdViewed]
+  Reward -- 再生できない --> AdFail[アラート<br/>動画を再生できませんでした]
   Mark --> ShowTip
   Alert -- no --> Cancel[キャンセル]
   ShowTip -- クイズあり --> QuizSheet[QuizView]
@@ -78,6 +86,12 @@ flowchart TD
 flowchart LR
   GenreShop[GenreQuizShopView] --> GCard{ジャンルカード}
   GCard -- 未アンロック --> Buy[購入<br/>100pt消費]
+  GCard -- pt不足 --> Short[アラート<br/>あと◯ptで解放・貯め方]
+  GCard -- お試し --> Trial[お試し5問]
+  Trial --> TFin{お試し終了画面}
+  TFin -- その場で解放 --> Cont6[6問目から続ける]
+  TFin -- pt不足 --> TBonus[あと◯pt・動画を見て +3pt]
+  TFin -- ほかのジャンルを見る --> GenreShop
   GCard -- アンロック済 --> Mode{プレイモード}
   Buy --> Mode
   Mode --> Random[ランダム]
@@ -87,6 +101,7 @@ flowchart LR
   Sequential --> Play
   Continued --> Play
   Play -- 開始時 --> Interstitial[Interstitial広告]
+  Play -- 全問回答済み --> Restart[最初から解き直す]
   Play -- 履歴 --> History[GenreQuizHistoryView]
   Play -- 進捗 --> Progress[GenreProgressView]
   </div>
@@ -100,6 +115,7 @@ flowchart TD
   BuyTheme --> Apply
 
   Premium[PremiumView] --> Plan{プラン選択}
+  Premium -- 価格を取得できない --> Reload[案内 + 再読み込み<br/>購入ボタンは押せない]
   Plan -- 月額 --> SK1[StoreKit購入]
   Plan -- 年額 --> SK2[StoreKit購入]
   SK1 -- 成功 --> Refresh[premiumStatus更新]
@@ -109,7 +125,10 @@ flowchart TD
   <h2>主要な遷移トリガー</h2>
   <table>
     <tr><th>起点画面</th><th>操作</th><th>遷移先</th></tr>
-    <tr><td>HomeView</td><td>TabView スワイプ</td><td>今日 ⇄ カレンダー</td></tr>
+    <tr><td>HomeView</td><td>TabView スワイプ／入口「カレンダー」「今日」</td><td>今日 ⇄ カレンダー</td></tr>
+    <tr><td>HomeView</td><td>入口「クイズ」／ポイントの使い道</td><td>GenreQuizShopView (.sheet)</td></tr>
+    <tr><td>QuizView</td><td>結果の下の「「◯◯」のクイズをもっと解く」</td><td>GenreQuizPlayView（続きから／お試し5問）または GenreQuizShopView</td></tr>
+    <tr><td>GenreQuizPlayView</td><td>お試し終了画面の「ptで解放する」</td><td>解放して同画面で6問目から</td></tr>
     <tr><td>TipCardView</td><td>クイズボタン</td><td>QuizView (.sheet)</td></tr>
     <tr><td>HomeView</td><td>設定ボタン</td><td>SettingsView (.sheet)</td></tr>
     <tr><td>HomeView</td><td>動画ボーナスボタン</td><td>Rewarded広告 → +3pt</td></tr>
@@ -124,12 +143,12 @@ flowchart TD
   <h2>画面ID対応表</h2>
   <table>
     <tr><th>画面ID</th><th>画面名</th><th>ファイル</th></tr>
-    <tr><td>DT-HOME-01</td><td>ホーム（TabView）</td><td><code>Views/Home/HomeView.swift</code></td></tr>
+    <tr><td>DT-HOME-01</td><td>ホーム（上部の入口 + TabView）</td><td><code>Views/Home/HomeView.swift</code>（1.0.13 から <code>HomeTopBar</code> / <code>HomeTodayPage</code> / <code>HomePointsSection</code> / <code>HomeCalendarPage</code> に分割）</td></tr>
     <tr><td>DT-HOME-02</td><td>豆知識カード</td><td><code>Views/Home/TipCardView.swift</code></td></tr>
     <tr><td>DT-HOME-03</td><td>お気に入り一覧</td><td><code>Views/Home/FavoritesView.swift</code></td></tr>
     <tr><td>DT-HOME-04</td><td>共有カード</td><td><code>Views/Home/ShareCardView.swift</code></td></tr>
     <tr><td>DT-CAL-01</td><td>カレンダー</td><td><code>Views/Calendar/CalendarView.swift</code></td></tr>
-    <tr><td>DT-QUIZ-01</td><td>豆知識クイズ</td><td><code>Views/Quiz/QuizView.swift</code></td></tr>
+    <tr><td>DT-QUIZ-01</td><td>豆知識クイズ</td><td><code>Views/Quiz/QuizView.swift</code>（結果の下に <code>DailyQuizNextStepView</code>）</td></tr>
     <tr><td>DT-GQS-01</td><td>ジャンルクイズショップ</td><td><code>Views/GenreQuizShop/GenreQuizShopView.swift</code></td></tr>
     <tr><td>DT-GQS-02</td><td>ジャンルクイズプレイ</td><td><code>Views/GenreQuizShop/GenreQuizPlayView.swift</code></td></tr>
     <tr><td>DT-GQS-03</td><td>ジャンルクイズ履歴</td><td><code>Views/GenreQuizShop/GenreQuizHistoryView.swift</code></td></tr>
@@ -148,6 +167,7 @@ flowchart TD
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
       <tr><td>1.1</td><td>2026-08-20</td><td>広告基盤の Unity LevelPlay 移行を反映。起動フローの「AppOpenAd ロード」を「LevelPlay SDK 初期化（App Store 配信版のみ）」へ差し替え（<strong>アプリ起動広告は廃止</strong>）。ATT 要求は広告配信時のみである旨を明記。</td></tr>
       <tr><td>1.2</td><td>2026-08-23</td><td>ATT 要求の条件を<strong>広告配信の可否から分離</strong>する設計変更を注記（<code>shouldRequestTracking = !appKey.isEmpty</code>。審査・TestFlight でも表示する）。図は現行コードの挙動（<code>isAdDeliveryAvailable</code> でガード＝広告配信時のみ）を示したままとし、<strong>DailyTips には未適用</strong>である旨を図の下に明記した。LevelPlay SDK 初期化を App Store 配信版のみに限定する点は変更なし。</td></tr>
+    <tr><td>1.3</td><td>2026-10-21</td><td>アプリ 1.0.13（未公開・2026-10-21）: ホーム上部の6つの入口、今日のクイズからジャンル別クイズへの入り方（続きから／お試し5問／一覧）、お試し終了画面からの解放、pt不足時の案内、全問回答済みの「最初から解き直す」、ロック日の動画失敗、プレミアムの価格取得失敗を図と遷移表に反映（DT-014・DT-015・DT-016・DT-010）</td></tr>
   </table>
 
   <script>
@@ -158,7 +178,7 @@ flowchart TD
     });
   </script>
 
-  <footer class="site-footer">最終更新: 2026-08-23</footer>
+  <footer class="site-footer">最終更新: 2026-10-21</footer>
 </div>
 </body>
 </html>

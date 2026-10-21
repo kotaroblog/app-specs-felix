@@ -32,6 +32,7 @@
     <tr><td>正答率表示</td><td>Text</td><td>「N% 正解」</td></tr>
     <tr><td>連続正解日数</td><td>Text</td><td>「連続N日」</td></tr>
     <tr><td>獲得コイン</td><td>Text</td><td>「+1 コイン」（正解時）</td></tr>
+    <tr><td>「もっと解く」ボタン（1.0.13）</td><td>DailyQuizNextStepView</td><td>結果の下、閉じるボタンの上。「「◯◯」のクイズをもっと解く」と、入り方に応じた補足（解放済み「100問・解説つき」／お試し未使用「まずは無料でお試し5問」／お試し済み「100ptで100問を解放できます」）</td></tr>
   </table>
 
   <h2>状態</h2>
@@ -47,6 +48,9 @@
   <table>
     <tr><th>操作</th><th>遷移先</th></tr>
     <tr><td>選択肢タップ</td><td>結果表示（同画面）</td></tr>
+    <tr><td>「もっと解く」（解放済み・無料ジャンル）</td><td>GenreQuizPlayView（続きから。未回答がなければ最初から）(.sheet)</td></tr>
+    <tr><td>「もっと解く」（未解放・お試し未使用）</td><td>GenreQuizPlayView（お試し5問）(.sheet)</td></tr>
+    <tr><td>「もっと解く」（未解放・お試し済み）</td><td>GenreQuizShopView（一覧で解放を案内）(.sheet)</td></tr>
     <tr><td>閉じる</td><td>HomeView（sheetを閉じる）</td></tr>
   </table>
 
@@ -68,21 +72,26 @@ QuizService {
     <li class="done">QuizService.hasAnsweredToday() で1日1回制限</li>
     <li class="done">正解時 streak +1 + コイン獲得（CoinService 連携）</li>
     <li class="done">不正解時 streak リセット</li>
+    <li class="done">1.0.13: 「もっと解く」の対象は豆知識のカテゴリと同じジャンル（科学・雑学・歴史）。「文化」に対応するジャンルは無いため、無料の「雑学・トリビア」へつなぐ</li>
+    <li class="done">1.0.13: 入り方の判定（解放済みか・進捗があるか・お試し済みか）は純粋な関数にして単体テストで確認</li>
   </ul>
 
   <h2>関連</h2>
   <ul>
     <li><a href="home.html">ホーム画面</a></li>
     <li><a href="tip-card.html">豆知識カード</a></li>
+    <li><a href="genre-quiz-play.html">ジャンルクイズプレイ画面</a></li>
+    <li><a href="../features/genre-quiz.html">ジャンルクイズ機能</a></li>
   </ul>
 
   <h2>変更履歴</h2>
   <table class="history-table">
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
+    <tr><td>1.1</td><td>2026-10-21</td><td>アプリ 1.0.13（未公開・2026-10-21）: 結果の下に同じジャンルのクイズへつなぐ「もっと解く」ボタンを追加（DT-015）</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-09</footer>
+  <footer class="site-footer">最終更新: 2026-10-21</footer>
 </div>
 </body>
 </html>
