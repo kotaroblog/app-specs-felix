@@ -6,6 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <title>DailyTips - ジャンルクイズ機能</title>
 <link rel="stylesheet" href="../../assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 </head>
 <body>
 <div class="container">
@@ -30,7 +31,27 @@
     <li><a href="../screens/genre-quiz-play.html">ジャンルクイズプレイ</a></li>
     <li><a href="../screens/genre-quiz-history.html">ジャンルクイズ履歴</a></li>
     <li><a href="../screens/genre-progress.html">進捗ダッシュボード</a></li>
+    <li><a href="../screens/tip-quiz.html">豆知識クイズ（今日のクイズ）</a></li>
+    <li><a href="../screens/home.html">ホーム（ポイントの使い道）</a></li>
   </ul>
+
+  <h2>入口と入り方（1.0.13・未公開）</h2>
+  <p>ジャンル別クイズに気づかれない・解放の直前で止まる問題（DT-015・DT-016）に対して、入口を増やし、入り方をジャンルの状態で分ける。</p>
+  <table>
+    <tr><th>入口</th><th>動作</th></tr>
+    <tr><td>ホーム上部の「クイズ」</td><td>一覧（GenreQuizShopView）</td></tr>
+    <tr><td>ホームのポイントの使い道（「100ptで1ジャンル解放・あと◯pt」）</td><td>一覧</td></tr>
+    <tr><td>今日のクイズの結果の下「「◯◯」のクイズをもっと解く」</td><td>豆知識のカテゴリと同じジャンルへ（文化は無料の雑学・トリビアへ）。下表の判定で入り方を決める</td></tr>
+    <tr><td>お試し終了画面の「ほかのジャンルを見る」</td><td>一覧</td></tr>
+  </table>
+  <table>
+    <tr><th>ジャンルの状態</th><th>入り方</th></tr>
+    <tr><td>解放済み（無料ジャンルを含む）・回答あり</td><td>続きから</td></tr>
+    <tr><td>解放済み・回答なし</td><td>順番通り（1問目から）</td></tr>
+    <tr><td>未解放・お試し未使用</td><td>お試し5問</td></tr>
+    <tr><td>未解放・お試し済み</td><td>一覧を開いて解放を案内</td></tr>
+  </table>
+  <p>判定（入り方・問題番号・関連ジャンル・ポイントの使い道）は画面に依存しない純粋な関数にして単体テスト（<code>GenreGuidanceTests</code>）で確認している。</p>
 
   <h2>14ジャンル（1,400問）</h2>
   <p>表示順は <strong>雑学・トリビア（無料）</strong> を先頭に配置。残り13ジャンルは有料（100pt）。</p>
@@ -117,12 +138,32 @@ final class GenreProgressService {  // @unchecked Sendable
     <li>各回答ごとに GenreProgressService.recordAnswer()</li>
   </ol>
 
+  <h2>処理フロー（お試し終了 → その場で解放・1.0.13）</h2>
+  <div class="mermaid">
+sequenceDiagram
+  participant U as ユーザー
+  participant P as GenreQuizPlayView
+  participant S as GenreQuizService
+  participant G as GenreProgressService
+  U->>P: お試し5問を完走
+  P->>G: お試し使用済みを記録
+  P-->>U: お試し終了画面（解放ボタン or あと◯pt）
+  U->>P: 「100ptで解放する」
+  P->>S: ジャンルを解放
+  S-->>P: 成功
+  P->>G: お試しの5問の回答をまとめて記録
+  P-->>U: 6問目から続ける
+  </div>
+
   <h2>ビジネスルール</h2>
   <ul>
     <li>ジャンル解放は1ジャンル100コイン、買い切り（再購入不要）</li>
     <li>プレイ開始時にInterstitial広告（無料）</li>
     <li>正解で streak +1、不正解で問題のみリセット</li>
     <li>履歴は最新から順に保存（AppGroup）</li>
+    <li>1.0.13: ポイントが足りなくても解放ボタンは押せる。押すと「あと何pt」と貯め方（動画 +3pt〔1日5回〕・ログイン +1pt・今日のクイズの正解 +1〜3pt）を出す</li>
+    <li>1.0.13: お試しの回答は解放したときだけ進捗に記録する（解放しなければ記録しない。従来どおり）</li>
+    <li>1.0.13: 全問回答済みのジャンルは「最初から解き直す」で1問目から再挑戦できる</li>
   </ul>
 
   <h2>外部連携</h2>
@@ -137,7 +178,7 @@ final class GenreProgressService {  // @unchecked Sendable
   <h2>エラー処理</h2>
   <table>
     <tr><th>発生条件</th><th>対応</th></tr>
-    <tr><td>残高不足</td><td>「コインが足りません」アラート</td></tr>
+    <tr><td>残高不足</td><td>1.0.13: 「あとXptで解放できます」アラート＋貯め方。お試し終了画面では「解放まであとXpt」と動画ボーナスを画面内に出す</td></tr>
     <tr><td>JSON 読込失敗</td><td>「問題を取得できませんでした」 + 空リスト</td></tr>
     <tr><td>すでにアンロック済み</td><td>UI でブロック（unlock ボタン非表示）</td></tr>
   </table>
@@ -157,9 +198,17 @@ final class GenreProgressService {  // @unchecked Sendable
     <tr><td>1.1</td><td>2026-05-17</td><td>v1.0.5: 心理学100問追加で全13ジャンル1300問に。無料体験枠を追加（雑学完全無料・他12ジャンルは5問お試し）。表示順を変更し雑学を最上位に。GenrePlayMode に .freeTrial を追加</td></tr>
     <tr><td>1.2</td><td>2026-05-25</td><td>v1.0.7: お試し5問を1ジャンル1回限りに制限（<code>isFreeTrialUsed</code> フラグ・<code>markFreeTrialUsed</code> 追加）。6問目以降が解ける race condition を <code>GenrePlaySession</code> 導入で修正（<code>@State playTarget+playMode</code> の2変数連続更新を1変数集約）</td></tr>
     <tr><td>1.3</td><td>2026-09-07</td><td>v1.0.11: 新ジャンル<strong>「経済・お金」100問</strong>を追加し、<strong>全14ジャンル1,400問</strong>に。<code>GenreDefinition.all</code> の末尾に <code>economy</code>（表示名「経済・お金」／SF Symbol <code>yensign.circle.fill</code>／cost 100pt）を追加したため、ジャンル一覧の表示順は14番目。問題データは <code>genre_quiz_economy.json</code>。無料枠（雑学・トリビア先頭・完全無料）とお試し5問の仕様は変更なし（お試し対象が他12ジャンル → 他13ジャンルに増加）</td></tr>
+    <tr><td>1.4</td><td>2026-10-21</td><td>アプリ 1.0.13（未公開・2026-10-21）: 入口（ホーム上部・ポイントの使い道・今日のクイズの後・お試し終了画面）と状態別の入り方を追加。お試し終了画面からその場で解放して6問目から続ける流れ、ポイント不足時の案内、全問回答済みの解き直し、判定の単体テストを追記（DT-015・DT-016）</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-09-07</footer>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default'
+    });
+  </script>
+
+  <footer class="site-footer">最終更新: 2026-10-21</footer>
 </div>
 </body>
 </html>
