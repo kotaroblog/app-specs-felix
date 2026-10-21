@@ -55,6 +55,17 @@
     </ul>
     <p style="margin-bottom:0">いずれも <a href="features/ad-control.html">広告制御</a> に詳細を記載。</p>
   </div>
+  <h2>v1.0.13 主な変更点（未公開・2026-10-21 時点）</h2>
+  <p class="note">※ 開発ブランチ <code>improve/score80-2026-10</code> の内容。まだ main に入っておらず、App Store には未公開。</p>
+  <ul>
+    <li>ホームの組み替え（DT-014）: 上部に6つの入口（テーマ・クイズ・検索・カレンダー／今日・設定・プレミアム）をアイコン＋短い文字で。豆知識カードと「今日のクイズに挑戦！」を最初の画面に収め、ポイント・動画ボーナスはカードの下へ。ログインボーナスはアラートから帯へ → <a href="screens/home.html">ホーム</a></li>
+    <li>ジャンル別クイズへの導線（DT-015・DT-016）: 今日のクイズの後の「もっと解く」（解放済みは続きから／お試しが残れば5問／使い切れば一覧）、残高の下の「100ptで1ジャンル解放・あと◯pt」、ポイント不足時の「あと何pt・どう貯めるか」、お試し終了画面でその場で解放して6問目から、全問回答済みの「最初から解き直す」、収録順の問題番号 → <a href="features/genre-quiz.html">ジャンルクイズ</a></li>
+    <li>カテゴリの日本語化（DT-013）: カード・お気に入り・共有・ウィジェット・検索で「文化・科学・雑学・歴史」。検索の対象に本文を追加 → <a href="screens/search.html">検索</a></li>
+    <li>広告・プレミアムの文言（DT-010）: 「動画を見て +3pt」「動画を見て解放する」＋「広告の動画が流れます」。プレミアムの特典に「広告なし」、存在しない「限定テーマ」を削除。価格は StoreKit の表示価格（出るまで購入ボタンは押せず、取得失敗で「再読み込み」）、年額の割引率は実価格から計算 → <a href="screens/premium.html">プレミアム</a></li>
+    <li>ウィジェットをアプリのテーマ色で描く（DT-012）。明るいテーマでは黒い膜を重ねて白い文字を読めるように → <a href="features/widget-sync.html">ウィジェット同期</a></li>
+    <li>失敗時の案内: ロック日の動画を再生できないときのアラート、プレミアムの価格取得失敗 → <a href="error-design.html">エラー設計</a></li>
+  </ul>
+
   <h2>v1.0.11 主な変更点</h2>
   <ul>
     <li>新ジャンル「経済・お金」100問追加（全14ジャンル1400問に）</li>
@@ -158,9 +169,10 @@
     <tr><td>1.0</td><td>2026-08-20</td><td>変更履歴セクションを新設。<strong>広告基盤を Unity LevelPlay へ移行</strong>（AdMob 恒久停止 → AppLovin MAX の承認却下 → LevelPlay 9.6.0 + UnityAds アダプタ 5.10.0）し、<strong>アプリ起動広告（App Open）を廃止</strong>（LevelPlay に該当フォーマットが存在しないため）。マネタイズ表記・広告制御カード・広告基盤の変更セクションを更新。App Key・広告ユニットID3種は設定済みだが、ironSource Ads アカウント承認待ちのため未配信。</td></tr>
     <tr><td>1.1</td><td>2026-08-23</td><td><strong>ATT ダイアログの表示条件の設計変更</strong>を反映（<code>shouldRequestTracking = !appKey.isEmpty</code> で広告の配信可否と分離し、審査ビルドでも表示する）。<code>isAdDeliveryAvailable</code> のままでは sandbox で走る App Store 審査でダイアログが出ず、2026-08-22 に姉妹アプリ CHROMATIC 1.4.0(7) が Guideline 2.1 でリジェクトされた。<strong>DailyTips のコードは未適用</strong>である旨を要対応事項として明記。あわせて<strong>プライバシーマニフェストの方針</strong>（<code>NSPrivacyTracking: false</code> ＋ <code>NSPrivacyTrackingDomains</code> キーごと削除／ITMS-91064）を追記。<strong>アプリ起動広告は LevelPlay 移行に伴う廃止</strong>である旨を <a href="features/ad-control.html">広告制御</a> で明示。LevelPlay 移行が 2026-08-23 の ITPassportMaster をもって全8アプリで統一された点を追記。</td></tr>
     <tr><td>1.2</td><td>2026-09-07</td><td>v1.0.11: 新ジャンル<strong>「経済・お金」100問</strong>追加を反映（<strong>全14ジャンル1,400問</strong>）。「v1.0.11 主な変更点」セクションを追加し、ジャンルクイズショップ／ジャンルクイズのカード説明を 13ジャンル → 14ジャンル に更新。</td></tr>
+    <tr><td>1.3</td><td>2026-10-21</td><td>アプリ 1.0.13（未公開・2026-10-21）: 「v1.0.13 主な変更点（未公開）」セクションを追加（DT-010・DT-012〜016）</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-09-07</footer>
+  <footer class="site-footer">最終更新: 2026-10-21</footer>
 </div>
 </body>
 </html>
