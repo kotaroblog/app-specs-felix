@@ -26,12 +26,22 @@
   <h2>UI 構成</h2>
   <table>
     <tr><th>要素</th><th>種類</th><th>説明</th></tr>
-    <tr><td>ヘッダー</td><td>VStack</td><td>キャッチコピー + アイキャッチ</td></tr>
-    <tr><td>特典リスト</td><td>List</td><td>広告なし・限定テーマ・月次100pt</td></tr>
-    <tr><td>プラン選択</td><td>HStack</td><td>月額・年額（ボタン）</td></tr>
-    <tr><td>購入ボタン</td><td>Button</td><td>StoreKit 起動</td></tr>
+    <tr><td>ヘッダー</td><td>VStack</td><td>「プレミアムにアップグレード」＋「広告なし・全日付の閲覧・毎月100pt」</td></tr>
+    <tr><td>特典リスト</td><td>VStack</td><td>1.0.13: 広告なし（バナーと全画面の広告が出なくなる。ポイントの動画は見たいときだけ）・過去の豆知識をすべて閲覧・毎月100ptボーナス・ジャンル解放がお得に。<strong>存在しない「限定テーマ」の記載は削除</strong></td></tr>
+    <tr><td>プラン選択</td><td>PremiumPlanSelector</td><td>年額「◯◯ / 年（1年ごとに自動更新）」＋割引率バッジ「◯%お得」、月額「◯◯ / 月（1か月ごとに自動更新）」。<strong>価格は StoreKit の表示価格</strong>（固定の文字は使わない）。取得中は「価格を読み込み中…」</td></tr>
+    <tr><td>価格の取得失敗の案内</td><td>PremiumPriceErrorRow</td><td>1.0.13: 「価格を取得できませんでした。通信状況を確かめてから、もう一度読み込んでください。」＋「再読み込み」ボタン</td></tr>
+    <tr><td>購入ボタン</td><td>Button</td><td>StoreKit 起動。<strong>選んだプランの価格が出るまで押せない</strong></td></tr>
+    <tr><td>注意書き</td><td>PremiumFooterNote</td><td>1.0.13: 自動更新（期間終了の24時間前までに解約しない限り同じ期間・価格で更新、Apple ID に請求）と解約方法（「設定」アプリ →（自分の名前）→「サブスクリプション」）</td></tr>
     <tr><td>復元ボタン</td><td>Button</td><td>過去購入の復元</td></tr>
     <tr><td>利用規約・プライバシー</td><td>Link</td><td>SafariSheetView 経由</td></tr>
+  </table>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>表示内容</th></tr>
+    <tr><td>価格の取得中</td><td>プランに「価格を読み込み中…」。購入ボタンは押せない</td></tr>
+    <tr><td>価格を取得できた</td><td>表示価格と割引率のバッジ。購入ボタンが押せる</td></tr>
+    <tr><td>価格を取得できなかった</td><td>プランに「価格を取得できませんでした」＋案内と「再読み込み」。購入ボタンは押せない</td></tr>
   </table>
 
   <h2>提供商品</h2>
@@ -43,8 +53,9 @@
 
   <h2>プレミアム特典</h2>
   <ul>
-    <li>広告なし（Banner / Interstitial すべて非表示。Rewarded は報酬目的で任意利用可）<br><span class="note">※ アプリ起動広告（AppOpen）は 2026-08-20 に廃止済み。また広告未配信の間は「広告を完全に非表示」を特典一覧から削除している</span></li>
-    <li>限定テーマすべて解放（実装検討）</li>
+    <li>広告なし（Banner / Interstitial すべて非表示。Rewarded は報酬目的で任意利用可）<br><span class="note">※ アプリ起動広告（AppOpen）は 2026-08-20 に廃止済み。1.0.13 から特典一覧に「広告なし」を再び記載（実際に消えるバナーと全画面広告として）</span></li>
+    <li>過去の豆知識をすべて閲覧（カレンダーの全日付）</li>
+    <li><s>限定テーマすべて解放（実装検討）</s> → 実装していないため 1.0.13 で画面・設定の記載を削除</li>
     <li>毎月1日に +100コインボーナス</li>
     <li>全ジャンル自動アンロック（実装検討）</li>
   </ul>
@@ -61,6 +72,10 @@
     <li class="done">PremiumService は <code>@Observable @MainActor</code></li>
     <li class="done">PurchaseError enum で productNotFound / verificationFailed / pending を定義</li>
     <li class="done">restorePurchases() の動線あり</li>
+    <li class="done">1.0.13: 価格は StoreKit の <code>displayPrice</code> を表示（以前の固定表記はやめた）。年額の割引率は、月額12か月分と年額の価格から計算して切り捨て（年額が安くなければバッジを出さない）。以前の固定表記「45%」は実価格では44%</li>
+    <li class="done">1.0.13: 割引率の計算は単体テストで確認（桁の多い値でバッジが消える不具合をテストで検出して修正）</li>
+    <li class="done">1.0.13: 価格の取得失敗は Logger に残す</li>
+    <li class="done">1.0.13: プラン選択と注意書きを <code>PremiumPlanSection.swift</code> へ分割</li>
   </ul>
 
   <h2>関連</h2>
@@ -73,9 +88,10 @@
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
       <tr><td>1.1</td><td>2026-08-20</td><td>広告基盤の Unity LevelPlay 移行を反映。プレミアム特典の広告非表示の記述から <strong>AppOpen（廃止済み）</strong>を除外し、Rewarded は報酬目的で利用可である点を明確化。広告未配信期間は特典一覧から「広告を完全に非表示」を削除していることを注記。</td></tr>
+    <tr><td>1.2</td><td>2026-10-21</td><td>アプリ 1.0.13（未公開・2026-10-21）: 価格を StoreKit の表示価格に変更（価格が出るまで購入ボタンは押せず、取得失敗で案内と「再読み込み」）、年額の割引率を実価格から計算、特典に「広告なし」を記載し存在しない「限定テーマ」を削除、自動更新と解約方法の説明を追加（DT-010）</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-08-20</footer>
+  <footer class="site-footer">最終更新: 2026-10-21</footer>
 </div>
 </body>
 </html>

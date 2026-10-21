@@ -55,7 +55,7 @@
     <tr><td>未購入有料</td><td>「200コインで購入」ボタン</td></tr>
     <tr><td>購入済（未適用）</td><td>「適用」ボタン</td></tr>
     <tr><td>使用中</td><td>「使用中」表示（ボタン無効）</td></tr>
-    <tr><td>残高不足</td><td>購入アラートで警告</td></tr>
+    <tr><td>残高不足（1.0.13）</td><td>購入ボタンは<strong>押せるまま</strong>ラベルが「あとXpt」に。押すとアラート「ptが足りません」＋「あとXptで購入できます」と貯め方（動画を見て +3pt〔1日5回まで〕・毎日のログイン +1pt・今日のクイズの正解 +1〜3pt）</td></tr>
   </table>
 
   <h2>使用するデータモデル</h2>
@@ -82,13 +82,15 @@ ThemeService {
     <li class="done">v1.0.5 で「ベージュ」テーマを追加（計14テーマ）</li>
     <li class="done">適用テーマは ThemeBackgroundView でグラデーション表示</li>
     <li class="done">状態バッジは4色（青・緑・グレー・オレンジ）で一目瞭然</li>
-    <li class="done">動画ボーナスボタンから RewardedAdManager.show() を起動</li>
+    <li class="done">動画ボーナスボタンから RewardedAdManager.show() を起動。1.0.13 から文言は「動画を見て +3pt」・「広告の動画が流れます」</li>
+    <li class="done">1.0.13: テーマを変えたらウィジェットの共有データを更新し、ウィジェットも新しいテーマの色で描き直す（DT-012）</li>
   </ul>
 
   <h2>関連</h2>
   <ul>
     <li><a href="home.html">ホーム画面</a></li>
     <li><a href="../features/coin-economy.html">コイン経済</a></li>
+    <li><a href="../features/widget-sync.html">ウィジェット同期</a></li>
   </ul>
 
   <h2>変更履歴</h2>
@@ -97,9 +99,10 @@ ThemeService {
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
     <tr><td>1.1</td><td>2026-05-17</td><td>v1.0.5: 「ベージュ」テーマ追加（計14テーマ）、状態バッジ4種、動画ボーナスボタンを追加</td></tr>
     <tr><td>1.2</td><td>2026-05-25</td><td>v1.0.7: 価格表記「枚」→「pt」に統一（カード価格・購入確認ボタン・購入確認メッセージの3箇所）</td></tr>
+    <tr><td>1.3</td><td>2026-10-21</td><td>アプリ 1.0.13（未公開・2026-10-21）: ポイント不足でも購入ボタンを押せるようにし「あと何pt・どう貯めるか」を案内、動画ボーナスの文言を変更、テーマ変更でウィジェットの色も更新（DT-010・DT-012）</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-25</footer>
+  <footer class="site-footer">最終更新: 2026-10-21</footer>
 </div>
 </body>
 </html>
