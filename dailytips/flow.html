@@ -19,7 +19,7 @@
 
   <div class="callout">
     HomeViewの内側に「今日ページ」と「カレンダーページ」をTabViewで切り替える二層構造。各種ショップ・設定はsheetで起動する。
-    1.0.13（未公開）から、ホーム上部の6つの入口（テーマ・クイズ・検索・カレンダー／今日・設定・プレミアム）から各画面を開く。
+    1.0.13（未公開）から、ホーム上部の6つの入口から各画面を開く。1.0.14 の並びは「クイズ・検索・着せ替え・カレンダー／今日・設定・プレミアム」（入口「テーマ」は「着せ替え」に置き換え、テーマショップは廃止）。
   </div>
 
   <h2>起動〜メインフロー</h2>
@@ -58,7 +58,8 @@ flowchart LR
   Next -- お試し未使用 --> GTrial[GenreQuizPlayView<br/>お試し5問]
   Next -- お試し済み --> GenreShop
   Today -. 入口「設定」 .-> Settings[SettingsView]
-  Today -. 入口「テーマ」 .-> ThemeShop[ThemeShopView]
+  Today -. 入口「着せ替え」・鳥のカード .-> Costume[CostumeShopView]
+  Today -. ポイントの使い道（着せ替え） .-> Costume
   Today -. 入口「クイズ」 .-> GenreShop[GenreQuizShopView]
   Today -. ポイントの使い道 .-> GenreShop
   Today -. 入口「検索」 .-> Search[SearchView]
@@ -109,10 +110,14 @@ flowchart LR
   <h2>ショップ・課金経路</h2>
   <div class="mermaid">
 flowchart TD
-  ThemeShop[ThemeShopView] --> ThemeCard{テーマ}
-  ThemeCard -- 無料 --> Apply[適用]
-  ThemeCard -- 有料 --> BuyTheme[200pt消費購入]
-  BuyTheme --> Apply
+  Costume[CostumeShopView] --> Item{小物}
+  Item -- 未所持 --> Confirm[確認・試着の姿]
+  Confirm -- 足りる --> Buy[ptを使って購入]
+  Confirm -- 足りない --> Short[あと◯pt と貯め方]
+  Buy --> Wear[自動で着る]
+  Item -- 所持 --> Wear
+  Wear --> WSync[ホーム・ウィジェットに反映]
+  QuizAny[今日のクイズ / ジャンル別クイズ] -- ヒント 10pt --> Elim[間違いの選択肢を消す]
 
   Premium[PremiumView] --> Plan{プラン選択}
   Premium -- 価格を取得できない --> Reload[案内 + 再読み込み<br/>購入ボタンは押せない]
@@ -134,7 +139,9 @@ flowchart TD
     <tr><td>HomeView</td><td>動画ボーナスボタン</td><td>Rewarded広告 → +3pt</td></tr>
     <tr><td>CalendarView</td><td>ロック日タップ</td><td>解放アラート → Rewarded広告</td></tr>
     <tr><td>GenreQuizShop</td><td>ジャンル購入</td><td>100pt消費 → アンロック</td></tr>
-    <tr><td>ThemeShop</td><td>テーマ購入</td><td>200pt消費 → 適用</td></tr>
+    <tr><td>CostumeShop（1.0.14）</td><td>小物の購入</td><td>50〜300pt消費 → 自動で着る → ウィジェット同期</td></tr>
+    <tr><td>QuizView / GenreQuizPlay（1.0.14）</td><td>ヒント</td><td>10pt消費 → 間違いの選択肢を消す</td></tr>
+    <tr><td><s>ThemeShop</s></td><td><s>テーマ購入</s></td><td>1.0.14 で廃止（購入済み分はポイントで返金）</td></tr>
     <tr><td>PremiumView</td><td>プラン購入</td><td>StoreKit → サブスク開始</td></tr>
     <tr><td>SettingsView</td><td>キャッシュクリア</td><td>UserDefaults初期化</td></tr>
     <tr><td>Widget（Small）</td><td>タップ</td><td>HomeView 起動</td></tr>
@@ -147,13 +154,14 @@ flowchart TD
     <tr><td>DT-HOME-02</td><td>豆知識カード</td><td><code>Views/Home/TipCardView.swift</code></td></tr>
     <tr><td>DT-HOME-03</td><td>お気に入り一覧</td><td><code>Views/Home/FavoritesView.swift</code></td></tr>
     <tr><td>DT-HOME-04</td><td>共有カード</td><td><code>Views/Home/ShareCardView.swift</code></td></tr>
-    <tr><td>DT-CAL-01</td><td>カレンダー</td><td><code>Views/Calendar/CalendarView.swift</code></td></tr>
+    <tr><td>DT-CAL-01</td><td>カレンダー</td><td><code>Views/Home/HomeCalendarPage.swift</code>・<code>HomeCalendarGrid.swift</code>（旧 <code>Views/Calendar/CalendarView.swift</code> は削除済み）</td></tr>
     <tr><td>DT-QUIZ-01</td><td>豆知識クイズ</td><td><code>Views/Quiz/QuizView.swift</code>（結果の下に <code>DailyQuizNextStepView</code>）</td></tr>
     <tr><td>DT-GQS-01</td><td>ジャンルクイズショップ</td><td><code>Views/GenreQuizShop/GenreQuizShopView.swift</code></td></tr>
     <tr><td>DT-GQS-02</td><td>ジャンルクイズプレイ</td><td><code>Views/GenreQuizShop/GenreQuizPlayView.swift</code></td></tr>
     <tr><td>DT-GQS-03</td><td>ジャンルクイズ履歴</td><td><code>Views/GenreQuizShop/GenreQuizHistoryView.swift</code></td></tr>
     <tr><td>DT-GQS-04</td><td>進捗ダッシュボード</td><td><code>Views/GenreQuizShop/GenreProgressView.swift</code></td></tr>
-    <tr><td>DT-TH-01</td><td>テーマショップ</td><td><code>Views/ThemeShop/ThemeShopView.swift</code></td></tr>
+    <tr><td>DT-CST-01</td><td>鳥の着せ替え（1.0.14）</td><td><code>Views/Costume/CostumeShopView.swift</code></td></tr>
+    <tr><td><s>DT-TH-01</s></td><td>テーマショップ（1.0.14 で廃止）</td><td><s><code>Views/ThemeShop/ThemeShopView.swift</code></s>（削除済み）</td></tr>
     <tr><td>DT-PRM-01</td><td>Premium購入</td><td><code>Views/Premium/PremiumView.swift</code></td></tr>
     <tr><td>DT-SET-01</td><td>設定</td><td><code>Views/Settings/SettingsView.swift</code></td></tr>
     <tr><td>DT-SET-02</td><td>プライバシーポリシー</td><td><code>Views/Settings/PrivacyPolicyView.swift</code></td></tr>
@@ -168,6 +176,7 @@ flowchart TD
       <tr><td>1.1</td><td>2026-08-20</td><td>広告基盤の Unity LevelPlay 移行を反映。起動フローの「AppOpenAd ロード」を「LevelPlay SDK 初期化（App Store 配信版のみ）」へ差し替え（<strong>アプリ起動広告は廃止</strong>）。ATT 要求は広告配信時のみである旨を明記。</td></tr>
       <tr><td>1.2</td><td>2026-08-23</td><td>ATT 要求の条件を<strong>広告配信の可否から分離</strong>する設計変更を注記（<code>shouldRequestTracking = !appKey.isEmpty</code>。審査・TestFlight でも表示する）。図は現行コードの挙動（<code>isAdDeliveryAvailable</code> でガード＝広告配信時のみ）を示したままとし、<strong>DailyTips には未適用</strong>である旨を図の下に明記した。LevelPlay SDK 初期化を App Store 配信版のみに限定する点は変更なし。</td></tr>
     <tr><td>1.3</td><td>2026-10-21</td><td>アプリ 1.0.13（未公開・2026-10-21）: ホーム上部の6つの入口、今日のクイズからジャンル別クイズへの入り方（続きから／お試し5問／一覧）、お試し終了画面からの解放、pt不足時の案内、全問回答済みの「最初から解き直す」、ロック日の動画失敗、プレミアムの価格取得失敗を図と遷移表に反映（DT-014・DT-015・DT-016・DT-010）</td></tr>
+    <tr><td>1.4</td><td>2026-10-23</td><td>アプリ 1.0.14 (27)（TestFlight 配信済み・未公開）: 入口「テーマ」→「着せ替え」、テーマショップの経路を着せ替え・ヒントに置き換え、画面ID対応表に DT-CST-01 を追加・DT-TH-01 を廃止、カレンダーの実装ファイルを訂正</td></tr>
   </table>
 
   <script>
@@ -178,7 +187,7 @@ flowchart TD
     });
   </script>
 
-  <footer class="site-footer">最終更新: 2026-10-21</footer>
+  <footer class="site-footer">最終更新: 2026-10-23</footer>
 </div>
 </body>
 </html>
