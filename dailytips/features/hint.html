@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - クイズのヒント</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix App Specs</a> / <a href="../">DailyTips</a> / クイズのヒント</div>
+
+  <header class="site-header">
+    <h1>クイズのヒント</h1>
+    <p>10pt を使って、間違いの選択肢を消す</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">機能ID: DT-F-HINT</span>
+      <span class="tag">アプリ 1.0.14 (27)・未公開</span>
+    </div>
+  </header>
+
+  <h2>概要</h2>
+  <p>テーマショップの廃止でポイントの使い道が減ったため、1.0.14 で追加したポイントの使い道の1つ。
+  迷った問題で 10pt を使うと、間違いの選択肢を消して選択肢を減らせる。正解したときの獲得ポイントは変えない。</p>
+
+  <h2>関連画面</h2>
+  <ul>
+    <li><a href="../screens/tip-quiz.html">豆知識クイズ（今日のクイズ）</a></li>
+    <li><a href="../screens/genre-quiz-play.html">ジャンルクイズプレイ</a>（お試しを含む）</li>
+  </ul>
+
+  <h2>処理フロー</h2>
+  <div class="mermaid">
+sequenceDiagram
+  participant U as User
+  participant V as クイズ画面
+  participant H as HintService
+  participant C as CoinService
+  U->>V: 「ヒント（10pt）間違いをNつ消す」
+  V->>H: useHint(問題のキー, 選択肢数, 正解)
+  alt この問題で使用済み
+    H-->>V: 前に消した選択肢（ポイントは引かない）
+  else 消せる選択肢が無い（2択以下）
+    H-->>V: 使えない
+  else 残高不足
+    H->>C: spendCoins(10) 失敗
+    H-->>V: あと◯pt
+  else 使える
+    H->>C: spendCoins(10)
+    H->>H: 正解以外から選んで記録
+    H-->>V: 消した選択肢
+  end
+  V-->>U: 消した選択肢を押せない行で表示
+  U->>V: 回答
+  V->>H: clearHint(問題のキー)
+  </div>
+
+  <h2>ビジネスルール</h2>
+  <table>
+    <tr><th>項目</th><th>内容</th></tr>
+    <tr><td>値段</td><td>1回 <strong>10pt</strong></td></tr>
+    <tr><td>使える回数</td><td>1問につき1回</td></tr>
+    <tr><td>消す数</td><td>間違いの選択肢を最大2つ・<strong>最低2つは残す</strong>。4択のジャンル別クイズは2つ、3択の今日のクイズは1つ（3択で2つ消すと答えが分かり、連続正解をポイントで買えてしまうため）</td></tr>
+    <tr><td>使える場所</td><td>今日のクイズ（未回答のときだけ）・ジャンル別クイズ（お試しを含む・未回答のとき）</td></tr>
+    <tr><td>出さない場面</td><td>今日のクイズの<strong>再挑戦・過去の日</strong>（ポイントが入らないため、ポイントを使うヒントも出さない）</td></tr>
+    <tr><td>二重課金の防止</td><td>使用済みの記録を保存し、アプリを閉じて開き直しても同じ問題で 10pt を二重に引かない。回答したら記録を消す（次に同じ問題を解くときはまた使える）</td></tr>
+    <tr><td>獲得ポイント</td><td>ヒントを使っても正解時の獲得（1〜3pt）は変えない。獲得がヒントの値段より小さいので、ヒントで得をする抜け道は無い</td></tr>
+  </table>
+
+  <h2>ボタンの表示</h2>
+  <table>
+    <tr><th>状態</th><th>表示</th></tr>
+    <tr><td>使える</td><td>「ヒント（10pt）間違いをNつ消す」（副ボタン）</td></tr>
+    <tr><td>残高不足</td><td>ボタンは押せない状態。ボタンの外に「ヒントまで あと◯pt」（薄くならないように外に出す）。読み上げのヒント「ポイントがあと◯足りません」</td></tr>
+    <tr><td>使用済み</td><td>「ヒントで間違いをNつ消しました」のチップ</td></tr>
+    <tr><td>消せる選択肢が無い</td><td>何も出さない</td></tr>
+  </table>
+
+  <h2>外部連携</h2>
+  <table>
+    <tr><th>連携先</th><th>用途</th><th>備考</th></tr>
+    <tr><td>App Group の UserDefaults</td><td>使用済みの記録 <code>hint_eliminated_v1</code></td><td>形は <a href="../data-model.html">データモデル</a></td></tr>
+    <tr><td>計測（AnalyticsService）</td><td>ヒントを使った画面（<code>daily_quiz</code> / <code>genre_quiz</code>）</td><td>個人を特定する値は送らない</td></tr>
+  </table>
+
+  <h2>エラー処理</h2>
+  <table>
+    <tr><th>発生条件</th><th>対応</th></tr>
+    <tr><td>残高不足</td><td>ポイントを引かず「あと◯pt」を返す</td></tr>
+    <tr><td>答えずに残った記録が溜まる</td><td>200件を上限に、キーの順で古いものから捨てる</td></tr>
+  </table>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li><code>Services/HintService.swift</code>（ロックで直列化）・ボタンは <code>Views/Quiz/QuizHintButton.swift</code>・消えた選択肢は <code>QuizEliminatedChoiceRow</code>（<code>Views/Quiz/QuizChoiceList.swift</code>）</li>
+    <li>問題のキーは今日のクイズ <code>daily-{豆知識ID}</code>、ジャンル別 <code>genre-{ジャンルID}-{問題ID}</code></li>
+    <li>テストは <code>DailyTipsTests/HintServiceTests.swift</code>（消す数・正解を消さない・二重課金なし・残高不足）</li>
+    <li>レビュー指摘（段階A）でヒントの二重課金を修正済み</li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-10-23</td><td>初版作成（アプリ 1.0.14 (27)・TestFlight 配信済み・未公開）</td></tr>
+  </table>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default'
+    });
+  </script>
+  <footer class="site-footer">最終更新: 2026-10-23</footer>
+</div>
+</body>
+</html>
