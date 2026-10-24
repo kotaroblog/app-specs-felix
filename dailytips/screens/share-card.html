@@ -30,7 +30,7 @@
 
   <table>
     <tr><th>要素</th><th>説明</th></tr>
-    <tr><td>テーマグラデーション背景</td><td>選択中テーマ適用</td></tr>
+    <tr><td>背景</td><td>1.0.14: 配色ひだまりのグラデーション（<code>AppPalette.background</code>）。文字は濃い色、カテゴリのバッジは #FFF2E0＋枠 #F0CFA8。<s>選択中テーマの背景</s>は廃止</td></tr>
     <tr><td>カテゴリバッジ</td><td>tip.category</td></tr>
     <tr><td>タイトル</td><td>tip.title（大きめ）</td></tr>
     <tr><td>本文</td><td>tip.content（要約）</td></tr>
@@ -48,12 +48,13 @@
   </ol>
 
   <h2>使用するデータモデル</h2>
-  <pre><code>DailyTip + AppThemeItem
-// ShareService.renderCardImage(tip:theme:) -> UIImage</code></pre>
+  <pre><code>DailyTip
+// ShareService.renderCardImage(tip:) -> UIImage   // 1.0.14 で theme 引数を削除</code></pre>
 
   <h2>実装メモ</h2>
   <ul class="checklist">
     <li class="done">ShareService.renderCardImage() で ImageRenderer 使用（1080×1080固定）</li>
+    <li class="done">1.0.14: ImageRenderer は端末の外観を引き継ぐので、<code>.environment(\.colorScheme, .light)</code> で明るい側に固定</li>
     <li class="done">ShareService.shareText() で X 用テキスト生成（ハッシュタグ5種込み）</li>
     <li class="done">App Storeリンクは <code>ShareService.appStoreURL</code> 定数</li>
     <li class="done">Instagram Stories 対応は削除（仕様変更により動作不可のため廃止）</li>
@@ -69,9 +70,10 @@
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
     <tr><td>1.1</td><td>2026-05-17</td><td>v1.0.5: 画像サイズを1080×1080に明記、ハッシュタグ5種追加、Instagram Stories対応を廃止</td></tr>
+    <tr><td>1.2</td><td>2026-10-23</td><td>アプリ 1.0.14 (27)（TestFlight 配信済み・未公開）: 背景をテーマから配色ひだまりに、<code>renderCardImage(tip:)</code> から theme 引数を削除、明るい外観に固定</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-05-17</footer>
+  <footer class="site-footer">最終更新: 2026-10-23</footer>
 </div>
 </body>
 </html>
