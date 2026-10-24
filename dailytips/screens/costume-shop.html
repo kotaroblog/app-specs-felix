@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - 鳥の着せ替え画面</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix App Specs</a> / <a href="../">DailyTips</a> / 鳥の着せ替え画面</div>
+
+  <header class="site-header">
+    <h1>鳥の着せ替え画面</h1>
+    <p>ポイントで小物を買い、鳥に着せる・外す（シート）</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">画面ID: DT-CST-01</span>
+      <span class="tag">アプリ 1.0.14 (27)・未公開</span>
+    </div>
+  </header>
+
+  <h2>目的・役割</h2>
+  <p>テーマショップに代わるポイントの使い道。いまの鳥の姿を大きく見せ、頭・首・顔の小物11点を買う・着る・外すをこの画面で行う。
+  ルールは <a href="../features/costume.html">鳥の着せ替え（機能）</a>。</p>
+
+  <h2>UI 構成</h2>
+  <table>
+    <tr><th>要素</th><th>種類</th><th>説明</th></tr>
+    <tr><td>ナビゲーションタイトル</td><td>NavigationStack</td><td>「鳥の着せ替え」。右上に閉じるボタン（<code>PaletteToolbarCloseButton</code>）</td></tr>
+    <tr><td>残高</td><td>Text（チップ）</td><td>「🪙 Ypt」。読み上げ「残高Yポイント」</td></tr>
+    <tr><td>鳥のカード</td><td>CostumedBirdView</td><td>いま着ている姿。購入の確認中は<strong>その小物を着た姿（試着）</strong>を出す。下に着ている物の一覧と「ptで小物を買って着せられます。ホームとウィジェットの鳥も同じ姿になります。」</td></tr>
+    <tr><td>場所ごとの一覧</td><td>セクション×3</td><td>「頭」「首」「顔」の順。各行は <code>CostumeItemRow</code></td></tr>
+    <tr><td>小物の行</td><td>CostumeItemRow</td><td>小物の画像・名前・状態（「着用中」／「持っています」／「◯ptで買えます」／「あと◯pt」）と、右のボタン（未所持「🪙 ◯pt」・所持「着る」・着用中「外す」）。ボタンは押せる範囲 44pt 以上</td></tr>
+    <tr><td>購入の確認</td><td>Alert</td><td>「◯◯を買いますか？」「◯ptを使います（残高 Ypt）。買ったらすぐ着せます。いつでも外せます。」／「買う（🪙 ◯pt）」「キャンセル」</td></tr>
+    <tr><td>残高不足</td><td>Alert</td><td>「あと◯ptで買えます」「画面上の「動画を見て +3pt」（1日5回まで）、毎日のログイン（+1pt）、今日のクイズの正解（+1〜3pt）で貯められます。」</td></tr>
+  </table>
+
+  <h2>状態</h2>
+  <table>
+    <tr><th>状態</th><th>表示内容</th></tr>
+    <tr><td>何も着ていない</td><td>鳥だけ</td></tr>
+    <tr><td>購入の確認中</td><td>鳥のカードが試着の姿。キャンセルで元に戻る</td></tr>
+    <tr><td>買った直後</td><td>自動で着た状態（行は「着用中」・ボタンは「外す」）。アニメーション 0.25 秒</td></tr>
+    <tr><td>同じ場所の別の物を着た</td><td>前の物は「持っています」に戻る</td></tr>
+    <tr><td>すべて所持</td><td>ホームのポイント欄に「小物はすべて集めました・いつでも着替えられます」</td></tr>
+  </table>
+
+  <h2>遷移</h2>
+  <table>
+    <tr><th>操作</th><th>遷移先</th></tr>
+    <tr><td>ホームの入口「着せ替え」／鳥のカード／ポイント欄の「鳥の着せ替え（50ptから）」</td><td>この画面 (.sheet)</td></tr>
+    <tr><td>閉じる</td><td>ホーム（ホーム・ウィジェットの鳥は新しい姿）</td></tr>
+  </table>
+
+  <h2>使用するデータモデル</h2>
+  <pre><code>CostumeItem { id, slot: CostumeSlot, name, price }   // 11点・Models/Costume.swift
+CostumeOutfit { items: [CostumeSlot: CostumeItem] }  // 場所ごとに1つ
+UserDefaults（App Group）
+  costume_owned_ids : [String]
+  costume_equipped  : [String: String]  // "head"|"neck"|"face" → 小物の id</code></pre>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li class="done"><code>Views/Costume/CostumeShopView.swift</code>・<code>CostumeItemRow.swift</code></li>
+    <li class="done">配色ひだまり（カード白・枠 #F0CFA8・主ボタン #F09558 に濃い文字）</li>
+    <li class="done">段階Cのレビュー指摘（背の低い端末・最大文字での鳥のカードほか）を修正済み</li>
+  </ul>
+
+  <h2>関連</h2>
+  <ul>
+    <li><a href="../features/costume.html">鳥の着せ替え（機能）</a></li>
+    <li><a href="home.html">ホーム</a></li>
+    <li><a href="../features/coin-economy.html">ポイント（コイン経済）</a></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-10-23</td><td>初版作成（アプリ 1.0.14 (27)・TestFlight 配信済み・未公開）</td></tr>
+  </table>
+
+  <footer class="site-footer">最終更新: 2026-10-23</footer>
+</div>
+</body>
+</html>

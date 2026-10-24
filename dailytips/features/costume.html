@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - 鳥の着せ替え</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix App Specs</a> / <a href="../">DailyTips</a> / 鳥の着せ替え</div>
+
+  <header class="site-header">
+    <h1>鳥の着せ替え</h1>
+    <p>ポイントで小物を買い、アイコンの鳥に着せる（ホーム・ウィジェットにも同じ姿で出る）</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">機能ID: DT-F-COSTUME</span>
+      <span class="tag">アプリ 1.0.14 (27)・未公開</span>
+    </div>
+  </header>
+
+  <h2>概要</h2>
+  <p>テーマショップの廃止でポイントの使い道が減ったため、1.0.14 で追加した。アプリアイコンから切り出した鳥に、頭・首・顔の小物を重ねる。
+  ポイントを貯める目的を「集める・着せる」楽しさにし、ホームとウィジェットで毎日目に入るようにする。</p>
+
+  <h2>関連画面</h2>
+  <ul>
+    <li><a href="../screens/costume-shop.html">着せ替え画面</a>（シート）</li>
+    <li><a href="../screens/home.html">ホーム</a>（上部の入口「着せ替え」・鳥のカード・ポイントの使い道）</li>
+    <li><a href="../screens/widget-small.html">小ウィジェット</a>（右下に鳥）／<a href="../screens/widget-medium.html">中ウィジェット</a>（左に鳥）</li>
+  </ul>
+
+  <h2>小物（11点）</h2>
+  <table>
+    <tr><th>場所</th><th>小物</th><th>値段</th></tr>
+    <tr><td rowspan="5">頭</td><td>麦わら帽子</td><td>150pt</td></tr>
+    <tr><td>ベレー帽</td><td>150pt</td></tr>
+    <tr><td>王冠</td><td>300pt</td></tr>
+    <tr><td>サンタ帽</td><td>200pt</td></tr>
+    <tr><td>桜の髪飾り</td><td>100pt</td></tr>
+    <tr><td rowspan="3">首</td><td>マフラー</td><td>150pt</td></tr>
+    <tr><td>蝶ネクタイ</td><td>100pt</td></tr>
+    <tr><td>すず</td><td>100pt</td></tr>
+    <tr><td rowspan="3">顔</td><td>丸メガネ</td><td>150pt</td></tr>
+    <tr><td>サングラス</td><td>200pt</td></tr>
+    <tr><td>ほっぺ増し</td><td>50pt</td></tr>
+  </table>
+
+  <h2>処理フロー</h2>
+  <div class="mermaid">
+sequenceDiagram
+  participant U as User
+  participant V as 着せ替え画面
+  participant VM as AppViewModel
+  participant S as CostumeService
+  participant C as CoinService
+  participant W as ウィジェット
+  U->>V: 小物の「🪙 ◯pt」
+  V-->>U: 確認（鳥は試着の姿で表示）
+  U->>V: 買う
+  V->>VM: purchaseCostume
+  VM->>S: purchase(id)
+  S->>C: spendCoins(値段)
+  alt 足りない
+    S-->>V: あと◯pt（引かない）
+  else 買えた
+    S-->>VM: purchased
+    VM->>S: equip(id)（自動で着せる・計測は送らない）
+    VM->>W: ウィジェットのデータを同期・再描画
+  end
+  </div>
+
+  <h2>ビジネスルール</h2>
+  <ul>
+    <li>買う: ポイントを引いて持ち物に足す。<strong>持っている物は二度と引かない</strong>。足りないときは引かずに「あと◯pt」を返す</li>
+    <li>買ったら<strong>すぐ着せる</strong>。いつでも外せる</li>
+    <li>着る: 買った物だけ。<strong>場所（頭・首・顔）ごとに1つ</strong>。同じ場所の別の物を着たら入れ替わる</li>
+    <li>重ねる順は 鳥 → 首 → 顔 → 頭。素材はすべて鳥と同じ 860×730 の枠なので、重ねるだけで位置が合う</li>
+    <li>読み上げは「豆知識の鳥（麦わら帽子・マフラー）」の形（並びは頭・首・顔）</li>
+    <li>保存値から読むとき、知らない id・場所の食い違い・買っていない物は捨てる</li>
+    <li>貯め方の案内: 動画を見て +3pt（1日5回まで）・毎日のログイン +1pt・今日のクイズの正解 +1〜3pt</li>
+  </ul>
+
+  <h2>外部連携</h2>
+  <table>
+    <tr><th>連携先</th><th>用途</th><th>備考</th></tr>
+    <tr><td>App Group の UserDefaults</td><td>持ち物 <code>costume_owned_ids</code>・着ている物 <code>costume_equipped</code></td><td>ウィジェットも読む。形は <a href="../data-model.html">データモデル</a></td></tr>
+    <tr><td>WidgetKit</td><td>着替えたらウィジェットを再描画</td><td>素材はアプリとウィジェットで共有するアセットカタログ（Costume.xcassets）</td></tr>
+    <tr><td>計測（AnalyticsService）</td><td><code>costume_purchased</code>（id・値段）・<code>costume_equipped</code>（id）</td><td>買った直後の自動着用は「着た」に数えない</td></tr>
+  </table>
+
+  <h2>エラー処理</h2>
+  <table>
+    <tr><th>発生条件</th><th>対応</th></tr>
+    <tr><td>残高不足</td><td>アラート「あと◯ptで買えます」＋貯め方の案内。ポイントは引かない</td></tr>
+    <tr><td>保存値に文字列以外が混ざっている</td><td>読める物だけ拾う（全体を捨てて、次の購入で持ち物を上書きで消さないため）</td></tr>
+    <tr><td>知らない id</td><td>買えない・着られない（unknownItem）</td></tr>
+  </table>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li>定義 <code>Models/Costume.swift</code>（<code>CostumeSlot</code>・<code>CostumeItem.all</code>・<code>CostumeOutfit</code>）。ウィジェットにも同じファイルを入れ、読み出し <code>CostumeOutfit.load</code> もここに置く（ウィジェットは CoinService を持たない）</li>
+    <li>処理 <code>Services/CostumeService.swift</code>（ロックで直列化）・<code>ViewModels/AppViewModel+Costume.swift</code></li>
+    <li>表示部品 <code>Views/Components/CostumedBirdView.swift</code>・画面 <code>Views/Costume/</code>・ホームの <code>HomeBirdCard</code></li>
+    <li>テストは <code>DailyTipsTests/CostumeServiceTests.swift</code></li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-10-23</td><td>初版作成（アプリ 1.0.14 (27)・TestFlight 配信済み・未公開）</td></tr>
+  </table>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default'
+    });
+  </script>
+  <footer class="site-footer">最終更新: 2026-10-23</footer>
+</div>
+</body>
+</html>
