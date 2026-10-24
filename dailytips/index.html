@@ -155,6 +155,7 @@
     <a class="card" href="screens/genre-quiz-history.html"><div class="title">ジャンルクイズ履歴</div><div class="desc">回答履歴</div><div class="meta"><span class="tag">DT-GQS-03</span></div></a>
     <a class="card" href="screens/genre-progress.html"><div class="title">進捗ダッシュボード</div><div class="desc">ジャンル別の正解率</div><div class="meta"><span class="tag">DT-GQS-04</span></div></a>
     <a class="card" href="screens/theme-shop.html"><div class="title">テーマショップ（廃止）</div><div class="desc">1.0.14 で廃止・購入分はポイントで返金</div><div class="meta"><span class="tag">DT-TH-01</span><span class="tag todo">廃止</span></div></a>
+    <a class="card" href="screens/costume-shop.html"><div class="title">鳥の着せ替え</div><div class="desc">ポイントで小物を買い鳥に着せる（1.0.14）</div><div class="meta"><span class="tag">DT-CST-01</span></div></a>
     <a class="card" href="screens/premium.html"><div class="title">Premium</div><div class="desc">サブスク購入画面</div><div class="meta"><span class="tag">DT-PRM-01</span></div></a>
     <a class="card" href="screens/settings.html"><div class="title">設定</div><div class="desc">通知・プレミアム・各種設定</div><div class="meta"><span class="tag">DT-SET-01</span></div></a>
     <a class="card" href="screens/privacy-policy.html"><div class="title">プライバシーポリシー</div><div class="desc">アプリ内表示</div><div class="meta"><span class="tag">DT-SET-02</span></div></a>
@@ -165,6 +166,9 @@
   <h2>機能仕様書</h2>
   <div class="card-grid">
     <a class="card" href="features/coin-economy.html"><div class="title">ポイント（コイン経済）</div><div class="desc">獲得・使い道（ジャンル解放・ヒント・着せ替え）・ストリーク</div></a>
+    <a class="card" href="features/hint.html"><div class="title">クイズのヒント</div><div class="desc">10ptで間違いの選択肢を消す（1.0.14）</div></a>
+    <a class="card" href="features/costume.html"><div class="title">鳥の着せ替え</div><div class="desc">小物11点・場所ごとに1つ・ホームとウィジェットに反映（1.0.14）</div></a>
+    <a class="card" href="features/theme-refund.html"><div class="title">テーマ返金</div><div class="desc">テーマショップ廃止に伴い購入済み分をポイントで返す（1.0.14）</div></a>
     <a class="card" href="features/widget-sync.html"><div class="title">Widget同期</div><div class="desc">本体↔Widget の AppGroup 同期</div></a>
     <a class="card" href="features/ad-control.html"><div class="title">広告制御</div><div class="desc">Unity LevelPlay 3種広告・起動広告の廃止・配信環境の限定・ATT 表示条件・プライバシーマニフェスト方針</div></a>
     <a class="card" href="features/review-prompt.html"><div class="title">レビュー誘導</div><div class="desc">5回目・20回目起動でin-app review</div></a>
@@ -182,7 +186,7 @@
     <tr><td>1.1</td><td>2026-08-23</td><td><strong>ATT ダイアログの表示条件の設計変更</strong>を反映（<code>shouldRequestTracking = !appKey.isEmpty</code> で広告の配信可否と分離し、審査ビルドでも表示する）。<code>isAdDeliveryAvailable</code> のままでは sandbox で走る App Store 審査でダイアログが出ず、2026-08-22 に姉妹アプリ CHROMATIC 1.4.0(7) が Guideline 2.1 でリジェクトされた。<strong>DailyTips のコードは未適用</strong>である旨を要対応事項として明記。あわせて<strong>プライバシーマニフェストの方針</strong>（<code>NSPrivacyTracking: false</code> ＋ <code>NSPrivacyTrackingDomains</code> キーごと削除／ITMS-91064）を追記。<strong>アプリ起動広告は LevelPlay 移行に伴う廃止</strong>である旨を <a href="features/ad-control.html">広告制御</a> で明示。LevelPlay 移行が 2026-08-23 の ITPassportMaster をもって全8アプリで統一された点を追記。</td></tr>
     <tr><td>1.2</td><td>2026-09-07</td><td>v1.0.11: 新ジャンル<strong>「経済・お金」100問</strong>追加を反映（<strong>全14ジャンル1,400問</strong>）。「v1.0.11 主な変更点」セクションを追加し、ジャンルクイズショップ／ジャンルクイズのカード説明を 13ジャンル → 14ジャンル に更新。</td></tr>
     <tr><td>1.3</td><td>2026-10-21</td><td>アプリ 1.0.13（未公開・2026-10-21）: 「v1.0.13 主な変更点（未公開）」セクションを追加（DT-010・DT-012〜016）</td></tr>
-    <tr><td>1.4</td><td>2026-10-23</td><td>アプリ 1.0.14 (27)（TestFlight 配信済み・未公開）: 「v1.0.14 主な変更点」を追加（配色ひだまり・テーマショップ廃止と返金・ヒント・鳥の着せ替え・新3ジャンル・DT-005・ストア文言）。テーマショップのカードを廃止表示に、ジャンル数を 17 に、版の表記を更新</td></tr>
+    <tr><td>1.4</td><td>2026-10-23</td><td>アプリ 1.0.14 (27)（TestFlight 配信済み・未公開）: 「v1.0.14 主な変更点」を追加（配色ひだまり・テーマショップ廃止と返金・ヒント・鳥の着せ替え・新3ジャンル・DT-005・ストア文言）。テーマショップのカードを廃止表示に、ジャンル数を 17 に、版の表記を更新。画面「鳥の着せ替え」、機能「クイズのヒント」「鳥の着せ替え」「テーマ返金」のカードを追加</td></tr>
   </table>
 
   <footer class="site-footer">最終更新: 2026-10-23</footer>
