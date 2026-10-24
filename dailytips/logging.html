@@ -33,7 +33,10 @@ private static let logger = Logger(
   <table>
     <tr><th>カテゴリ</th><th>用途</th><th>使用箇所</th></tr>
     <tr><td><code>CoinService</code></td><td>コイン残高・ボーナス管理</td><td>CoinService</td></tr>
-    <tr><td><code>ThemeService</code></td><td>テーマ購入・選択</td><td>ThemeService</td></tr>
+    <tr><td><s><code>ThemeService</code></s></td><td>テーマ購入・選択（1.0.14 で削除）</td><td>—</td></tr>
+    <tr><td><code>ThemeRefund</code></td><td>テーマ返金（返金額を notice で1行）</td><td>ThemeRefundService（1.0.14）</td></tr>
+    <tr><td><code>Hint</code></td><td>ヒントの使用（問題のキーと消した選択肢を debug）</td><td>HintService（1.0.14）</td></tr>
+    <tr><td><code>Costume</code></td><td>着せ替えの購入（debug）</td><td>CostumeService（1.0.14）</td></tr>
     <tr><td><code>PremiumService</code></td><td>サブスク管理</td><td>PremiumService</td></tr>
     <tr><td><code>NotificationService</code></td><td>ローカル通知</td><td>NotificationService</td></tr>
     <tr><td><code>QuizService</code></td><td>豆知識クイズ</td><td>QuizService</td></tr>
@@ -70,8 +73,8 @@ logger.error("daily_tips.json decode失敗: \(error.localizedDescription)")</cod
   <table>
     <tr><th>レベル</th><th>用途</th><th>例</th></tr>
     <tr><td><code>.debug</code></td><td>開発時のみ確認したい情報</td><td>Widget タイムライン更新</td></tr>
-    <tr><td><code>.info</code></td><td>通常のイベント</td><td>ログイン、コイン消費、テーマ購入</td></tr>
-    <tr><td><code>.notice</code></td><td>注目すべきイベント</td><td>初回起動、サブスク購入、ジャンル全アンロック</td></tr>
+    <tr><td><code>.info</code></td><td>通常のイベント</td><td>ログイン、コイン消費（1.0.14 からテーマ購入は無し）</td></tr>
+    <tr><td><code>.notice</code></td><td>注目すべきイベント</td><td>初回起動、サブスク購入、ジャンル全アンロック、テーマ返金（1.0.14）</td></tr>
     <tr><td><code>.warning</code></td><td>異常だが継続可能</td><td>広告ロード失敗、AppGroup nil検出</td></tr>
     <tr><td><code>.error</code></td><td>機能継続不可</td><td>JSON decode失敗、StoreKit verification失敗</td></tr>
   </table>
@@ -92,9 +95,10 @@ logger.error("daily_tips.json decode失敗: \(error.localizedDescription)")</cod
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成（ソースコードからリバース）</td></tr>
       <tr><td>1.1</td><td>2026-08-20</td><td>広告基盤の Unity LevelPlay 移行を反映。<strong>アプリ起動広告の廃止</strong>に伴い <code>AppOpenAdManager</code> のログ出力がなくなったことを明記（無効スタブは意図的にログを出さない）。</td></tr>
+    <tr><td>1.2</td><td>2026-10-23</td><td>アプリ 1.0.14 (27)（TestFlight 配信済み・未公開）: カテゴリに ThemeRefund・Hint・Costume を追加し ThemeService を削除扱いに（新カテゴリは短い名前で、クラス名と一致しない）。計測イベント（hint_used・costume_purchased・costume_equipped）は個人を特定する値を送らない</td></tr>
   </table>
 
-  <footer class="site-footer">最終更新: 2026-08-20</footer>
+  <footer class="site-footer">最終更新: 2026-10-23</footer>
 </div>
 </body>
 </html>
