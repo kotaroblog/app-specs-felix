@@ -61,7 +61,8 @@ let store = UserDefaults(suiteName: WidgetAppGroup.suiteName) ?? .standard</code
     <tr><th>イベント</th><th>処理</th></tr>
     <tr><td>本体アプリ起動時</td><td>AppViewModel が syncWidgetData() を呼出</td></tr>
     <tr><td>豆知識切り替え時（日付変更）</td><td>HistoryService.markAsLogin() 経由で再同期</td></tr>
-    <tr><td>テーマ変更時（1.0.13）</td><td>テーマショップで適用 → syncWidgetData() → タイムライン更新</td></tr>
+    <tr><td>着せ替え時（1.0.14）</td><td>小物を買う・着る・外す → syncWidgetData() → タイムライン更新（<code>AppViewModel+Costume</code> の <code>didChangeCostume</code>）</td></tr>
+    <tr><td><s>テーマ変更時（1.0.13）</s></td><td>1.0.14 でテーマショップを廃止したため無し</td></tr>
     <tr><td>WidgetCenter.shared.reloadAllTimelines()</td><td>Widget の即時更新トリガー</td></tr>
     <tr><td>Widget 自身の Timeline</td><td>1時間ごと + 翌日0時に自動再取得</td></tr>
   </table>
@@ -83,14 +84,17 @@ let store = UserDefaults(suiteName: WidgetAppGroup.suiteName) ?? .standard</code
     let updatedAt: Date
 }</code></pre>
 
-  <h3>選択中のテーマ（1.0.13・DT-012）</h3>
-  <p>本体のテーマ管理が App Group の共有領域に書く選択中のテーマ ID（<code>selected_theme_id</code>）をウィジェットが読み、
-  本体と同じテーマの定義（<code>AppThemeItem</code>。project.yml でウィジェットのターゲットにも含める）から色を引く。色の定義は1か所。</p>
+  <h3>配色（1.0.14）</h3>
+  <p>1.0.14 でテーマを廃止し、ウィジェットもアプリと同じ配色「ひだまり」に固定した。<code>WidgetTheme</code> は本体の <code>AppPalette</code>（project.yml でウィジェットのターゲットにも含める）から色を引くだけで、共有領域のテーマ ID は読まない。</p>
   <ul>
-    <li>キー名は本体側と同じ文字列を使う（変えるときは両方を直す）</li>
-    <li>テーマ ID が無ければデフォルトテーマ</li>
-    <li>ウィジェットの文字は白。明るいテーマでは黒い膜を重ね、膜を重ねた後の一番明るい色でも白との<strong>コントラスト比 4.5:1 以上</strong>にする（全テーマを単体テスト <code>WidgetContrastTests</code> で確認）</li>
+    <li>背景 #FEF2E1 → #FEE7C7 → #FBD5A8 のグラデーション、文字は濃い色（#2E3440・補助 #545B69）。膜は重ねない</li>
+    <li>コントラストは単体テスト <code>PaletteContrastTests</code> で確認（旧 <code>WidgetContrastTests</code> の白文字＋黒い膜の確認は不要になった）</li>
+    <li>※ 1.0.13（未公開）では選択中のテーマ ID（<code>selected_theme_id</code>）を読み、テーマの色＋明るいテーマは黒い膜、だった（DT-012）</li>
   </ul>
+
+  <h3>着せ替えた鳥（1.0.14）</h3>
+  <p>ウィジェットは App Group の <code>costume_owned_ids</code>・<code>costume_equipped</code> を <code>CostumeOutfit.load()</code> で読み、買っていない物・知らない id は捨てて描く。
+  定義（<code>Models/Costume.swift</code>）と素材（Costume.xcassets）は本体と共有。小は右下（幅64pt）、中は左（幅76pt）。CoinService はウィジェットに持たせない。</p>
 
   <h2>ビジネスルール</h2>
   <ul>
@@ -120,6 +124,7 @@ let store = UserDefaults(suiteName: WidgetAppGroup.suiteName) ?? .standard</code
     <li class="done">TimelineProvider で <code>policy: .after(startOfTomorrow)</code></li>
     <li class="done">HistoryService.syncWidgetData() で AppGroup 書込</li>
     <li class="done">1.0.13: ウィジェット2種の紫固定のグラデーションをやめ、<code>WidgetTheme</code> で選択中のテーマの色を使う</li>
+    <li class="done">1.0.14: テーマを廃止し <code>WidgetTheme</code> は <code>AppPalette</code>（ひだまり）固定に。タイムラインのエントリに <code>outfit</code>（着ている小物）を追加</li>
     <li>Widget の Smart Stack 対応（v1.x）</li>
   </ul>
 
@@ -128,6 +133,7 @@ let store = UserDefaults(suiteName: WidgetAppGroup.suiteName) ?? .standard</code
     <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
     <tr><td>1.0</td><td>2026-05-09</td><td>初版作成</td></tr>
     <tr><td>1.1</td><td>2026-10-21</td><td>アプリ 1.0.13（未公開・2026-10-21）: ウィジェットがアプリのテーマ色で描かれる仕組み（共有領域のテーマ ID・テーマ定義の共有・明るいテーマの黒い膜とコントラスト比）、テーマ変更時の同期、カテゴリの日本語化を追加（DT-012・DT-013）</td></tr>
+    <tr><td>1.2</td><td>2026-10-23</td><td>アプリ 1.0.14 (27)（TestFlight 配信済み・未公開）: 配色をひだまり固定に（テーマ ID を読まない・膜なし・PaletteContrastTests）、着せ替えた鳥の共有と表示位置、着せ替え時の同期を追加（テーマ変更時の同期は廃止）</td></tr>
   </table>
 
   <script>
@@ -137,7 +143,7 @@ let store = UserDefaults(suiteName: WidgetAppGroup.suiteName) ?? .standard</code
     });
   </script>
 
-  <footer class="site-footer">最終更新: 2026-10-21</footer>
+  <footer class="site-footer">最終更新: 2026-10-23</footer>
 </div>
 </body>
 </html>
