@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DailyTips - テーマ返金</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb"><a href="../../">Felix App Specs</a> / <a href="../">DailyTips</a> / テーマ返金</div>
+
+  <header class="site-header">
+    <h1>テーマ返金</h1>
+    <p>テーマショップの廃止に伴い、ポイントで購入済みだったテーマの分をポイントで返す</p>
+    <div class="section-meta">
+      <span class="tag done">v1.0</span>
+      <span class="tag">機能ID: DT-F-REFUND</span>
+      <span class="tag">アプリ 1.0.14 (27)・未公開</span>
+    </div>
+  </header>
+
+  <h2>概要</h2>
+  <p>1.0.14 で配色を「ひだまり」1つに作り直し、テーマショップを廃止した。
+  これまでポイント（200pt）で有料テーマを購入していた人が損をしないよう、<strong>購入済みの有料テーマ1つにつき 200pt を残高へ戻す</strong>。
+  返金は1回だけで、返したことはホームの帯でお知らせする。テーマはアプリ内ポイントで売っていたもので、App Store の課金とは関係しない。</p>
+
+  <h2>関連画面</h2>
+  <ul>
+    <li><a href="../screens/home.html">ホーム</a>（返金のお知らせの帯）</li>
+    <li><a href="../screens/theme-shop.html">テーマショップ</a>（1.0.14 で廃止）</li>
+  </ul>
+
+  <h2>処理フロー</h2>
+  <div class="mermaid">
+sequenceDiagram
+  participant App as アプリ起動
+  participant R as ThemeRefundService
+  participant C as CoinService
+  participant H as ホーム
+  App->>R: refundIfNeeded()
+  alt 返金済みの旗あり
+    R-->>App: 0（何もしない）
+  else 未返金
+    R->>R: 返金済みの旗を先に立てる
+    R->>R: 購入済みの有料テーマ数 × 200pt
+    opt 返金額 > 0
+      R->>R: お知らせ用の返金額を保存
+      R->>C: 残高へ加算
+    end
+  end
+  H->>R: pendingNotice()
+  R-->>H: 返金額（あれば帯を表示）
+  H->>R: 閉じる → dismissNotice()
+  </div>
+
+  <h2>ビジネスルール</h2>
+  <ul>
+    <li>返金額 = 購入済みの<strong>有料テーマの数 × 200pt</strong>。最初から使えた無料テーマ3種（default・midnight・forest）は数えない。同じテーマが重複して記録されていても1つと数える</li>
+    <li>返金は<strong>1回だけ</strong>。返金済みの旗を<strong>残高への加算より先に</strong>立てる（途中でアプリが落ちても、二重に返す側には倒れない）</li>
+    <li>購入済みテーマの記録（<code>unlocked_theme_ids</code>）は<strong>消さずに残す</strong>（既存キーを変えない・後から戻せるように）</li>
+    <li>お知らせの帯は「テーマショップを終了しました。購入していたテーマの ◯pt をお返ししました。」。<strong>閉じるまで次の起動でも出す</strong>（表示前にアプリを終了しても見逃さない）。0pt の人には出さない</li>
+  </ul>
+
+  <h2>外部連携</h2>
+  <table>
+    <tr><th>連携先</th><th>用途</th><th>備考</th></tr>
+    <tr><td>App Group の UserDefaults</td><td>購入済みテーマの読み出し・返金済みの旗・お知らせ用の返金額</td><td>キーは <a href="../data-model.html">データモデル</a> を参照</td></tr>
+  </table>
+
+  <h2>エラー処理</h2>
+  <table>
+    <tr><th>発生条件</th><th>対応</th></tr>
+    <tr><td>購入済みテーマが無い</td><td>旗だけ立てて終わる。帯は出さない</td></tr>
+    <tr><td>旗を立てた直後にアプリが落ちた</td><td>その回の返金は失われうるが、二重返金は起きない（安全側）</td></tr>
+  </table>
+
+  <h2>実装メモ</h2>
+  <ul class="checklist">
+    <li><code>Services/ThemeRefundService.swift</code>。テストは <code>DailyTipsTests/ThemeRefundServiceTests.swift</code></li>
+    <li>帯は <code>Views/Home/ThemeRefundNoticeBanner.swift</code>（閉じるボタンの読み上げ「返金のお知らせを閉じる」）</li>
+    <li>ログは os.log カテゴリ <code>ThemeRefund</code>（返金額を notice で1行）</li>
+  </ul>
+
+  <h2>変更履歴</h2>
+  <table class="history-table">
+    <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    <tr><td>1.0</td><td>2026-10-23</td><td>初版作成（アプリ 1.0.14 (27)・TestFlight 配信済み・未公開）</td></tr>
+  </table>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default'
+    });
+  </script>
+  <footer class="site-footer">最終更新: 2026-10-23</footer>
+</div>
+</body>
+</html>
